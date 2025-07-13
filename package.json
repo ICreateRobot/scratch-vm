@@ -78,7 +78,7 @@
     "lodash.defaultsdeep": "4.6.1",
     "pngjs": "3.3.3",
     "scratch-audio": "0.1.0-prerelease.20231221012053",
-    "scratch-blocks": "0.1.0-prerelease.20230527085947",
+    "scratch-blocks": "git@github.com:ICreateRobot/scratch-blocks.git",
     "scratch-l10n": "npm:@turbowarp/scratch-l10n",
     "scratch-render": "0.1.0-prerelease.20231220210403",
     "scratch-render-fonts": "github:TurboWarp/scratch-render-fonts#master",
