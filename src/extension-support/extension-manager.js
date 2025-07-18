@@ -29,6 +29,8 @@ const defaultBuiltinExtensions = {
     tw: () => require('../extensions/tw')
 };
 
+defaultBuiltinExtensions['robotteachable'] = () => require('../extensions/robot_teachable');
+
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument
  * @property {ArgumentType} type - the type of value this argument can take
