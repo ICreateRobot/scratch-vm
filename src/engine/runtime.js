@@ -124,6 +124,93 @@ const ArgumentTypeMap = (() => {
             fieldName: 'SOUND_MENU'
         }
     };
+
+    map[ArgumentType.MATRIXCUSTOM] = {
+        shadow: {
+            type: 'matrixcustom',
+            fieldName: 'MATRIX_CUSTOM'
+        }
+    };
+
+     map[ArgumentType.NUMRES0_4] = {
+        shadow: {
+            type: 'numres0D4',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_9] = {
+        shadow: {
+            type: 'numres0D9',
+            fieldName: 'NUM'
+        }
+    };
+
+    map[ArgumentType.NUMRES40_500] = {
+        shadow: {
+            type: 'numres40D500',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES20_10000] = {
+        shadow: {
+            type: 'numres20D10000',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_255] = {
+        shadow: {
+            type: 'numres0D255',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES_255_255] = {
+        shadow: {
+            type: 'numresD255D255',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_300] = {
+        shadow: {
+            type: 'numres0D300',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES_100_100] = {
+        shadow: {
+            type: 'numresD100D100',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0] = {
+        shadow: {
+            type: 'numres0',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_100] = {
+        shadow: {
+            type: 'numres0D100',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES_360_360] = {
+        shadow: {
+            type: 'numresD360D360',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES_32400_32400] = {
+        shadow: {
+            type: 'numresD32400D32400',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_65535] = {
+        shadow: {
+            type: 'numres0D65535',
+            fieldName: 'NUM'
+        }
+    };
     return map;
 })();
 

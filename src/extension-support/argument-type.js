@@ -33,6 +33,8 @@ const ArgumentType = {
      */
     MATRIX: 'matrix',
 
+
+    MATRIXCUSTOM: 'matrix_custom',
     /**
      * MIDI note number with note picker (piano) field
      */
@@ -51,7 +53,71 @@ const ArgumentType = {
     /**
      * Name of sound in the current target
      */
-    SOUND: 'sound'
+    SOUND: 'sound',
+      /**
+     *限制输入大小0-4
+    */
+     NUMRES0_4: 'numres0D4',
+
+     /**
+      *限制输入大小0-9
+     */
+     NUMRES0_9: 'numres0D9',
+ 
+     /**
+      *限制输入大小40-500
+     */
+     NUMRES40_500: 'numres40D500',
+ 
+     /**
+      *限制输入大小20-10000
+     */
+     NUMRES20_10000: 'numres20D10000',
+ 
+     /**
+      *限制输入大小0-255
+     */
+     NUMRES0_255: 'numres0D255',
+ 
+     /**
+      *限制输入大小-255-255
+     */
+     NUMRES_255_255: 'numresD255D255',
+ 
+     /**
+      *限制输入大小0-300
+     */
+     NUMRES0_300: 'numres0D300',
+ 
+     /**
+      *限制输入大小-100-100
+     */
+     NUMRES_100_100: 'numresD100D100',
+ 
+     /**
+      *限制输入大小0-
+     */
+     NUMRES0: 'numres0',
+ 
+     /**
+      *限制输入大小0-100
+     */
+     NUMRES0_100: 'numres0D100',
+ 
+     /**
+      *限制输入大小-360-360
+     */
+     NUMRES_360_360: 'numresD360D360',
+ 
+     /**
+      *限制输入大小-32400-32400
+     */
+     NUMRES_32400_32400: 'numresD32400D32400',
+ 
+     /**
+      *限制输入大小0-65535
+     */
+     NUMRES0_65535: 'numres0D65535',
 };
 
 module.exports = ArgumentType;
