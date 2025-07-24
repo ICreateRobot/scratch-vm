@@ -1,0 +1,750 @@
+const BlockType = require('../../extension-support/block-type');
+const ArgumentType = require('../../extension-support/argument-type')
+const socket=require('../../util/socket-connect')
+const actuatorIcon = require('./actuator.svg')
+const innerHand = require('./innerHand.svg')
+const innerPort = require('./innerPort.svg')
+const formatMessage = require('format-message');
+let preMove='-1'
+let preTime=Date.now()
+let currentController = null;
+let firstTime
+let NUM=0
+let lastTime
+
+let preL;
+let preR;
+
+let preCatch='-1'
+let preFortTime=Date.now()
+let preDisTime=Date.now()
+
+class RobotActuator {
+    constructor(runtime){
+        this.runtime=runtime
+
+
+        this.flag='0'
+        this.channel = new BroadcastChannel('flag_channel');
+        this.channel.addEventListener('message', (event) => {
+            console.log('Received flag data:', event.data);
+            this.flag=event.data
+            // if(this.flag=='1'){
+                
+            // }
+        });
+
+        this.mode=true
+        this.channelMode=new BroadcastChannel('mode')
+        this.channelMode.addEventListener('message',(event)=>{
+            this.mode=event.data
+            if(!this.mode){
+                socket.closeSocket()
+                // socket.closeSocketRecive()
+            }
+        })
+
+        // setInterval(()=>{
+        //     if(Date.now()-socket.getLastPostTime()>5000 && socket.checkWebSocketStatus()==2){
+        //         socket.getSocket().send('1')
+        //         // console.log('跳动一次')
+        //     }
+        // },500)
+
+
+
+        this.whatSendFun='net'
+        this.channelPort = new BroadcastChannel('channelPort')
+        this.channelPort.addEventListener('message',(event)=>{
+            console.log(event.data)
+            if(event.data){
+                this.whatSendFun='port'
+            }else{
+                this.whatSendFun='net'
+            }
+            
+        })
+
+        this.channelSerialData=new BroadcastChannel('serial-data')
+        
+    }
+  getInfo() {
+
+    return {
+      id: 'robotactuator',
+      name: formatMessage({
+                id: 'robotactuator.name',
+                default: 'Actuator',
+                description: 'robotactuator.name'
+            }),
+      color1:'#33cccc',
+      menuIconURI: actuatorIcon,
+      blocks: [
+
+        
+        {
+            opcode: 'gripperOpen',
+            blockType: BlockType.COMMAND,
+            // text: '机械爪[ONE][TWO]',
+            text: formatMessage({
+                id: 'robotactuator.gripperOpen',
+                default: 'Gripper [ONE][TWO]',
+                description: 'robotactuator.gripperOpen'
+            }),
+            blockIconURI: innerHand,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_PORT',
+                    defaultValue:'2'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_STATE',
+                }
+            }
+        },
+
+        // {
+        //     opcode: 'gripperClose',
+        //     blockType: BlockType.COMMAND,
+        //     text: '机械手[ONE]抓取',
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_PORT',
+        //             defaultValue:'2'
+        //         }
+        //     }
+        // },
+
+
+        {
+            opcode: 'gripperOpenUntil',
+            blockType: BlockType.COMMAND,
+            // text: '机械爪[ONE][TWO]直到结束',
+            text: formatMessage({
+                id: 'robotactuator.gripperOpenUntil',
+                default: 'Gripper [ONE][TWO] until finished',
+                description: 'robotactuator.gripperOpenUntil'
+            }),
+            blockIconURI: innerHand,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_PORT',
+                    defaultValue:'2'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_STATE',
+                }
+            }
+        },
+
+
+        // {
+        //     opcode: 'gripperCloseUntil',
+        //     blockType: BlockType.COMMAND,
+        //     text: '机械手[ONE]抓取直到结束',
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_PORT',
+        //             defaultValue:'2'
+        //         }
+        //     }
+        // },
+
+       
+
+        {
+            opcode: 'gunFire',
+            blockType: BlockType.COMMAND,
+            // text: '发射器[ONE]发射[TWO]颗弹珠',
+            text: formatMessage({
+                id: 'robotactuator.gunFire',
+                default: 'Launcher [ONE] fires [TWO] marbles',
+                description: 'robotactuator.gunFire'
+            }),
+            blockIconURI: innerPort,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_PORT',
+                    defaultValue:'1'
+                },
+                TWO:{
+                    type:ArgumentType.STRING,
+                    defaultValue:1
+                }
+            }
+        },
+
+
+        {
+            opcode: 'gunFireUntil',
+            blockType: BlockType.COMMAND,
+            // text: '发射器[ONE]发射[TWO]颗弹珠直到结束',
+             text: formatMessage({
+                id: 'robotactuator.gunFireUntil',
+                default: 'Launcher [ONE] fires [TWO] marbles until finished',
+                description: 'robotactuator.gunFireUntil'
+            }),
+            blockIconURI: innerPort,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_PORT',
+                    defaultValue:'1'
+                },
+                TWO:{
+                    type:ArgumentType.STRING,
+                    defaultValue:1
+                }
+            }
+        },
+
+
+
+        // {
+        //     opcode: 'motor',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotactuator.motor',
+        //         default: 'Servo rotates to [ONE] degrees',
+        //         description: 'robotactuator.motor'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:90
+        //         },
+        //     }
+        // },
+
+
+
+
+        
+        
+
+      ],
+
+      menus: {
+        MENU_DIR: {
+          acceptReporters: false,
+          items: [
+            {
+                text: '停止',
+                value: '0'
+              },
+            {
+              text: '前进',
+              value: '1'
+            },
+            {
+              text: '后退',
+              value: '2'
+            },
+            {
+                text: '左转',
+                value: '3'
+            },
+            {
+                text: '右转',
+                value: '4'
+              },
+             
+          ]
+        },
+        MENU_PORT: {
+            acceptReporters: false,
+            items: [
+                {
+                    text: '1',
+                    value: '1'
+                },
+                {
+                    text: '2',
+                    value: '2'
+                },
+                {
+                    text: '3',
+                    value: '3'
+                },
+                {
+                    text: '4',
+                    value: '4'
+                },
+                
+            ]
+        },
+
+        MENU_STATE: {
+            acceptReporters: false,
+            items: [
+                {
+                    // text: '抓取',
+                    text: formatMessage({
+                        id: 'robotactuator.menuState.close',
+                        default: 'close',
+                        description: 'robotactuator.menuState.close'
+                    }),
+                    value: '1'
+                },
+                {
+                    // text: '松开',
+                    text: formatMessage({
+                        id: 'robotactuator.menuState.open',
+                        default: 'open',
+                        description: 'robotactuator.menuState.open'
+                    }),
+                    value: '0'
+                },
+                
+            ]
+        },
+    }
+    };
+  }
+
+
+
+
+  async waitForSuccess() {
+        return new Promise((resolve) => {
+            function messageHandler(event) {
+                try {
+                    let data = event.data;
+                    if (data === "success") {
+                        console.log("收到 success 响应");
+                        socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
+                        resolve(); // 继续执行
+                    }
+                } catch (error) {
+                    console.error("解析 WebSocket 消息出错", error);
+                }
+            }
+
+            socket.getSocket().addEventListener('message', messageHandler);
+        });
+    }
+
+    showToast(message, duration = 3000) {
+        // 如果 toast 容器不存在，则创建一个
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            Object.assign(container.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 9999,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+            });
+            document.body.appendChild(container);
+        }
+    
+        // 创建 toast 元素
+        const toast = document.createElement('div');
+        if(message=='未连接机器人'){
+            toast.textContent = formatMessage({
+                id: 'robotactuator.showToast.dontConnect',
+                default: 'Robot not connected',
+                description: 'robotactuator.showToast.dontConnect'
+            })
+        }else if(message=="socket断开，尝试重连......"){
+            toast.textContent = formatMessage({
+                id: 'robotactuator.showToast.reconnect',
+                default: 'Socket disconnected, attempting to reconnect...',
+                description: 'robotactuator.showToast.reconnect'
+            })
+        }else if(message == "socket正在连接中，请稍后"){
+            toast.textContent = formatMessage({
+                id: 'robotactuator.showToast.connecting',
+                default: 'Socket is connecting, please wait',
+                description: 'robotactuator.showToast.connecting'
+            })
+        }
+        // toast.textContent = message;
+    
+        // 样式设置
+        Object.assign(toast.style, {
+            background: '#333',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            maxWidth: '300px'
+        });
+    
+        // 添加 toast 到容器
+        container.appendChild(toast);
+    
+        // 强制触发重绘以启用动画
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+    
+        // 3秒后移除
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                toast.remove();
+                // 若容器内无子元素则移除容器
+                if (container.children.length === 0) {
+                    container.remove();
+                }
+            }, 300); // 等动画结束
+        }, duration);
+    }
+
+
+    sendCommandAndWaitForSuccess(command) {
+        return new Promise((resolve, reject) => {
+          // 发送命令
+          this.channelPort.postMessage(command);
+      
+          // 响应监听器
+          const onMessage = (e) => {
+            const data = e.data;
+            if (data.length==1 && data[0] === 'success') {
+                this.channelSerialData.removeEventListener('message', onMessage); // 清除监听器
+              resolve(); // 完成Promise
+            }
+          };
+      
+          this.channelSerialData.addEventListener('message', onMessage);
+      
+          // 可选：超时机制（比如 5 秒）
+        //   setTimeout(() => {
+        //     this.channelSerialData.removeEventListener('message', onMessage);
+        //     reject(new Error('超时未收到 success'));
+        //   }, 5000);
+        });
+      }
+  async gripperOpen(args){
+    if(this.mode){
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+
+        let mode=0
+
+        if(args.TWO=='0'){
+            mode=1
+        }else if(args.TWO=='1'){
+            mode=2
+        }
+        let jsonData={
+            "command":"gripper",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":mode
+            }
+        }
+        // let str = `robot.send_paw(${args.ONE},${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+
+        if(this.whatSendFun=='net'){
+            if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                console.log('断开连接，尝试重连')
+                this.showToast("socket断开，尝试重连......");
+                let context=[]
+                context.push(str)
+                await socket.setSocket(context)
+            }else if(socket.checkWebSocketStatus()==2){
+                socket.getSocket().send(str);
+            }else if(socket.checkWebSocketStatus()==1){
+                this.showToast("socket正在连接中，请稍后");
+                this.runtime.stopAll();
+            }
+    
+            socket.setLastPostTime(Date.now())
+        }else{
+            this.channelPort.postMessage(str)
+        }
+        
+       
+    }
+  }
+
+  async gripperOpenUntil(args){
+    if(this.mode){
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+
+        let mode=0
+
+        if(args.TWO=='0'){
+            mode=3
+        }else if(args.TWO=='1'){
+            mode=4
+        }
+
+        let jsonData={
+            "command":"gripper",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":mode
+            }
+        }
+        // let str = `robot.send_paw(${args.ONE},${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+        if(this.whatSendFun=='net'){
+            if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                console.log('断开连接，尝试重连')
+                this.showToast("socket断开，尝试重连......");
+                let context=[]
+                context.push(str)
+                await socket.setSocket(context)
+            }else if(socket.checkWebSocketStatus()==2){
+                socket.getSocket().send(str);
+            }else if(socket.checkWebSocketStatus()==1){
+                this.showToast("socket正在连接中，请稍后");
+                this.runtime.stopAll();
+            }
+    
+            await this.waitForSuccess()
+            // await new Promise(resolve => setTimeout(resolve, 2000)); 
+            socket.setLastPostTime(Date.now())
+        }else{
+            this.sendCommandAndWaitForSuccess(str)
+        }
+        
+       
+    }
+  }
+
+  async gripperClose(args){
+    if(this.mode){
+
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+
+        let jsonData={
+            "command":"gripper",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":2
+            }
+        }
+        // let str = `robot.send_paw(${args.ONE},${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+        if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            console.log('断开连接，尝试重连')
+            this.showToast("socket断开，尝试重连......");
+            let context=[]
+            context.push(str)
+            await socket.setSocket(context)
+        }else if(socket.checkWebSocketStatus()==2){
+            socket.getSocket().send(str);
+        }else if(socket.checkWebSocketStatus()==1){
+            this.showToast("socket正在连接中，请稍后");
+            this.runtime.stopAll();
+        }
+
+        socket.setLastPostTime(Date.now())
+       
+    }
+  }
+
+  async gripperCloseUntil(args){
+    if(this.mode){
+
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+
+        let jsonData={
+            "command":"gripper",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":4
+            }
+        }
+        // let str = `robot.send_paw(${args.ONE},${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+        if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            console.log('断开连接，尝试重连')
+            this.showToast("socket断开，尝试重连......");
+            let context=[]
+            context.push(str)
+            await socket.setSocket(context)
+        }else if(socket.checkWebSocketStatus()==2){
+            socket.getSocket().send(str);
+        }else if(socket.checkWebSocketStatus()==1){
+            this.showToast("socket正在连接中，请稍后");
+            this.runtime.stopAll();
+        }
+
+        await this.waitForSuccess()
+        // await new Promise(resolve => setTimeout(resolve, 2000)); 
+        socket.setLastPostTime(Date.now())
+       
+    }
+  }
+
+  gripperIsDown(){
+
+  }
+
+  async gunFire(args){
+    if(this.mode){
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+        let currentTime=Date.now()
+
+
+        let jsonData={
+            "command":"gun",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":1,
+                "num":Number(args.TWO)
+            }
+        }
+        // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+
+        if(this.whatSendFun=='net'){
+            if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                console.log('断开连接，尝试重连')
+                this.showToast("socket断开，尝试重连......");
+                let context=[]
+                context.push(str)
+                await socket.setSocket(context)
+            }else if(socket.checkWebSocketStatus()==2){
+                socket.getSocket().send(str);
+            }else if(socket.checkWebSocketStatus()==1){
+                this.showToast("socket正在连接中，请稍后");
+                this.runtime.stopAll();
+            }
+            socket.setLastPostTime(Date.now())
+        }else{
+            this.channelPort.postMessage(str)
+        }
+       
+       
+    }
+
+   
+  }
+
+
+  async gunFireUntil(args){
+    if(this.mode){
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+        let currentTime=Date.now()
+
+
+        let jsonData={
+            "command":"gun",
+            "params":{
+                "port":Number(args.ONE),
+                "mode":2,
+                "num":Number(args.TWO)
+            }
+        }
+        // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+        if(this.whatSendFun=='net'){
+            if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                console.log('断开连接，尝试重连')
+                this.showToast("socket断开，尝试重连......");
+                let context=[]
+                context.push(str)
+                await socket.setSocket(context)
+            }else if(socket.checkWebSocketStatus()==2){
+                socket.getSocket().send(str);
+            }else if(socket.checkWebSocketStatus()==1){
+                this.showToast("socket正在连接中，请稍后");
+                this.runtime.stopAll();
+            }
+    
+            await this.waitForSuccess()
+        }else{
+            this.sendCommandAndWaitForSuccess(str)
+        }
+        
+        // await new Promise(resolve => setTimeout(resolve, 3000)); 
+    }
+
+    socket.setLastPostTime(Date.now())
+  }
+  gunFireIsDown(){
+
+  }
+
+  async motor(args){
+    if(this.mode){
+        if(socket.getIp().length==0){
+            this.showToast('未连接机器人')
+            this.runtime.stopAll();
+            return
+        }
+        let currentTime=Date.now()
+
+
+        let jsonData={
+            "command":"expand",
+            "params":{
+                "mode":0,
+                "data":Number(args.ONE)
+            }
+        }
+        // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+        let str = JSON.stringify(jsonData)
+        if(this.whatSendFun=='net'){
+            if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                console.log('断开连接，尝试重连')
+                this.showToast("socket断开，尝试重连......");
+                let context=[]
+                context.push(str)
+                await socket.setSocket(context)
+            }else if(socket.checkWebSocketStatus()==2){
+                socket.getSocket().send(str);
+            }else if(socket.checkWebSocketStatus()==1){
+                this.showToast("socket正在连接中，请稍后");
+                this.runtime.stopAll();
+            }
+        }
+        
+        // await new Promise(resolve => setTimeout(resolve, 3000)); 
+    }
+
+    socket.setLastPostTime(Date.now())
+  }
+
+
+}
+
+
+module.exports = RobotActuator;

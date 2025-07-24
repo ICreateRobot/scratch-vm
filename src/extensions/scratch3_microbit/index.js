@@ -434,7 +434,7 @@ class Scratch3MicroBitBlocks {
     get BUTTONS_MENU () {
         return [
             {
-                text: 'A',
+                text: '111',
                 value: MicroBitButtons.A
             },
             {
