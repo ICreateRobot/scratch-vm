@@ -29,7 +29,37 @@ const defaultBuiltinExtensions = {
     tw: () => require('../extensions/tw')
 };
 
+defaultBuiltinExtensions['bricksmotor'] = () => require('../extensions/bricks_motor');
+defaultBuiltinExtensions['brickstwomotor'] = () => require('../extensions/bricks_two_motor');
+defaultBuiltinExtensions['brickslight'] = () => require('../extensions/bricks_light');
+defaultBuiltinExtensions['brickssensors'] = () => require('../extensions/bricks_sensors');
+defaultBuiltinExtensions['bricksevent'] = () => require('../extensions/bricks_event');
+
+defaultBuiltinExtensions['robotimg'] = () => require('../extensions/robot_img');
+defaultBuiltinExtensions['robotmove'] = () => require('../extensions/robot_move');
+defaultBuiltinExtensions['robotsensors'] = () => require('../extensions/robot_sensors');
+defaultBuiltinExtensions['robotevent'] = () => require('../extensions/robot_event');
+defaultBuiltinExtensions['robotwifi'] = () => require('../extensions/robot_wifi');
+defaultBuiltinExtensions['robotemote'] = () => require('../extensions/robot_emote');
+defaultBuiltinExtensions['robotshow'] = () => require('../extensions/robot_show');
+defaultBuiltinExtensions['robotsound'] = () => require('../extensions/robot_sound');
+defaultBuiltinExtensions['robotactuator'] = () => require('../extensions/robot_actuator');
+defaultBuiltinExtensions['robotble'] = () => require('../extensions/robot_ble');
 defaultBuiltinExtensions['robotteachable'] = () => require('../extensions/robot_teachable');
+defaultBuiltinExtensions['robotapriltag'] = () => require('../extensions/robot_apriltag');
+defaultBuiltinExtensions['robotcolordete'] = () => require('../extensions/robot_colordete');
+defaultBuiltinExtensions['robotqr'] = () => require('../extensions/robot_qr');
+defaultBuiltinExtensions['robotgood'] = () => require('../extensions/robot_good');
+defaultBuiltinExtensions['robotface'] = () => require('../extensions/robot_face');
+defaultBuiltinExtensions['robotcolorplace'] = () => require('../extensions/robot_colorplace');
+
+defaultBuiltinExtensions['robotcolorxy'] = () => require('../extensions/robot_colorxy');
+defaultBuiltinExtensions['robotcat'] = () => require('../extensions/robot_cat');
+defaultBuiltinExtensions['robottraffic'] = () => require('../extensions/robot_traffic');
+
+defaultBuiltinExtensions['deepseek'] = () => require('../extensions/deepseek');
+defaultBuiltinExtensions['MicrobitIcreate'] = () => require('../extensions/ICreate_Microbit');
+defaultBuiltinExtensions['MicrobiteIcreateP'] = () => require('../extensions/ICreate_Microbit_P');
 
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument
