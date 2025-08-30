@@ -1122,7 +1122,7 @@ function processColorPlaceDetection(that,Video,cv,aiInfo) {
         );
     } else {
         colorNum = 0;
-        // aiInfo.setRegion('none');
+        aiInfo.setRegion('none');
     }
 
     // aiInfo.setHaveColor(colorNum);
@@ -1591,6 +1591,39 @@ function stopTraffic(that){
     clearInterval(that.timerTraffic)
 }
 
+function stopVideo(that,Video,StageLayering){
+    that.canvas.width = Video.DIMENSIONS[0];
+    that.canvas.height = Video.DIMENSIONS[1];
+    const {renderer} = that.runtime;
+    that.renderer=renderer
+    if (!that.renderer) {
+        console.error('Renderer 未初始化');
+        return;
+    }
+
+    // 创建一个新的 skin 和 drawable 用于 face detection
+    that.faceSkinId = that.renderer.createBitmapSkin(new ImageData(...Video.DIMENSIONS), 1);
+    that.faceDrawableId = that.renderer.createDrawable(StageLayering.VIDEO_LAYER);
+
+    console.log('创建的 faceSkinId:', that.faceSkinId);
+    
+    if (that.renderer.markSkinAsPrivate) {
+        that.renderer.markSkinAsPrivate(that.faceSkinId);
+    }
+
+    that.renderer.updateDrawableSkinId(that.faceDrawableId, that.faceSkinId);
+    that.renderer.updateDrawableVisible(that.faceDrawableId, true);
+    that.renderer.updateDrawableEffect(that.faceDrawableId, 'ghost', 0); // 确保没有透明度
+
+
+    that.canvasCtx.clearRect(0, 0, that.canvas.width, that.canvas.height);  
+    // 更新 renderer 的 skin 内容
+    const imageData = that.canvasCtx.getImageData(0, 0, that.canvas.width, that.canvas.height);
+    that.renderer.updateBitmapSkin(that.faceSkinId, imageData, 1);
+    that.renderer.updateDrawableVisible(that.faceDrawableId, false);
+    that.runtime.requestRedraw();
+}
+
 // 用 CommonJS 的方式导出
 module.exports = {
     startQRDetection,
@@ -1608,5 +1641,6 @@ module.exports = {
     startWColorBlockDetection,
     stopWColorBlockDetection,
     startTrafficpre,
-    stopTraffic
+    stopTraffic,
+    stopVideo
 };
