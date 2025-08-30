@@ -27,7 +27,8 @@ const {serializeSounds, serializeCostumes} = require('./serialization/serialize-
 require('canvas-toBlob');
 const {exportCostume} = require('./serialization/tw-costume-import-export');
 const Base64Util = require('./util/base64-util');
-
+const {getMode,setMode} = require('./util/modeDb.js')
+const createVisualLogic =  require('./visual-machine-logic.js')
 const RESERVED_NAMES = ['_mouse_', '_stage_', '_edge_', '_myself_', '_random_'];
 
 const CORE_EXTENSIONS = [
@@ -61,6 +62,9 @@ const createRuntimeService = runtime => {
 class VirtualMachine extends EventEmitter {
     constructor () {
         super();
+        this.logic=createVisualLogic(this)
+        this.loadProject =(input) => this.logic.loadProject(input)
+        this._saveProjectZip = this.logic._saveProjectZip
 
         /**
          * VM runtime, to store blocks, I/O devices, sprites/targets, etc.
@@ -234,6 +238,14 @@ class VirtualMachine extends EventEmitter {
                 });
             }
         };
+        this.mode=getMode()
+        this.channelLoadModel = new BroadcastChannel('loadmodel')
+        this.channelMode = new BroadcastChannel('mode')
+        this.channelMode.addEventListener('message',(event)=>{
+            console.log('modemode',event.data)
+            this.mode=event.data
+            setMode(event.data)
+        })
     }
 
     /**
