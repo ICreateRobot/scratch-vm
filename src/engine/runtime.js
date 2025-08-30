@@ -131,6 +131,12 @@ const ArgumentTypeMap = (() => {
             fieldName: 'MATRIX_CUSTOM'
         }
     };
+    map[ArgumentType.MATRIXONEROW] = {
+        shadow: {
+            type: 'matrixonerow',
+            fieldName: 'MATRIX_ONEROW'
+        }
+    };
 
      map[ArgumentType.NUMRES0_4] = {
         shadow: {
