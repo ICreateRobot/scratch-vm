@@ -286,7 +286,7 @@ class RobotColorplace {
             // text: '开启颜色位置追踪模式',
             text: formatMessage({
                 id: 'robotcolorplace.cstartMode',
-                default: 'Enable color tracking mode',
+                default: 'Switch to color tracking mode',
                 description: 'robotcolorplace.cstartMode'
             }),
             arguments:{
@@ -302,7 +302,7 @@ class RobotColorplace {
             // text: '关闭颜色位置追踪模式',
             text: formatMessage({
                 id: 'robotcolorplace.cstopMode',
-                default: 'Disable color tracking mode',
+                default: 'Switch off color tracking mode',
                 description: 'robotcolorplace.cstopMode'
             }),
             arguments:{

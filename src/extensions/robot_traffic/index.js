@@ -310,7 +310,7 @@ class RobotTraffic {
             // text: '开启路标识别模式',
             text: formatMessage({
                 id: 'robottraffic.cstartMode',
-                default: 'Enable traffic sign recognition mode',
+                default: 'Switch to traffic sign recognition mode',
                 description: 'robottraffic.cstartMode'
             }),
             arguments:{
@@ -326,7 +326,7 @@ class RobotTraffic {
             // text: '关闭路标识别模式',
             text: formatMessage({
                 id: 'robottraffic.cstopMode',
-                default: 'Disable traffic sign recognition mode',
+                default: 'Switch off traffic sign recognition mode',
                 description: 'robottraffic.cstopMode'
             }),
             arguments:{
@@ -1116,6 +1116,12 @@ class RobotTraffic {
                 default: 'Robot not connected',
                 description: 'robotapriltag.showToast.firstCamera'
             })
+        }else if(message == '未开启路标识别模式'){
+             toast.textContent = formatMessage({
+                id: 'robottraffic.showToast.startMode',
+                default: 'The road sign recognition mode is not turned on',
+                description: 'robottraffic.showToast.startMode'
+            })
         }
         // toast.textContent = message;
     
@@ -1209,10 +1215,20 @@ class RobotTraffic {
 
 
     getTraffic(){
+        if(!this.mode) return
+        if(!imageLoad.getIsTraffic()){
+            this.showToast('未开启路标识别模式')
+            return
+        }
         return aiInfo.getTraffic()
     }
 
     isTraffic(){
+        if(!this.mode) return
+        if(!imageLoad.getIsTraffic()){
+            this.showToast('未开启路标识别模式')
+            return
+        }
         if(aiInfo.getTraffic()!==-1){
             return true
         }
@@ -1220,6 +1236,11 @@ class RobotTraffic {
     }
 
     whatTraffic(args){
+        if(!this.mode) return
+        if(!imageLoad.getIsTraffic()){
+            this.showToast('未开启路标识别模式')
+            return
+        }
         if(args.ONE==aiInfo.getTraffic()){
             return true
         }

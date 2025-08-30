@@ -281,7 +281,7 @@ class RobotFace {
             // text: '开启人脸识别模式',
             text: formatMessage({
                 id: 'robotface.cstartMode',
-                default: 'Enable face recognition mode',
+                default: 'Switch to face recognition mode',
                 description: 'robotface.cstartMode'
             }),
             arguments:{
@@ -297,7 +297,7 @@ class RobotFace {
             // text: '关闭人脸识别模式',
             text: formatMessage({
                 id: 'robotface.cstopMode',
-                default: 'Disable face recognition mode',
+                default: 'Switch off face recognition mode',
                 description: 'robotface.cstopMode'
             }),
             arguments:{

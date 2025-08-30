@@ -2194,7 +2194,7 @@ class RobotImg {
     async cstartCamera(args){
         if(this.mode){
             if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
+                this.showToast('未与机器人建立wifi连接')
                 this.runtime.stopAll();
                 return
             }
@@ -2547,15 +2547,27 @@ class RobotImg {
         console.log(this.deviceList)
         if(this.deviceList.length>0){
             for(let i=0;i<this.deviceList.length;i++){
+                
                 let textIsExit=this.deviceList[i].label == '' ? `Device${flag}`:this.deviceList[i].label
-                let content={
-                    text: formatMessage({
-                        id: 'robotimg.getCamera',
-                        default: textIsExit,
-                        description: 'robotimg.getCamera'
-                    },{ index: flag }),
-                    value:`${this.deviceList[i].deviceId}`
+                // console.log(textIsExit)
+                let content;
+
+                if(textIsExit.startsWith("Device")){
+                    content={
+                        text: formatMessage({
+                            id: 'robotimg.getCamera',
+                            default: textIsExit,
+                            description: 'robotimg.getCamera'
+                        },{ index: flag }),
+                        value:`${this.deviceList[i].deviceId}`
+                    }
+                }else{
+                    content={
+                        text: textIsExit,
+                        value:`${this.deviceList[i].deviceId}`
+                    }
                 }
+                
                 item.push(content)
                 flag++
             }
@@ -2860,7 +2872,7 @@ class RobotImg {
 
                 await this.waitForValue(() => this.loadingEnd, 'done');
                 this.loadingEnd='loading'
-                // await new Promise(resolve => setTimeout(resolve, 2500)); 
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
 
         }else{
             console.log('关闭摄像头')
@@ -2995,6 +3007,12 @@ class RobotImg {
                 id: 'robotimg.showToast.haveCamera',
                 default: 'Camera already in use in the current mode',
                 description: 'robotimg.showToast.haveCamera'
+            })
+        }else if(message == "未与机器人建立wifi连接"){
+            toast.textContent = formatMessage({
+                id: 'robotimg.showToast.haveWifiCamera',
+                default: 'Wi-Fi connection to the robot is not established.',
+                description: 'robotimg.showToast.haveWifiCamera'
             })
         }
         // toast.textContent = message;
@@ -3181,62 +3199,62 @@ class RobotImg {
 
     
     async cstopMode(args){
-        if(this.mode){
+        // if(this.mode){
             if(args.ONE=='3'){
-            if(imageLoad.getQr()){
-                await this.runtime.ioDevices.video.stopQRDetection()
-                imageLoad.setQr(false)
-            }
-            
-        }else if(args.ONE=='4'){
+                if(imageLoad.getQr()){
+                    await this.runtime.ioDevices.video.stopQRDetection()
+                    imageLoad.setQr(false)
+                }
+                
+            }else if(args.ONE=='4'){
 
-            if(imageLoad.getFaceDet()){
-                await this.runtime.ioDevices.video.stopFaceDetection()
-                imageLoad.setFaceDet(false)
-            }
-            
-        }else if(args.ONE=='6'){
+                if(imageLoad.getFaceDet()){
+                    await this.runtime.ioDevices.video.stopFaceDetection()
+                    imageLoad.setFaceDet(false)
+                }
+                
+            }else if(args.ONE=='6'){
 
-            if(imageLoad.getItem()){
-                await this.runtime.ioDevices.video.stopWItem()
-                imageLoad.setItem(false)
-            }
-            
-        }else if(args.ONE=='2'){
-            if(imageLoad.getColorDete()){
-                aiInfo.setWhatColor('blue')
-                await this.runtime.ioDevices.video.stopWColorBlockDetection()
-                imageLoad.setColorDete(false)
-            }
-        }else if(args.ONE=='1'){
-            if(imageLoad.getColorReco()){
-                await this.runtime.ioDevices.video.stopColorDetection()
-                imageLoad.setColorReco(false)
-            }
-        }else if(args.ONE=='5'){
-            if(imageLoad.getFaceReco()){
-                await this.runtime.ioDevices.video.stopWDetection()
-                imageLoad.setFaceReco(false)
-            }
-        }else if(args.ONE=='7'){
-            if(imageLoad.getAprilTag()){
-                this.runtime.ioDevices.video.stopAprilTag()
-                imageLoad.setAprilTag(false)
-            }
-        }else if(args.ONE=='8'){
-            if(imageLoad.getColorPlace()){
-                await this.runtime.ioDevices.video.stopColorPlaceDetection()
-                imageLoad.setColorPlace(false)
-            }
-            
-        }else if(args.ONE=='9'){
+                if(imageLoad.getItem()){
+                    await this.runtime.ioDevices.video.stopWItem()
+                    imageLoad.setItem(false)
+                }
+                
+            }else if(args.ONE=='2'){
+                if(imageLoad.getColorDete()){
+                    aiInfo.setWhatColor('blue')
+                    await this.runtime.ioDevices.video.stopWColorBlockDetection()
+                    imageLoad.setColorDete(false)
+                }
+            }else if(args.ONE=='1'){
+                if(imageLoad.getColorReco()){
+                    await this.runtime.ioDevices.video.stopColorDetection()
+                    imageLoad.setColorReco(false)
+                }
+            }else if(args.ONE=='5'){
+                if(imageLoad.getFaceReco()){
+                    await this.runtime.ioDevices.video.stopWDetection()
+                    imageLoad.setFaceReco(false)
+                }
+            }else if(args.ONE=='7'){
+                if(imageLoad.getAprilTag()){
+                    this.runtime.ioDevices.video.stopAprilTag()
+                    imageLoad.setAprilTag(false)
+                }
+            }else if(args.ONE=='8'){
+                if(imageLoad.getColorPlace()){
+                    await this.runtime.ioDevices.video.stopColorPlaceDetection()
+                    imageLoad.setColorPlace(false)
+                }
+                
+            }else if(args.ONE=='9'){
 
-            if(imageLoad.getIsTraffic()){
-                await this.runtime.ioDevices.video.stopTraffic()
-                imageLoad.setIsTraffic(false)
+                if(imageLoad.getIsTraffic()){
+                    await this.runtime.ioDevices.video.stopTraffic()
+                    imageLoad.setIsTraffic(false)
+                }
             }
-        }
-        }
+        // }
     }
 
     hexToRgb(hex) {

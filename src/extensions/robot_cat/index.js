@@ -215,7 +215,7 @@ class RobotCat {
             // text: '开启猫脸识别模式',
             text: formatMessage({
                 id: 'robotcat.cstartMode',
-                default: 'Enable cat face recognition mode',
+                default: 'Switch to Catface recognition mode',
                 description: 'robotcat.cstartMode'
             }),
             arguments:{
@@ -231,7 +231,7 @@ class RobotCat {
             // text: '关闭猫脸识别模式',
             text: formatMessage({
                 id: 'robotcat.cstopMode',
-                default: 'Disable cat face recognition mode',
+                default: 'Switch off Catface recognition mode',
                 description: 'robotcat.cstopMode'
             }),
             arguments:{
@@ -246,7 +246,7 @@ class RobotCat {
             // text: '检测到猫脸?',
             text: formatMessage({
                 id: 'robotcat.isCat',
-                default: 'Cat face detected?',
+                default: 'If Cat face detected?',
                 description: 'robotcat.isCat'
             }),
             arguments:{

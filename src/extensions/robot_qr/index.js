@@ -283,7 +283,7 @@ class RobotQr {
             // text: '开启二维码识别模式',
             text: formatMessage({
                 id: 'robotqr.cstartMode',
-                default: 'Enable QR code recognition mode',
+                default: 'Switch to QR code recognition mode',
                 description: 'robotqr.cstartMode'
             }),
             arguments:{
@@ -298,7 +298,7 @@ class RobotQr {
             // text: '关闭二维码识别模式',
             text: formatMessage({
                 id: 'robotqr.cstopMode',
-                default: 'Disable QR code recognition mode',
+                default: 'Switch off QR code recognition mode',
                 description: 'robotqr.cstopMode'
             }),
             arguments:{

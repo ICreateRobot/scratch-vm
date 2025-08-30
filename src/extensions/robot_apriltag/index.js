@@ -235,7 +235,7 @@ class RobotApriltag {
             // text: '开启AprilTag模式',
             text: formatMessage({
                 id: 'robotapriltag.cstartMode',
-                default: 'Enable AprilTag mode',
+                default: 'Switch to AprilTag mode',
                 description: 'robotapriltag.cstartMode'
             }),
             arguments:{
@@ -251,7 +251,7 @@ class RobotApriltag {
             // text: '关闭AprilTag模式',
             text: formatMessage({
                 id: 'robotapriltag.cstopMode',
-                default: 'Disable AprilTag mode',
+                default: 'Switch off AprilTag mode',
                 description: 'robotapriltag.cstopMode'
             }),
             arguments:{
@@ -266,7 +266,7 @@ class RobotApriltag {
             // text: '识别到AprilTag码?',
             text: formatMessage({
                 id: 'robotapriltag.isApril',
-                default: 'AprilTag detected?',
+                default: 'If AprilTag detected?',
                 description: 'robotapriltag.isApril'
             }),
             arguments:{
@@ -281,7 +281,7 @@ class RobotApriltag {
             // text: '获取AprilTag码内容',
             text: formatMessage({
                 id: 'robotapriltag.getAprilContent',
-                default: 'Get AprilTag content',
+                default: 'Recognize AprilTag content',
                 description: 'robotapriltag.getAprilContent'
             }),
             arguments:{
@@ -296,7 +296,7 @@ class RobotApriltag {
             // text: '获取AprilTag码[ONE]轴信息',
             text: formatMessage({
                 id: 'robotapriltag.getAprilPlace',
-                default: 'Get AprilTag [ONE] axis info',
+                default: 'Recognize AprilTag [ONE] axis info',
                 description: 'robotapriltag.getAprilPlace'
             }),
             arguments:{
@@ -316,7 +316,7 @@ class RobotApriltag {
             // text: '获取AprilTag码的[ONE]',
             text: formatMessage({
                 id: 'robotapriltag.getAprilWh',
-                default: 'Get AprilTag [ONE]',
+                default: 'Recognize AprilTag [ONE]',
                 description: 'robotapriltag.getAprilWh'
             }),
             arguments:{

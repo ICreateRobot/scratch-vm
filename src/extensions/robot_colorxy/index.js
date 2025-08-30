@@ -286,7 +286,7 @@ class RobotColorxy {
             // text: '开启颜色坐标追踪模式',
             text: formatMessage({
                 id: 'robotcolorxy.cstartMode',
-                default: 'Enable color coordinate tracking mode',
+                default: 'Switch to color coordinate tracking mode',
                 description: 'robotcolorxy.cstartMode'
             }),
             arguments:{
@@ -302,7 +302,7 @@ class RobotColorxy {
             // text: '关闭颜色坐标追踪模式',
             text: formatMessage({
                 id: 'robotcolorxy.cstopMode',
-                default: 'Disable color coordinate tracking mode',
+                default: 'Switch off color coordinate tracking mode',
                 description: 'robotcolorxy.cstopMode'
             }),
             arguments:{

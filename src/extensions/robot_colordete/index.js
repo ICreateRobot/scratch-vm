@@ -242,7 +242,7 @@ class RobotColordete {
             // text: '开启颜色识别模式',
              text: formatMessage({
                 id: 'robotcolordete.cstartMode',
-                default: 'Enable color recognition mode',
+                default: 'Switch to color recognition mode',
                 description: 'robotcolordete.cstartMode'
             }),
             arguments:{
@@ -257,7 +257,7 @@ class RobotColordete {
             // text: '关闭颜色识别模式',
             text: formatMessage({
                 id: 'robotcolordete.cstopMode',
-                default: 'Disable color recognition mode',
+                default: 'Switch off color recognition mode',
                 description: 'robotcolordete.cstopMode'
             }),
             arguments:{
