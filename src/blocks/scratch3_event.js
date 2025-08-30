@@ -27,7 +27,8 @@ class Scratch3EventBlocks {
             event_whentouchingobject: this.touchingObject,
             event_broadcast: this.broadcast,
             event_broadcastandwait: this.broadcastAndWait,
-            event_whengreaterthan: this.hatGreaterThanPredicate
+            event_whengreaterthan: this.hatGreaterThanPredicate,
+            event_when: this.eventWhen
         };
     }
 
@@ -58,7 +59,10 @@ class Scratch3EventBlocks {
             },
             event_whenbroadcastreceived: {
                 restartExistingThreads: true
-            }
+            },
+            event_when: {
+                restartExistingThreads: true
+            },
         };
     }
 
@@ -131,6 +135,9 @@ class Scratch3EventBlocks {
                 }
             }
         }
+    }
+    eventWhen(args,util){
+
     }
 }
 
