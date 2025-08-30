@@ -1,0 +1,99 @@
+<svg id="距离传感器图标" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="139" height="144" viewBox="0 0 139 144">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        stroke: #0da1c0;
+        filter: url(#filter);
+      }
+
+      .cls-1, .cls-2 {
+        stroke-width: 3px;
+      }
+
+      .cls-1, .cls-6 {
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #00819c;
+        stroke: #e6e6e6;
+        filter: url(#filter-2);
+      }
+
+      .cls-3, .cls-4, .cls-5, .cls-6 {
+        fill: #d3d5d6;
+      }
+
+      .cls-3 {
+        filter: url(#filter-3);
+      }
+
+      .cls-4 {
+        filter: url(#filter-4);
+      }
+
+      .cls-5 {
+        filter: url(#filter-5);
+      }
+
+      .cls-6 {
+        filter: url(#filter-6);
+      }
+
+      .cls-7 {
+        filter: url(#filter-7);
+      }
+    </style>
+    <filter id="filter" x="1715" y="183" width="136" height="141" filterUnits="userSpaceOnUse">
+      <feOffset result="offset" dx="2" dy="3.464" in="SourceAlpha"/>
+      <feGaussianBlur result="blur" stdDeviation="2.828"/>
+      <feFlood result="flood" flood-color="#3c3c3c" flood-opacity="0.14"/>
+      <feComposite result="composite" operator="in" in2="blur"/>
+      <feBlend result="blend" in="SourceGraphic"/>
+    </filter>
+    <filter id="filter-2" x="26.84" y="29.812" width="81.22" height="81.219" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#0da1c0"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+    <filter id="filter-3" x="38.47" y="66.25" width="9.94" height="8.312" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#fff"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+    <filter id="filter-4" x="63.31" y="43.062" width="9.94" height="8.282" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#fff"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+    <filter id="filter-5" x="63.31" y="91.125" width="9.94" height="8.281" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#fff"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+    <filter id="filter-6" x="1801.66" y="247.75" width="9.96" height="8.312" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#fff"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+    <filter id="filter-7" x="61.66" y="66.25" width="13.25" height="8.312" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#fff"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g transform="translate(-1713.5 -181.5)" style="fill: #fff; filter: url(#filter)">
+    <path id="圆角矩形_5_拷贝" data-name="圆角矩形 5 拷贝" class="cls-1" d="M1732.13,189.75h95.99a10,10,0,0,1,10.01,10v101a10,10,0,0,1-10.01,10h-95.99a10,10,0,0,1-10-10v-101A10,10,0,0,1,1732.13,189.75Z" style="stroke: inherit; filter: none; fill: inherit"/>
+  </g>
+  <use transform="translate(-1713.5 -181.5)" xlink:href="#圆角矩形_5_拷贝" style="stroke: #0da1c0; filter: none; fill: none"/>
+  <g style="fill: #00819c; filter: url(#filter-2)">
+    <circle id="椭圆_5_拷贝" data-name="椭圆 5 拷贝" class="cls-2" cx="67.45" cy="70.422" r="40.61" style="stroke: inherit; filter: none; fill: inherit"/>
+  </g>
+  <use xlink:href="#椭圆_5_拷贝" style="stroke: #e6e6e6; filter: none; fill: none"/>
+  <rect id="矩形_3_拷贝_2" data-name="矩形 3 拷贝 2" class="cls-3" x="38.47" y="66.25" width="9.94" height="8.312"/>
+  <rect id="矩形_3_拷贝_4" data-name="矩形 3 拷贝 4" class="cls-4" x="63.31" y="43.062" width="9.94" height="8.282"/>
+  <rect id="矩形_3_拷贝_5" data-name="矩形 3 拷贝 5" class="cls-5" x="63.31" y="91.125" width="9.94" height="8.281"/>
+  <path id="矩形_3_拷贝_3" data-name="矩形 3 拷贝 3" class="cls-6" d="M1801.66,247.75h9.97v8.312h-9.97V247.75Z" transform="translate(-1713.5 -181.5)"/>
+  <rect id="矩形_4" data-name="矩形 4" class="cls-7" x="61.66" y="66.25" width="13.25" height="8.312"/>
+</svg>
