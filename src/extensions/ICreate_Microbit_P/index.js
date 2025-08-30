@@ -1,6 +1,6 @@
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
-const codeModule = require('../../../../../utils/global');
+const codeModule = require('../../../../../../../utils/global');
 const { getCode, setCode } = codeModule.default;
 const formatMessage = require('format-message');
  
