@@ -1,0 +1,44 @@
+.camera-modal {
+  width: 400px;
+  height: 300px;
+  position: fixed;
+  top: 100px;
+  left: 100px;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+.camera-header {
+  height: 40px;
+  background: #333;
+  color: white;
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.camera-body {
+  width: 100%;
+  height: calc(100% - 40px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+.camera-body video,
+.camera-body img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.camera-close {
+  cursor: pointer;
+  font-size: 20px;
+}
