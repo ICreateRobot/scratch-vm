@@ -4,6 +4,7 @@ const socket=require('../../util/socket-connect')
 const sensorIcon = require('./sensors.svg')
 const lineIcon = require('./line.svg')
 const formatMessage = require('format-message');
+const socketBle = require('../../util/localSocket')
 
 let newSocket;
 let isConnectEventSource=false
@@ -97,27 +98,115 @@ class RobotSensors {
             
         },8000)
 
+        // this.whatSendFun='net'
+        // this.channelPort = new BroadcastChannel('channelPort')
+        // this.channelPort.addEventListener('message',(event)=>{
+        //     console.log(event.data)
+        //     if(event.data){
+        //         this.whatSendFun='port'
+        //     }else{
+        //         this.whatSendFun='net'
+        //     }
+            
+        // })
+        // this.channelBle = new BroadcastChannel('isBle')
+        // this.channelBle.addEventListener('message',(event)=>{
+            
+        //     if(event.data){
+        //         console.log('当前为蓝牙模式')
+        //         if(!socketBle.getSocket()){
+        //             socketBle.setSocket()
+        //         }
+        //         this.whatSendFun='ble'
+        //     }else{
+        //         // if(socketBle.getSocket()){
+        //         //     socketBle.getSocket().close()
+        //         // }
+        //         this.whatSendFun='net'
+        //     }
+        // })
         this.whatSendFun='net'
+        this.isPortConnected = false
+        this.isBleConnected = false
+        this.channelSendIp=new BroadcastChannel('sendIp')
+        this.channelSendIp.addEventListener('message',(event)=>{
+            console.log('设置ip')
+            // socket.setIp(event.data)
+            // this.whatSendFun='net'
+            this.updateSendFun()
+        })
         this.channelPort = new BroadcastChannel('channelPort')
         this.channelPort.addEventListener('message',(event)=>{
-            console.log(event.data)
-            if(event.data){
-                this.whatSendFun='port'
-            }else{
-                this.whatSendFun='net'
+            // console.log(event.data)
+            // if(event.data){
+            //     this.whatSendFun='port'
+            // }else{
+            //     this.whatSendFun='net'
+            // }
+            if (typeof event.data === 'boolean') {
+                this.isPortConnected = event.data;
+                this.updateSendFun();
             }
             
         })
+
+        this.channelBle = new BroadcastChannel('isBle')
+        this.channelBle.addEventListener('message',(event)=>{
+            // if(this.whatSendFun=='port') return
+            
+            // if(event.data){
+            //     console.log('当前为蓝牙模式')
+            //     if(!socketBle.getSocket()){
+            //         socketBle.setSocket()
+            //     }
+            //     this.whatSendFun='ble'
+            // }else{
+            //     // if(socketBle.getSocket()){
+            //     //     socketBle.getSocket().close()
+            //     // }
+            //     this.whatSendFun='net'
+            // }
+                this.isBleConnected = !!event.data
+
+            if (this.isBleConnected) {
+                console.log('当前为蓝牙模式')
+                if (!socketBle.getSocket()) {
+                    socketBle.setSocket()
+                }
+            } else {
+                // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
+                // if(socketBle.getSocket()){
+                //     socketBle.getSocket().close()
+                // }
+            }
+
+            this.updateSendFun()
+        })
+
+        this.updateSendFun = () => {
+            if (this.isPortConnected) {
+                this.whatSendFun = 'port'
+            } else if (this.isBleConnected) {
+                this.whatSendFun = 'ble'
+            } else {
+                this.whatSendFun = 'net'
+            }
+            console.log('当前发送方式:', this.whatSendFun)
+        }
+
+        this.distanceBle;
+
+        this.channel = new BroadcastChannel('distance_channel');
 
         this.channelSerialData=new BroadcastChannel('serial-data')
         this.channelSerialData.addEventListener('message',(event)=>{
             // console.log(JSON.parse(event.data))
             // console.log(event.data)
             if(this.whatSendFun=='port'){
-                if(event.data.length!=1){
+                if(Array.isArray(event.data) && event.data.length>1){
                     this.message=event.data
                 }else{
-                    console.log(event.data)
+                    // console.log(event.data)
                 }
                 
             }
@@ -129,6 +218,33 @@ class RobotSensors {
             }
         })
 
+
+        this.responseQueue = []; // 等待中的 Promise 队列
+        this.stateBuffer = [];   // 最近 3 个 state
+        window.EditorPreload.sendStateData((state) => {
+            console.log("📩 收到状态:", state);
+            // if (this.responseQueue.length > 0) {
+            //     // 只要收到一个 0，就 resolve
+            //     if (state === 0) {
+            //     const { resolve, timer } = this.responseQueue.shift();
+            //     clearTimeout(timer);
+            //     resolve(true);
+            //     }
+            // } else {
+            //     console.warn("⚠️ 收到未匹配的响应:", state);
+            // }
+            if (this.responseQueue.length > 0) {
+                // 收到一个 0 就 resolve
+                if (state === 0) {
+                const { resolve } = this.responseQueue.shift();
+                resolve(true);
+                }
+            } else {
+                console.warn("⚠️ 收到未匹配的响应:", state);
+            }
+        })
+
+        // this.robotData=window.EditorWindow.getRobotDate()
 
 
     }
@@ -1103,6 +1219,22 @@ class RobotSensors {
   }
 
 
+   waitForThreeZeros(timeoutMs = 6000) {
+    // return new Promise((resolve, reject) => {
+    //     const timer = setTimeout(() => {
+    //     // 超时
+    //     this.responseQueue = this.responseQueue.filter(item => item.resolve !== resolve);
+    //     reject(new Error(`等待超时（>${timeoutMs}ms 未收到连续三个 0）`));
+    //     }, timeoutMs);
+
+    //     // 推入队列
+    //     this.responseQueue.push({ resolve, reject, timer });
+    // });
+        return new Promise((resolve) => {
+            this.responseQueue.push({ resolve });
+        });
+    }
+
   async waitForSuccess() {
     return new Promise((resolve) => {
         function messageHandler(event) {
@@ -1199,13 +1331,85 @@ showToast(message, duration = 3000) {
     }, duration);
 }
 
+    waitForArrayMatchInArray(expectedArray, timeout = 6000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+
+            console.log('进入阻塞函数')
+            // 定义临时监听器
+            const handleMessage = (event) => {
+                console.log('进入监听')
+                const currentArray = event.data; // 来自 BroadcastChannel 的数据
+
+                // 确保是数组并且匹配条件
+                if (Array.isArray(currentArray) && currentArray[0] === expectedArray[0]) {
+                    if (
+                        currentArray.length === expectedArray.length &&
+                        currentArray.every((val, i) => val === expectedArray[i])
+                    ) {
+                        cleanup();
+                        resolve(currentArray);
+                    }
+                }
+
+                // 超时判断
+                if (Date.now() - startTime > timeout) {
+                    console.log('超时')
+                    cleanup();
+                    reject(new Error('Timeout waiting for array to match.'));
+                }
+            };
+
+            // 清理函数：移除监听器
+            const cleanup = () => {
+                this.channel.removeEventListener('message', handleMessage);
+            };
+
+            // 添加临时监听器
+            this.channel.addEventListener('message', handleMessage);
+        });
+    }
+
+   sendCommandAndWaitForSuccess(command) {
+    return new Promise(async(resolve, reject) => {
+      
+        let resolved = false; // 防止多次 resolve
+  
+      // 响应监听器
+      const onMessage = (e) => {
+        const data = e.data;
+        console.log(data)
+        if (Array.isArray(data) && data.length==1 && data[0] === 0) {
+            if (!resolved) {
+                resolved = true;
+                this.channelSerialData.removeEventListener('message', onMessage);
+                resolve();
+            }
+        }else if (typeof data === "string" && data.includes("[0]")) {
+            if (!resolved) {
+                resolved = true;
+                this.channelSerialData.removeEventListener('message', onMessage);
+                resolve();
+            }
+      }
+      };
+  
+      this.channelSerialData.addEventListener('message', onMessage);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      // 发送命令
+      this.channelPort.postMessage(command);
+  
+      // 可选：超时机制（比如 5 秒）
+    //   setTimeout(() => {
+    //     this.channelSerialData.removeEventListener('message', onMessage);
+    //     reject(new Error('超时未收到 success'));
+    //   }, 5000);
+    });
+  }
+
   async grayLearning(){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let jsonData={
             "command":"rgb_sensor",
@@ -1219,6 +1423,11 @@ showToast(message, duration = 3000) {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -1233,8 +1442,14 @@ showToast(message, duration = 3000) {
             }
     
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x42]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x42]))
+            await ackPromise
         }
         
     }
@@ -1242,11 +1457,7 @@ showToast(message, duration = 3000) {
   async graystudycolor(args){
 
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let jsonData={
             "command":"rgb_sensor",
@@ -1260,6 +1471,11 @@ showToast(message, duration = 3000) {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -1274,8 +1490,14 @@ showToast(message, duration = 3000) {
             }
     
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x43,Number(args.ONE)]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x43,Number(args.ONE)]))
+            await ackPromise
         }
        
     }
@@ -1299,11 +1521,7 @@ showToast(message, duration = 3000) {
   }
   async linemode(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let jsonData={
             "command":"rgb_sensor",
@@ -1317,6 +1535,11 @@ showToast(message, duration = 3000) {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -1331,8 +1554,14 @@ showToast(message, duration = 3000) {
             }
     
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x41,Number(args.ONE)]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x41,Number(args.ONE)]))
+            await ackPromise
         }
         
     }
@@ -1450,16 +1679,24 @@ showToast(message, duration = 3000) {
     // }
 
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
-        console.log(this.message)
-        let result=this.message.slice(9)
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            let result=this.message.slice(9)
 
-        this.line=result
-        return this.line
+            this.line=result
+            return this.line
+        }else if(this.whatSendFun=='ble'){
+            let result=JSON.parse(window.EditorPreload.getRobotData()).slice(9)
+
+            this.line=result
+            return this.line
+        }
+        
 
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1481,22 +1718,35 @@ showToast(message, duration = 3000) {
 
   async lineportcolor(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
-        console.log(this.message)
-        // return this.line[args.ONE]
 
-        let result=this.message.slice(9)
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            // return this.line[args.ONE]
 
-            
-        if(result[args.ONE]==args.TWO){
-            return true
-        }else{
-            return false
+            let result=this.message.slice(9)
+
+                
+            if(result[args.ONE]==args.TWO){
+                return true
+            }else{
+                return false
+            }
+        }else if(this.whatSendFun=='ble'){
+            let result=JSON.parse(window.EditorPreload.getRobotData()).slice(9)
+
+                
+            if(result[args.ONE]==args.TWO){
+                return true
+            }else{
+                return false
+            }
         }
+        
 
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1524,17 +1774,25 @@ showToast(message, duration = 3000) {
     // }
 
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
-        console.log(this.message)
-        // return this.line[args.ONE]
-        let result=this.message.slice(9)
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            // return this.line[args.ONE]
+            let result=this.message.slice(9)
 
-            
-        return result[args.ONE]
+                
+            return result[args.ONE]
+        }else if(this.whatSendFun=='ble'){
+            let result=JSON.parse(window.EditorPreload.getRobotData()).slice(9)
+
+                
+            return result[args.ONE]
+        }
+        
 
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1568,23 +1826,37 @@ showToast(message, duration = 3000) {
     // }
     if(this.mode){
 
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
-        console.log(this.message)
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
 
-        let result=this.message.slice(9)
+            let result=this.message.slice(9)
 
-        if(args.TWO=='>' && result[args.ONE]>args.THREE){
-            return true
-        }else if(args.TWO=='<' && result[args.ONE]<args.THREE){
-            return true
-        }else if(args.TWO=='=' && result[args.ONE]==args.THREE){
-            return true
+            if(args.TWO=='>' && result[args.ONE]>args.THREE){
+                return true
+            }else if(args.TWO=='<' && result[args.ONE]<args.THREE){
+                return true
+            }else if(args.TWO=='=' && result[args.ONE]==args.THREE){
+                return true
+            }
+            return false
+        }else{
+             let result=JSON.parse(window.EditorPreload.getRobotData()).slice(9)
+
+            if(args.TWO=='>' && result[args.ONE]>args.THREE){
+                return true
+            }else if(args.TWO=='<' && result[args.ONE]<args.THREE){
+                return true
+            }else if(args.TWO=='=' && result[args.ONE]==args.THREE){
+                return true
+            }
+            return false
         }
-        return false
+        
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
         //     await socket.setSocketRecive()
@@ -1615,28 +1887,40 @@ showToast(message, duration = 3000) {
 
   async key(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
-        console.log(this.message)
-        // console.log(socket.checkWebSocketStatusRecive())
-        let startTime=Date.now()
-        console.log(socket.checkWebSocketStatusRecive())
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            // console.log(socket.checkWebSocketStatusRecive())
+            let startTime=Date.now()
+            console.log(socket.checkWebSocketStatusRecive())
 
-        if(this.message[0]==0 && args.ONE==8){
-            let lastTime=Date.now()
-            console.log('--------------')
-            console.log(lastTime-startTime)
-            return true
-        }else if(this.message[1]==0 && args.ONE==7){
-            let lastTime=Date.now()
-            console.log('--------------')
-            console.log(lastTime-startTime)
-            return true
+            if(this.message[0]==0 && args.ONE==8){
+                let lastTime=Date.now()
+                console.log('--------------')
+                console.log(lastTime-startTime)
+                return true
+            }else if(this.message[1]==0 && args.ONE==7){
+                let lastTime=Date.now()
+                console.log('--------------')
+                console.log(lastTime-startTime)
+                return true
+            }
+            return false
+        }else if(this.whatSendFun=='ble'){
+            if(JSON.parse(window.EditorPreload.getRobotData())[0]==0 && args.ONE==8){
+                
+                return true
+            }else if(JSON.parse(window.EditorPreload.getRobotData())[1]==0 && args.ONE==7){
+                
+                return true
+            }
+            return false
         }
-        return false
+        
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
         //     await socket.setSocketRecive()
@@ -1675,31 +1959,54 @@ showToast(message, duration = 3000) {
   async soundComp(args){
 
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            if(args.ONE=='>'){
+                if(this.message[3]>args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }else if(args.ONE=='='){
+                if(this.message[3]==args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }else if(args.ONE=='<'){
+                if(this.message[3]<args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }
+        }else if(this.whatSendFun=='ble'){
+            if(args.ONE=='>'){
+                if(JSON.parse(window.EditorPreload.getRobotData())[3]>args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }else if(args.ONE=='='){
+                if(JSON.parse(window.EditorPreload.getRobotData())[3]==args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }else if(args.ONE=='<'){
+                if(JSON.parse(window.EditorPreload.getRobotData())[3]<args.TWO){
+                    return true
+                }else{
+                    return false
+                }
+            }
         }
-        console.log(this.message)
-        if(args.ONE=='>'){
-            if(this.message[3]>args.TWO){
-                return true
-            }else{
-                return false
-            }
-        }else if(args.ONE=='='){
-            if(this.message[3]==args.TWO){
-                return true
-            }else{
-                return false
-            }
-        }else if(args.ONE=='<'){
-            if(this.message[3]<args.TWO){
-                return true
-            }else{
-                return false
-            }
-        }
+        
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1742,13 +2049,23 @@ showToast(message, duration = 3000) {
 
   async sound(){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            return this.message[3]
+        }else if(this.whatSendFun=='ble'){
+            // console.log(typeof window.EditorPreload.getRobotData())
+            return JSON.parse(window.EditorPreload.getRobotData())[3]
         }
-        console.log(this.message)
-        return this.message[3]
+        
+
+        // return window.EditorPreload.getRobotData()[0]
+
+
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1770,13 +2087,21 @@ showToast(message, duration = 3000) {
   }
   async elector(){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            return (this.message[4]/4)*100
+        }else if(this.whatSendFun=='ble'){
+            return ( JSON.parse(window.EditorPreload.getRobotData())[4]/4)*100
         }
-        console.log(this.message)
-        return (this.message[4]/4)*100
+        
+
+        // return window.EditorPreload.getRobotData()[1]
+
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1798,17 +2123,29 @@ showToast(message, duration = 3000) {
 
   async speed(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            if(args.ONE=='0'){
+                return this.message[5]
+            }else{
+                return this.message[6]  
+            }
+        }else if(this.whatSendFun=='ble'){
+            if(args.ONE=='0'){
+                return JSON.parse(window.EditorPreload.getRobotData())[5]
+            }else{
+                return JSON.parse(window.EditorPreload.getRobotData())[6]  
+            }
         }
-        console.log(this.message)
-        if(args.ONE=='0'){
-            return this.message[5]
-        }else{
-            return this.message[6]  
-        }
+        
+
+
+        // return window.EditorPreload.getRobotData()[2]
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1834,13 +2171,18 @@ showToast(message, duration = 3000) {
 
   async private(){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            return this.message[2]
+        }else if(this.whatSendFun=='ble'){
+            return JSON.parse(window.EditorPreload.getRobotData())[2]
         }
-        console.log(this.message)
-        return this.message[2]
+        
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1861,17 +2203,26 @@ showToast(message, duration = 3000) {
 
   async distance(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
+        if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+            if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
+            console.log(this.message)
+            if(args.ONE=='0'){
+                return this.message[7]
+            }else{
+                return this.message[8]
+            }
+        }else if(this.whatSendFun=='ble'){
+            if(args.ONE=='0'){
+                return JSON.parse(window.EditorPreload.getRobotData())[7]
+            }else{
+                return JSON.parse(window.EditorPreload.getRobotData())[8]
+            }
         }
-        console.log(this.message)
-        if(args.ONE=='0'){
-            return this.message[7]
-        }else{
-            return this.message[8]
-        }
+        
         // console.log(socket.checkWebSocketStatusRecive())
         // if(socket.checkWebSocketStatusRecive()==4 || socket.checkWebSocketStatusRecive()==0){
         //     console.log('断开连接，尝试重连')
@@ -1898,11 +2249,7 @@ showToast(message, duration = 3000) {
   async startLine(args){
     if(this.mode){
 
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
         let jsonData={
             "command":"line_tracking",
             "params":{
@@ -1915,6 +2262,11 @@ showToast(message, duration = 3000) {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -1928,8 +2280,14 @@ showToast(message, duration = 3000) {
                 this.runtime.stopAll();
             }
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x45,Number(args.ONE)]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x45,Number(args.ONE)]))
+            await ackPromise
         }
         
     }
@@ -1938,11 +2296,7 @@ showToast(message, duration = 3000) {
   async stopLine(){
     if(this.mode){
 
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
         let jsonData={
             "command":"line_tracking",
             "params":{
@@ -1964,6 +2318,11 @@ showToast(message, duration = 3000) {
         // socket.setLastPostTime(Date.now())
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             const Socket = new WebSocket(`ws://${socket.getIp()}:8084`);
                     
             Socket.addEventListener('open', async (event) => {
@@ -1974,8 +2333,14 @@ showToast(message, duration = 3000) {
     
                     
             });
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x47]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x47]))
+            await ackPromise
         }
 
         
@@ -1983,16 +2348,22 @@ showToast(message, duration = 3000) {
   }
 
 
+
+  binary5ToDecimal(binaryStr) {
+    // 检查输入是否是5位二进制数
+    if (!/^[01]{5}$/.test(binaryStr)) {
+        throw new Error("输入必须是5位二进制字符串，例如 '10101'");
+    }
+
+    // 使用 parseInt 转为十进制
+    return parseInt(binaryStr, 2);
+    }
   async startLineUntil(args){
     if(this.mode){
         // console.log(args.ONE)
         // console.log(typeof args.ONE)
 
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
         const arr = args.ONE.toString().split('').map(Number);
         let jsonData={
             "command":"line_tracking",
@@ -2006,6 +2377,11 @@ showToast(message, duration = 3000) {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -2020,8 +2396,15 @@ showToast(message, duration = 3000) {
             }
             await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x46,Number(args.TWO),...arr]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x46,Number(args.TWO),...arr]))
+            // await this.waitForArrayMatchInArray(() => [0xcc,0]);
+            await ackPromise
         }
         
     }
@@ -2031,11 +2414,7 @@ showToast(message, duration = 3000) {
   async closeLight(){
     if(this.mode){
 
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let jsonData={
             "command":"rgb_sensor",
@@ -2048,6 +2427,11 @@ showToast(message, duration = 3000) {
         // let str = `robot.set_line_mode(${args.ONE})\r`;
         let str = JSON.stringify(jsonData)
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -2062,8 +2446,14 @@ showToast(message, duration = 3000) {
             }
     
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x44]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x44]))
+            await ackPromise
         }
         
     }
@@ -2137,11 +2527,7 @@ showToast(message, duration = 3000) {
 
   async moveClearDistance(args){
       if(this.mode){
-          if(socket.getIp().length==0){
-              this.showToast('未连接机器人')
-              this.runtime.stopAll();
-              return
-          }
+          
   
           let jsonData={
               "command":"motor",
@@ -2157,6 +2543,11 @@ showToast(message, duration = 3000) {
           // let str = `robot.send_move(${args.ONE},${args.TWO})`;
           let str=JSON.stringify(jsonData)
           if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
               if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                   console.log('断开连接，尝试重连')
                   this.showToast("socket断开，尝试重连......");
@@ -2171,7 +2562,13 @@ showToast(message, duration = 3000) {
               }
               socket.setLastPostTime(Date.now())
           }else if(this.whatSendFun=='port'){
-              this.channelPort.postMessage(str)
+            //   this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x48]))
+          }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros();
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x48]))
+            await ackPromise
           }
           
           // await new Promise(resolve => setTimeout(resolve, 50));

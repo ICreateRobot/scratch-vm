@@ -5,6 +5,7 @@ const actuatorIcon = require('./actuator.svg')
 const innerHand = require('./innerHand.svg')
 const innerPort = require('./innerPort.svg')
 const formatMessage = require('format-message');
+const socketBle = require('../../util/localSocket')
 let preMove='-1'
 let preTime=Date.now()
 let currentController = null;
@@ -53,18 +54,133 @@ class RobotActuator {
 
 
 
+        // this.whatSendFun='net'
+        // this.channelPort = new BroadcastChannel('channelPort')
+        // this.channelPort.addEventListener('message',(event)=>{
+        //     console.log(event.data)
+        //     if(event.data){
+        //         this.whatSendFun='port'
+        //     }else{
+        //         this.whatSendFun='net'
+        //     }
+            
+        // })
+
+        // this.channelSerialData=new BroadcastChannel('serial-data')
+
+        // this.channelBle = new BroadcastChannel('isBle')
+        // this.channelBle.addEventListener('message',(event)=>{
+            
+        //     if(event.data){
+        //         console.log('当前为蓝牙模式')
+        //         if(!socketBle.getSocket()){
+        //             socketBle.setSocket()
+        //         }
+        //         this.whatSendFun='ble'
+        //     }else{
+        //         // if(socketBle.getSocket()){
+        //         //     socketBle.getSocket().close()
+        //         // }
+        //         this.whatSendFun='net'
+        //     }
+        // })
+
+
         this.whatSendFun='net'
+        this.isPortConnected = false
+        this.isBleConnected = false
+        this.channelSendIp=new BroadcastChannel('sendIp')
+        this.channelSendIp.addEventListener('message',(event)=>{
+            console.log('设置ip')
+            // socket.setIp(event.data)
+            // this.whatSendFun='net'
+            this.updateSendFun()
+        })
         this.channelPort = new BroadcastChannel('channelPort')
         this.channelPort.addEventListener('message',(event)=>{
-            console.log(event.data)
-            if(event.data){
-                this.whatSendFun='port'
-            }else{
-                this.whatSendFun='net'
+            // console.log(event.data)
+            // if(event.data){
+            //     this.whatSendFun='port'
+            // }else{
+            //     this.whatSendFun='net'
+            // }
+            if (typeof event.data === 'boolean') {
+                this.isPortConnected = event.data;
+                this.updateSendFun();
             }
             
         })
 
+        this.channelBle = new BroadcastChannel('isBle')
+        this.channelBle.addEventListener('message',(event)=>{
+            // if(this.whatSendFun=='port') return
+            
+            // if(event.data){
+            //     console.log('当前为蓝牙模式')
+            //     if(!socketBle.getSocket()){
+            //         socketBle.setSocket()
+            //     }
+            //     this.whatSendFun='ble'
+            // }else{
+            //     // if(socketBle.getSocket()){
+            //     //     socketBle.getSocket().close()
+            //     // }
+            //     this.whatSendFun='net'
+            // }
+                this.isBleConnected = !!event.data
+
+            if (this.isBleConnected) {
+                console.log('当前为蓝牙模式')
+                if (!socketBle.getSocket()) {
+                    socketBle.setSocket()
+                }
+            } else {
+                // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
+                // if(socketBle.getSocket()){
+                //     socketBle.getSocket().close()
+                // }
+            }
+
+            this.updateSendFun()
+        })
+
+        this.updateSendFun = () => {
+            if (this.isPortConnected) {
+                this.whatSendFun = 'port'
+            } else if (this.isBleConnected) {
+                this.whatSendFun = 'ble'
+            } else {
+                this.whatSendFun = 'net'
+            }
+            console.log('当前发送方式:', this.whatSendFun)
+        }
+        this.distance
+
+        this.channel = new BroadcastChannel('distance_channel');
+         this.responseQueue = []; // 等待中的 Promise 队列
+        this.stateBuffer = [];   // 最近 3 个 state
+        window.EditorPreload.sendStateData((state) => {
+            console.log("📩 收到状态:", state);
+            // if (this.responseQueue.length > 0) {
+            //     // 只要收到一个 0，就 resolve
+            //     if (state === 0) {
+            //     const { resolve, timer } = this.responseQueue.shift();
+            //     clearTimeout(timer);
+            //     resolve(true);
+            //     }
+            // } else {
+            //     console.warn("⚠️ 收到未匹配的响应:", state);
+            // }
+            if (this.responseQueue.length > 0) {
+                // 收到一个 0 就 resolve
+                if (state === 0) {
+                const { resolve } = this.responseQueue.shift();
+                resolve(true);
+                }
+            } else {
+                console.warn("⚠️ 收到未匹配的响应:", state);
+            }
+        })
         this.channelSerialData=new BroadcastChannel('serial-data')
         
     }
@@ -88,7 +204,7 @@ class RobotActuator {
             // text: '机械爪[ONE][TWO]',
             text: formatMessage({
                 id: 'robotactuator.gripperOpen',
-                default: 'Gripper [ONE][TWO]',
+                default: 'gripper at port [ONE][TWO]',
                 description: 'robotactuator.gripperOpen'
             }),
             blockIconURI: innerHand,
@@ -125,7 +241,7 @@ class RobotActuator {
             // text: '机械爪[ONE][TWO]直到结束',
             text: formatMessage({
                 id: 'robotactuator.gripperOpenUntil',
-                default: 'Gripper [ONE][TWO] until finished',
+                default: 'gripper at port [ONE][TWO] until done',
                 description: 'robotactuator.gripperOpenUntil'
             }),
             blockIconURI: innerHand,
@@ -164,7 +280,7 @@ class RobotActuator {
             // text: '发射器[ONE]发射[TWO]颗弹珠',
             text: formatMessage({
                 id: 'robotactuator.gunFire',
-                default: 'Launcher [ONE] fires [TWO] marbles',
+                default: 'Launcher at port [ONE] shoots [TWO] ball',
                 description: 'robotactuator.gunFire'
             }),
             blockIconURI: innerPort,
@@ -188,7 +304,7 @@ class RobotActuator {
             // text: '发射器[ONE]发射[TWO]颗弹珠直到结束',
              text: formatMessage({
                 id: 'robotactuator.gunFireUntil',
-                default: 'Launcher [ONE] fires [TWO] marbles until finished',
+                default: 'Launcher at port [ONE] shoots [TWO] ball until done',
                 description: 'robotactuator.gunFireUntil'
             }),
             blockIconURI: innerPort,
@@ -289,7 +405,7 @@ class RobotActuator {
                     // text: '抓取',
                     text: formatMessage({
                         id: 'robotactuator.menuState.close',
-                        default: 'close',
+                        default: 'closes',
                         description: 'robotactuator.menuState.close'
                     }),
                     value: '1'
@@ -298,7 +414,7 @@ class RobotActuator {
                     // text: '松开',
                     text: formatMessage({
                         id: 'robotactuator.menuState.open',
-                        default: 'open',
+                        default: 'opens',
                         description: 'robotactuator.menuState.open'
                     }),
                     value: '0'
@@ -312,7 +428,60 @@ class RobotActuator {
 
 
 
+   waitForThreeZeros(timeoutMs = 6000) {
+    // return new Promise((resolve, reject) => {
+    //     const timer = setTimeout(() => {
+    //     // 超时
+    //     this.responseQueue = this.responseQueue.filter(item => item.resolve !== resolve);
+    //     reject(new Error(`等待超时（>${timeoutMs}ms 未收到连续三个 0）`));
+    //     }, timeoutMs);
 
+    //     // 推入队列
+    //     this.responseQueue.push({ resolve, reject, timer });
+    // });
+        return new Promise((resolve) => {
+            this.responseQueue.push({ resolve });
+        });
+    }
+
+
+
+    sendCommandAndWaitForSuccess(command) {
+    return new Promise(async(resolve, reject) => {
+      
+        let resolved = false; // 防止多次 resolve
+  
+      // 响应监听器
+      const onMessage = (e) => {
+        const data = e.data;
+        console.log(data)
+        if (Array.isArray(data) && data.length==1 && data[0] === 0) {
+            if (!resolved) {
+                resolved = true;
+                this.channelSerialData.removeEventListener('message', onMessage);
+                resolve();
+            }
+        }else if (typeof data === "string" && data.includes("[0]")) {
+            if (!resolved) {
+                resolved = true;
+                this.channelSerialData.removeEventListener('message', onMessage);
+                resolve();
+            }
+      }
+      };
+  
+      this.channelSerialData.addEventListener('message', onMessage);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      // 发送命令
+      this.channelPort.postMessage(command);
+  
+      // 可选：超时机制（比如 5 秒）
+    //   setTimeout(() => {
+    //     this.channelSerialData.removeEventListener('message', onMessage);
+    //     reject(new Error('超时未收到 success'));
+    //   }, 5000);
+    });
+  }
   async waitForSuccess() {
         return new Promise((resolve) => {
             function messageHandler(event) {
@@ -332,6 +501,45 @@ class RobotActuator {
         });
     }
 
+
+     waitForArrayMatchInArray(expectedArray, timeout = 6000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+
+            console.log('进入阻塞函数')
+            // 定义临时监听器
+            const handleMessage = (event) => {
+                console.log('进入监听')
+                const currentArray = event.data; // 来自 BroadcastChannel 的数据
+
+                // 确保是数组并且匹配条件
+                if (Array.isArray(currentArray) && currentArray[0] === expectedArray[0]) {
+                    if (
+                        currentArray.length === expectedArray.length &&
+                        currentArray.every((val, i) => val === expectedArray[i])
+                    ) {
+                        cleanup();
+                        resolve(currentArray);
+                    }
+                }
+
+                // 超时判断
+                if (Date.now() - startTime > timeout) {
+                    console.log('超时')
+                    cleanup();
+                    reject(new Error('Timeout waiting for array to match.'));
+                }
+            };
+
+            // 清理函数：移除监听器
+            const cleanup = () => {
+                this.channel.removeEventListener('message', handleMessage);
+            };
+
+            // 添加临时监听器
+            this.channel.addEventListener('message', handleMessage);
+        });
+    }
     showToast(message, duration = 3000) {
         // 如果 toast 容器不存在，则创建一个
         let container = document.getElementById('toast-container');
@@ -409,37 +617,9 @@ class RobotActuator {
         }, duration);
     }
 
-
-    sendCommandAndWaitForSuccess(command) {
-        return new Promise((resolve, reject) => {
-          // 发送命令
-          this.channelPort.postMessage(command);
-      
-          // 响应监听器
-          const onMessage = (e) => {
-            const data = e.data;
-            if (data.length==1 && data[0] === 'success') {
-                this.channelSerialData.removeEventListener('message', onMessage); // 清除监听器
-              resolve(); // 完成Promise
-            }
-          };
-      
-          this.channelSerialData.addEventListener('message', onMessage);
-      
-          // 可选：超时机制（比如 5 秒）
-        //   setTimeout(() => {
-        //     this.channelSerialData.removeEventListener('message', onMessage);
-        //     reject(new Error('超时未收到 success'));
-        //   }, 5000);
-        });
-      }
   async gripperOpen(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let mode=0
 
@@ -459,6 +639,11 @@ class RobotActuator {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -473,8 +658,14 @@ class RobotActuator {
             }
     
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros(); 
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            await ackPromise
         }
         
        
@@ -483,11 +674,7 @@ class RobotActuator {
 
   async gripperOpenUntil(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
 
         let mode=0
 
@@ -507,6 +694,11 @@ class RobotActuator {
         // let str = `robot.send_paw(${args.ONE},${args.TWO})`;
         let str = JSON.stringify(jsonData)
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -523,8 +715,14 @@ class RobotActuator {
             await this.waitForSuccess()
             // await new Promise(resolve => setTimeout(resolve, 2000)); 
             socket.setLastPostTime(Date.now())
-        }else{
-            this.sendCommandAndWaitForSuccess(str)
+        }else if(this.whatSendFun=='port'){
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x01,Number(args.ONE),mode-2]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros(); 
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x31,0x01,Number(args.ONE),mode-2]))
+            // await this.waitForArrayMatchInArray(() => [0xcc,0]);
+            await ackPromise
         }
         
        
@@ -611,11 +809,7 @@ class RobotActuator {
 
   async gunFire(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
         let currentTime=Date.now()
 
 
@@ -631,6 +825,11 @@ class RobotActuator {
         let str = JSON.stringify(jsonData)
 
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -644,8 +843,14 @@ class RobotActuator {
                 this.runtime.stopAll();
             }
             socket.setLastPostTime(Date.now())
-        }else{
-            this.channelPort.postMessage(str)
+        }else if(this.whatSendFun=='port'){
+            // this.channelPort.postMessage(str)
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x32,0x02,Number(args.ONE),Number(args.TWO)]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros(); 
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x32,0x02,Number(args.ONE),Number(args.TWO)]))
+            await ackPromise
         }
        
        
@@ -657,11 +862,7 @@ class RobotActuator {
 
   async gunFireUntil(args){
     if(this.mode){
-        if(socket.getIp().length==0){
-            this.showToast('未连接机器人')
-            this.runtime.stopAll();
-            return
-        }
+        
         let currentTime=Date.now()
 
 
@@ -676,6 +877,11 @@ class RobotActuator {
         // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
         let str = JSON.stringify(jsonData)
         if(this.whatSendFun=='net'){
+            if(socket.getIp().length==0){
+                this.showToast('未连接机器人')
+                this.runtime.stopAll();
+                return
+            }
             if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                 console.log('断开连接，尝试重连')
                 this.showToast("socket断开，尝试重连......");
@@ -690,8 +896,14 @@ class RobotActuator {
             }
     
             await this.waitForSuccess()
-        }else{
-            this.sendCommandAndWaitForSuccess(str)
+        }else if(this.whatSendFun=='port'){
+            await this.sendCommandAndWaitForSuccess(str)
+            // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x32,0x01,Number(args.ONE),Number(args.TWO)]))
+        }else if(this.whatSendFun=='ble'){
+            const ackPromise = this.waitForThreeZeros(); 
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x32,0x01,Number(args.ONE),Number(args.TWO)]))
+            // await this.waitForArrayMatchInArray(() => [0xcc,0]);
+            await ackPromise
         }
         
         // await new Promise(resolve => setTimeout(resolve, 3000)); 

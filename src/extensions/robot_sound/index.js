@@ -3,7 +3,7 @@ const ArgumentType = require('../../extension-support/argument-type')
 const socket=require('../../util/socket-connect')
 
 const soundIcon = require('./sound.svg')
-
+const socketBle = require('../../util/localSocket')
 const formatMessage = require('format-message');
 
 const innerBlock = require('./innerBlock.svg')
@@ -87,18 +87,133 @@ class RobotSound {
         this.isSendEnd=true
         this.shouldStopSending = false; // 默认不停止
 
+        // this.whatSendFun='net'
+        // this.channelPort = new BroadcastChannel('channelPort')
+        // this.channelPort.addEventListener('message',(event)=>{
+        //     console.log(event.data)
+        //     if(event.data){
+        //         this.whatSendFun='port'
+        //     }else{
+        //         this.whatSendFun='net'
+        //     }
+            
+        // })
+
+        // this.channelBle = new BroadcastChannel('isBle')
+        // this.channelBle.addEventListener('message',(event)=>{
+            
+        //     if(event.data){
+        //         console.log('当前为蓝牙模式')
+        //         if(!socketBle.getSocket()){
+        //             socketBle.setSocket()
+        //         }
+        //         this.whatSendFun='ble'
+        //     }else{
+        //         // if(socketBle.getSocket()){
+        //         //     socketBle.getSocket().close()
+        //         // }
+        //         this.whatSendFun='net'
+        //     }
+        // })
         this.whatSendFun='net'
+        this.isPortConnected = false
+        this.isBleConnected = false
+        this.channelSendIp=new BroadcastChannel('sendIp')
+        this.channelSendIp.addEventListener('message',(event)=>{
+            console.log('设置ip')
+            // socket.setIp(event.data)
+            // this.whatSendFun='net'
+            this.updateSendFun()
+        })
         this.channelPort = new BroadcastChannel('channelPort')
         this.channelPort.addEventListener('message',(event)=>{
-            console.log(event.data)
-            if(event.data){
-                this.whatSendFun='port'
-            }else{
-                this.whatSendFun='net'
+            // console.log(event.data)
+            // if(event.data){
+            //     this.whatSendFun='port'
+            // }else{
+            //     this.whatSendFun='net'
+            // }
+            if (typeof event.data === 'boolean') {
+                this.isPortConnected = event.data;
+                this.updateSendFun();
             }
             
         })
 
+        this.channelBle = new BroadcastChannel('isBle')
+        this.channelBle.addEventListener('message',(event)=>{
+            // if(this.whatSendFun=='port') return
+            
+            // if(event.data){
+            //     console.log('当前为蓝牙模式')
+            //     if(!socketBle.getSocket()){
+            //         socketBle.setSocket()
+            //     }
+            //     this.whatSendFun='ble'
+            // }else{
+            //     // if(socketBle.getSocket()){
+            //     //     socketBle.getSocket().close()
+            //     // }
+            //     this.whatSendFun='net'
+            // }
+                this.isBleConnected = !!event.data
+
+            if (this.isBleConnected) {
+                console.log('当前为蓝牙模式')
+                if (!socketBle.getSocket()) {
+                    socketBle.setSocket()
+                }
+            } else {
+                // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
+                // if(socketBle.getSocket()){
+                //     socketBle.getSocket().close()
+                // }
+            }
+
+            this.updateSendFun()
+        })
+
+        this.updateSendFun = () => {
+            if (this.isPortConnected) {
+                this.whatSendFun = 'port'
+            } else if (this.isBleConnected) {
+                this.whatSendFun = 'ble'
+            } else {
+                this.whatSendFun = 'net'
+            }
+            console.log('当前发送方式:', this.whatSendFun)
+        }
+
+        this.distance
+
+        this.channel = new BroadcastChannel('distance_channel');
+
+
+        this.responseQueue = []; // 等待中的 Promise 队列
+        this.stateBuffer = [];   // 最近 3 个 state
+        window.EditorPreload.sendStateData((state) => {
+            console.log("📩 收到状态:", state);
+            // if (this.responseQueue.length > 0) {
+            //     // 只要收到一个 0，就 resolve
+            //     if (state === 0) {
+            //     const { resolve, timer } = this.responseQueue.shift();
+            //     clearTimeout(timer);
+            //     resolve(true);
+            //     }
+            // } else {
+            //     console.warn("⚠️ 收到未匹配的响应:", state);
+            // }
+            if (this.responseQueue.length > 0) {
+                // 收到一个 0 就 resolve
+                if (state === 0) {
+                const { resolve } = this.responseQueue.shift();
+                resolve(true);
+                }
+            } else {
+                console.warn("⚠️ 收到未匹配的响应:", state);
+            }
+        })
+        this.channelSerialData=new BroadcastChannel('serial-data')
 
     }
   getInfo() {
@@ -526,6 +641,22 @@ class RobotSound {
   }
 
 
+   waitForThreeZeros(timeoutMs = 6000) {
+    // return new Promise((resolve, reject) => {
+    //     const timer = setTimeout(() => {
+    //     // 超时
+    //     this.responseQueue = this.responseQueue.filter(item => item.resolve !== resolve);
+    //     reject(new Error(`等待超时（>${timeoutMs}ms 未收到连续三个 0）`));
+    //     }, timeoutMs);
+
+    //     // 推入队列
+    //     this.responseQueue.push({ resolve, reject, timer });
+    // });
+        return new Promise((resolve) => {
+            this.responseQueue.push({ resolve });
+        });
+    }
+
   showToast(message, duration = 3000) {
     // 如果 toast 容器不存在，则创建一个
     let container = document.getElementById('toast-container');
@@ -565,6 +696,12 @@ class RobotSound {
             default: 'Socket is connecting, please wait',
             description: 'robotactuator.showToast.connecting'
         })
+    }else if(message == "未与机器人建立wifi连接"){
+        toast.textContent = formatMessage({
+            id: 'robotimg.showToast.haveWifiCamera',
+            default: 'Wi-Fi connection to the robot is not established.',
+            description: 'robotimg.showToast.haveWifiCamera'
+        })
     }
     // toast.textContent = message;
 
@@ -603,14 +740,86 @@ class RobotSound {
         }, 300); // 等动画结束
     }, duration);
 }
+
+    waitForArrayMatchInArray(expectedArray, timeout = 6000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+
+            console.log('进入阻塞函数')
+            // 定义临时监听器
+            const handleMessage = (event) => {
+                console.log('进入监听')
+                const currentArray = event.data; // 来自 BroadcastChannel 的数据
+
+                // 确保是数组并且匹配条件
+                if (Array.isArray(currentArray) && currentArray[0] === expectedArray[0]) {
+                    if (
+                        currentArray.length === expectedArray.length &&
+                        currentArray.every((val, i) => val === expectedArray[i])
+                    ) {
+                        cleanup();
+                        resolve(currentArray);
+                    }
+                }
+
+                // 超时判断
+                if (Date.now() - startTime > timeout) {
+                    console.log('超时')
+                    cleanup();
+                    reject(new Error('Timeout waiting for array to match.'));
+                }
+            };
+
+            // 清理函数：移除监听器
+            const cleanup = () => {
+                this.channel.removeEventListener('message', handleMessage);
+            };
+
+            // 添加临时监听器
+            this.channel.addEventListener('message', handleMessage);
+        });
+    }
+
+    sendCommandAndWaitForSuccess(command) {
+        return new Promise(async(resolve, reject) => {
+        
+            let resolved = false; // 防止多次 resolve
+    
+        // 响应监听器
+        const onMessage = (e) => {
+            const data = e.data;
+            console.log(data)
+            if (Array.isArray(data) && data.length==1 && data[0] === 0) {
+                if (!resolved) {
+                    resolved = true;
+                    this.channelSerialData.removeEventListener('message', onMessage);
+                    resolve();
+                }
+            }else if (typeof data === "string" && data.includes("[0]")) {
+                if (!resolved) {
+                    resolved = true;
+                    this.channelSerialData.removeEventListener('message', onMessage);
+                    resolve();
+                }
+        }
+        };
+    
+        this.channelSerialData.addEventListener('message', onMessage);
+        await new Promise(resolve => setTimeout(resolve, 80));
+        // 发送命令
+        this.channelPort.postMessage(command);
+    
+        // 可选：超时机制（比如 5 秒）
+        //   setTimeout(() => {
+        //     this.channelSerialData.removeEventListener('message', onMessage);
+        //     reject(new Error('超时未收到 success'));
+        //   }, 5000);
+        });
+    }
     async setVol(args){
         if(this.mode){
             this.currentVol=args.ONE
-            if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
-                this.runtime.stopAll();
-                return
-            }
+            
 
             let vol=Number(args.ONE)
             if(vol<0){
@@ -632,6 +841,11 @@ class RobotSound {
             let str = JSON.stringify(jsonData)
 
             if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
                 if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                     console.log('断开连接，尝试重连')
                     this.showToast("socket断开，尝试重连......");
@@ -649,21 +863,28 @@ class RobotSound {
                     this.runtime.stopAll();
                 }
                 socket.setLastPostTime(Date.now())
-            }else{
-                this.channelPort.postMessage(str)
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x20,vol]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros();
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x20,vol]))
+                await ackPromise
             }
            
         }
     }
 
+    stringToBinary(str) {
+        const encoder = new TextEncoder();
+        const uint8Array = encoder.encode(str);
+        return uint8Array;
+    }
     async musicUntil(args){
         if(this.mode){
 
-             if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
-                this.runtime.stopAll();
-                return
-            }
+            
 
             let jsonData={
                 "command":"speaker",
@@ -678,6 +899,11 @@ class RobotSound {
 
             let str = JSON.stringify(jsonData)
             if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
                 if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                     console.log('断开连接，尝试重连')
                     this.showToast("socket断开，尝试重连......");
@@ -696,10 +922,16 @@ class RobotSound {
                 }
                 await new Promise(resolve => setTimeout(resolve, this.musicTime[args.ONE]));  // 等待1秒
                 socket.setLastPostTime(Date.now())
-            }else{
+            }else if(this.whatSendFun=='port'){
                 this.channelPort.postMessage(str)
+                // this.channelPort.postMessage(JSON.stringify([0XAA,0x01,0x21,0x02,...this.stringToBinary(`/flash/${args.ONE}`)]))
                 await new Promise(resolve => setTimeout(resolve, this.musicTime[args.ONE]));  
 
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros();
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x21,0x02,...this.stringToBinary(`/flash/${args.ONE}`)]))
+                // await this.waitForArrayMatchInArray(() => [0xcc,0]);
+                await ackPromise
             }
            
         }
@@ -708,11 +940,7 @@ class RobotSound {
     async music(args){
         if(this.mode){
 
-             if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
-                this.runtime.stopAll();
-                return
-            }
+             
 
             let jsonData={
                 "command":"speaker",
@@ -728,6 +956,11 @@ class RobotSound {
             let str = JSON.stringify(jsonData)
 
             if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
                 if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                     console.log('断开连接，尝试重连')
                     this.showToast("socket断开，尝试重连......");
@@ -746,8 +979,14 @@ class RobotSound {
                 }
                 // await new Promise(resolve => setTimeout(resolve, 1000));  // 等待1秒
                 socket.setLastPostTime(Date.now())
-            }else{
-                this.channelPort.postMessage(str)
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x21,0x01,...this.stringToBinary(`/flash/${args.ONE}`)]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros();
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x21,0x01,...this.stringToBinary(`/flash/${args.ONE}`)]))
+                await ackPromise
             }
             
         }
@@ -757,11 +996,7 @@ class RobotSound {
         if(this.mode){
 
 
-             if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
-                this.runtime.stopAll();
-                return
-            }
+             
             this.shouldStopSending = true;
             let jsonData={
                 "command":"speaker",
@@ -776,6 +1011,11 @@ class RobotSound {
 
             let str = JSON.stringify(jsonData)
             if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
                 if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
                     console.log('断开连接，尝试重连')
                     this.showToast("socket断开，尝试重连......");
@@ -793,8 +1033,14 @@ class RobotSound {
                     this.runtime.stopAll();
                 }
                 socket.setLastPostTime(Date.now())
-            }else{
-                this.channelPort.postMessage(str)
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x22]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros();
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x22]))
+                await ackPromise
             }
            
 
@@ -918,60 +1164,80 @@ class RobotSound {
         }
     }
     async playLocalMusic(args){
-        if(args.TWO=='0'){
-             if(socket.getIp().length==0){
-                this.showToast('未连接机器人')
-                this.runtime.stopAll();
-                return
-            }
-            console.log('执行了')
-            console.log(this.isSendEnd)
-            this.shouldStopSending = false;
-            if(this.isSendEnd){
-                try {
-                    // const processedBlob = await this.selectAndProcessAudio();
-                    // console.log('✅ 音频处理完成，Blob:', processedBlob);
-        
-                    // const arrayBuffer = await processedBlob.arrayBuffer();
-                    // console.log(arrayBuffer)
-        
-        
-                    this.isSendEnd=false
-                    console.log(this.upLoadSound[Number(args.ONE)].data)
-                    let arrayBuffer=this.upLoadSound[Number(args.ONE)].data
-        
-                    socketSound = new WebSocket(`ws://${socket.getIp()}:8080`)
-                    
-
-                    socketSound.addEventListener('error', (e) => {
-                        console.error('❌ WebSocket 连接出错:', e);
-                        this.isSendEnd = true;
-                    });
-                    
-                    socketSound.addEventListener('close', (e) => {
-                        console.warn('🔌 WebSocket 已断开:', e.code, e.reason);
-                        this.shouldStopSending = true;
-                        if (!this.isSendEnd) {
-                            this.isSendEnd = true;
-                        }
-                    });
-                
-                    socketSound.addEventListener('open',async()=>{
-                        
-                        console.log('连接成功')
-                        this.shouldStopSending = false;
+        if(this.whatSendFun=='net'){
+             if(args.TWO=='0'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log('执行了')
+                console.log(this.isSendEnd)
+                this.shouldStopSending = false;
+                if(this.isSendEnd){
+                    try {
+                        // const processedBlob = await this.selectAndProcessAudio();
+                        // console.log('✅ 音频处理完成，Blob:', processedBlob);
+            
+                        // const arrayBuffer = await processedBlob.arrayBuffer();
+                        // console.log(arrayBuffer)
+            
+            
                         this.isSendEnd=false
-                        const chunkSize = 2048;
-                        let offset = 44; // ✅ 跳过 WAV 头部 44 字节
+                        console.log(this.upLoadSound[Number(args.ONE)].data)
+                        let arrayBuffer=this.upLoadSound[Number(args.ONE)].data
+            
+                        socketSound = new WebSocket(`ws://${socket.getIp()}:8080`)
+                        
 
-                        let lastSendTime = performance.now(); // 初始化时间戳
-                      
-                        const sendChunk = () => {
-
-                            if (this.shouldStopSending) {
-                                console.warn('⛔️ 发送被手动中断');
-                                const SocketDisMusic = new WebSocket(`ws://${socket.getIp()}:8084`);
+                        socketSound.addEventListener('error', (e) => {
+                            console.error('❌ WebSocket 连接出错:', e);
+                            this.isSendEnd = true;
+                        });
+                        
+                        socketSound.addEventListener('close', (e) => {
+                            console.warn('🔌 WebSocket 已断开:', e.code, e.reason);
+                            this.shouldStopSending = true;
+                            if (!this.isSendEnd) {
+                                this.isSendEnd = true;
+                            }
+                        });
                     
+                        socketSound.addEventListener('open',async()=>{
+                            
+                            console.log('连接成功')
+                            this.shouldStopSending = false;
+                            this.isSendEnd=false
+                            const chunkSize = 2048;
+                            let offset = 44; // ✅ 跳过 WAV 头部 44 字节
+
+                            let lastSendTime = performance.now(); // 初始化时间戳
+                        
+                            const sendChunk = () => {
+
+                                if (this.shouldStopSending) {
+                                    console.warn('⛔️ 发送被手动中断');
+                                    const SocketDisMusic = new WebSocket(`ws://${socket.getIp()}:8084`);
+                        
+                                    SocketDisMusic.addEventListener('open', async (event) => {
+                                        console.log('连接成功');
+                                        SocketDisMusic.send('music')
+                                        await new Promise(resolve => setTimeout(resolve, 100));
+                                        SocketDisMusic.close()
+                        
+                                            
+                                    });
+                                    socketSound.close();
+                                    this.isSendEnd = true;
+                                    return;
+                                }
+
+
+                            if (offset >= arrayBuffer.byteLength) {
+                                console.log('📤 所有音频数据发送完毕');
+
+                                const SocketDisMusic = new WebSocket(`ws://${socket.getIp()}:8084`);
+                        
                                 SocketDisMusic.addEventListener('open', async (event) => {
                                     console.log('连接成功');
                                     SocketDisMusic.send('music')
@@ -980,56 +1246,41 @@ class RobotSound {
                     
                                         
                                 });
-                                socketSound.close();
-                                this.isSendEnd = true;
+                                socketSound.close()
+                                this.isSendEnd=true
                                 return;
                             }
+                        
+                            const end = Math.min(offset + chunkSize, arrayBuffer.byteLength);
+                            const chunk = arrayBuffer.slice(offset, end);
+                            //   console.log(chunk)
+                            // const now = performance.now(); // 获取当前时间戳（毫秒，浮点数）
+                            // const interval = now - lastSendTime;
+                            // lastSendTime = now;
+                            // console.log(`📦 Chunk sent, size: ${chunk.byteLength}, interval: ${interval.toFixed(2)} ms`);
 
-
-                          if (offset >= arrayBuffer.byteLength) {
-                            console.log('📤 所有音频数据发送完毕');
-
-                            const SocketDisMusic = new WebSocket(`ws://${socket.getIp()}:8084`);
-                    
-                            SocketDisMusic.addEventListener('open', async (event) => {
-                                console.log('连接成功');
-                                SocketDisMusic.send('music')
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                SocketDisMusic.close()
-                
-                                    
-                            });
-                            socketSound.close()
-                            this.isSendEnd=true
-                            return;
-                          }
-                      
-                          const end = Math.min(offset + chunkSize, arrayBuffer.byteLength);
-                          const chunk = arrayBuffer.slice(offset, end);
-                        //   console.log(chunk)
-                        // const now = performance.now(); // 获取当前时间戳（毫秒，浮点数）
-                        // const interval = now - lastSendTime;
-                        // lastSendTime = now;
-                        // console.log(`📦 Chunk sent, size: ${chunk.byteLength}, interval: ${interval.toFixed(2)} ms`);
-
-                          socketSound.send(chunk);
-                          offset = end;
-                      
-                          setTimeout(sendChunk, 60); // 控制发送节奏
-                          
-                        };
-                      
-                        sendChunk();
-                    })
-        
-                } catch (err) {
-                    console.error('❌ 处理失败:', err.message);
-                    this.isSendEnd = true;
+                            socketSound.send(chunk);
+                            offset = end;
+                        
+                            setTimeout(sendChunk, 60); // 控制发送节奏
+                            
+                            };
+                        
+                            sendChunk();
+                        })
+            
+                    } catch (err) {
+                        console.error('❌ 处理失败:', err.message);
+                        this.isSendEnd = true;
+                    }
                 }
+            }else if(args.TWO=='1'){
+                this.shouldStopSending = true;
             }
-        }else if(args.TWO=='1'){
-            this.shouldStopSending = true;
+        }else{
+            this.showToast('未与机器人建立wifi连接')
         }
+       
        
         
     }
