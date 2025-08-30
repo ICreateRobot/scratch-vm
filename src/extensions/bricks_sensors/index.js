@@ -15,7 +15,7 @@ const ArgumentType = require('../../extension-support/argument-type')
 //     console.log('vm:'+distance);
     
 // });
-
+const currentMode = require('../../util/mode')
 const formatMessage = require('format-message');
 
 let distance
@@ -48,10 +48,18 @@ const titleIcon = require('../../util/img/max_module_tilt.svg')
 const gestureIcon = require ('../../util/img/max_module_gesture.svg')
 const mainBnIcon = require('../../util/img/max_module_button_z.svg')
 const motorIcon = require('../../util/img/console_motor.svg')
+const colorLightIco = require('../../util/img/color_light.png')
+const touchIco = require('../../util/img/touch.png')
 
 class BricksSensors {
     constructor(runtime){
         this.runtime=runtime
+        this.mode=true
+        this.channelMode=new BroadcastChannel('mode')
+        this.channelMode.addEventListener('message',(event)=>{
+            this.mode=event.data
+            currentMode.setMode(event.data)
+        })
     }
 
   getInfo() {
@@ -185,6 +193,46 @@ class BricksSensors {
             },
             disableMonitor: true
         },
+         {
+            opcode: 'colorSensor',
+            blockType: BlockType.BOOLEAN,
+            // text: '端口[ONE]颜色[TWO]',
+            text: formatMessage({
+                id: 'brickssensors.colorSensor',
+                default: 'Port [ONE] color [TWO]',
+                description: 'brickssensors.colorSensor'
+            }),
+            blockIconURI: colorLightIco,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU_COLOR'
+                },
+            },
+            disableMonitor: true
+        },
+        {
+            opcode: 'touch',
+            blockType: BlockType.BOOLEAN,
+            // text: '端口[ONE]颜色[TWO]',
+            text: formatMessage({
+                id: 'brickssensors.touch',
+                default: 'Port [ONE] touch',
+                description: 'brickssensors.touch'
+            }),
+            blockIconURI: touchIco,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU'
+                },
+            },
+            disableMonitor: true
+        },
         {
             opcode: 'controlbutton',
             blockType: BlockType.BOOLEAN,
@@ -290,6 +338,46 @@ class BricksSensors {
             },
             disableMonitor: true
         },
+         {
+            opcode: 'colorRgb',
+            blockType: BlockType.REPORTER,
+            // text: '端口[ONE]声音',
+            text: formatMessage({
+                id: 'brickssensors.colorRgb',
+                default: 'Port [ONE] color value [TWO]',
+                description: 'brickssensors.colorRgb'
+            }),
+            blockIconURI: colorLightIco,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU',
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU_RGB',
+                },
+            },
+            disableMonitor: true
+        },
+        {
+            opcode: 'colorLight',
+            blockType: BlockType.REPORTER,
+            // text: '端口[ONE]声音',
+            text: formatMessage({
+                id: 'brickssensors.colorLight',
+                default: 'Port [ONE] light value',
+                description: 'brickssensors.colorLight'
+            }),
+            blockIconURI: colorLightIco,
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu: 'FORMAT_MENU',
+                },
+            },
+            disableMonitor: true
+        },
         // {
         //     opcode: 'motoranagle',
         //     blockType: BlockType.REPORTER,
@@ -361,6 +449,78 @@ class BricksSensors {
                 value: '3'
               },
           ]
+        },
+        FORMAT_MENU_COLOR:{
+            acceptReporters: false,
+            items: [
+                {
+                    // text: '正传',
+                    text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.red',
+                        default: 'Red',
+                        description: 'brickssensors.formatMenuColor.red'
+                    }),
+                    value: '1'
+                },
+                {
+                   text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.yellow',
+                        default: 'Yellow',
+                        description: 'brickssensors.formatMenuColor.yellow'
+                    }),
+                    value: '2'
+                },
+                {
+                    text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.blue',
+                        default: 'Blue',
+                        description: 'brickssensors.formatMenuColor.blue'
+                    }),
+                    value: '3'
+                },
+                {
+                    text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.green',
+                        default: 'Green',
+                        description: 'brickssensors.formatMenuColor.green'
+                    }),
+                    value: '4'
+                },
+                {
+                    text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.black',
+                        default: 'Black',
+                        description: 'brickssensors.formatMenuColor.black'
+                    }),
+                    value: '255'
+                },
+                {
+                    text: formatMessage({
+                        id: 'brickssensors.formatMenuColor.white',
+                        default: 'White',
+                        description: 'brickssensors.formatMenuColor.white'
+                    }),
+                    value: '254'
+                },
+            ]
+        },
+        FORMAT_MENU_RGB:{
+            acceptReporters: false,
+            items: [
+                {
+                    // text: '正传',
+                    text: 'R',
+                    value: '0'
+                },
+                {
+                   text: 'G',
+                    value: '1'
+                },
+                {
+                    text: 'B',
+                    value: '2'
+                },
+            ]
         },
         FORMAT_MENU_STATE:{
             acceptReporters: false,
@@ -579,7 +739,22 @@ class BricksSensors {
     };
   }
 
+   colorSensor(args){
+    return
+  }
+  touch(args){
+    return
+  }
+
+  colorLight(args){
+    return
+  }
+
+  colorRgb(args){
+    return
+  }
   readknob(args){
+    if(!this.mode) return
     // this.runtime.ioDevices.video.test()
     // console.log(distance)
     for(let i=0;i<distance[5].length;i++){
@@ -601,6 +776,7 @@ class BricksSensors {
   }
 
   knob(args){
+    if(!this.mode) return
     // this.runtime.ioDevices.video.disableVideo();
 
     for(let i=0;i<distance[5].length;i++){
@@ -619,6 +795,7 @@ class BricksSensors {
   }
 
   handpose(args){
+    if(!this.mode) return
     for(let i=0;i<distance[4].length;i++){
         if(distance[4][i].length>0 && args.ONE==distance[4][i][0]){
             if(args.TWO==distance[4][i][2]){
@@ -632,6 +809,7 @@ class BricksSensors {
 
 
   readsong(args){
+    if(!this.mode) return
     for(let i=0; i<distance[3].length;i++){
         if(distance[3][i].length>0 && args.ONE==distance[3][i][0]){
             return distance[3][i][2]
@@ -642,6 +820,7 @@ class BricksSensors {
 
   song(args){
 
+    if(!this.mode) return
     for(let i=0;i<distance[3].length;i++){
         if(distance[3][i].length>0 && args.ONE==distance[3][i][0]){
             if(args.TWO=='>'){
@@ -669,6 +848,7 @@ class BricksSensors {
   }
 
     controlbutton(args){
+        if(!this.mode) return
         // console.log(distance[2])
         for(let i=0;i<distance[2].length;i++){
             if(distance[2][i].length>0 && args.ONE==distance[2][i][1] && distance[2][i][2]==1){
@@ -681,6 +861,7 @@ class BricksSensors {
     }
 
     controlState(args){
+        if(!this.mode) return
         for(let i=0;i<distance[2].length;i++){
             if(distance[2][i].length>0 && args.ONE==distance[2][i][1]){
 
@@ -694,6 +875,7 @@ class BricksSensors {
 
     async distance(args){
     
+        if(!this.mode) return
         // console.log(window)
 
         for(let i=0;i<distance[0].length;i++){
@@ -725,6 +907,7 @@ class BricksSensors {
     }
 
     incline(args){
+        if(!this.mode) return
 
         for(let i=0;i<distance[1].length;i++){
             if(distance[1][i].length>0 && args.ONE==distance[1][i][0]){
@@ -748,6 +931,7 @@ class BricksSensors {
     }
 
     readdistance(args){
+        if(!this.mode) return
         for(let i=0;i<distance[0].length;i++){
             if(distance[0][i].length>0 && args.ONE==distance[0][i][0]){
                 return distance[0][i][2]
@@ -757,6 +941,7 @@ class BricksSensors {
     }
 
     readincline(args){
+        if(!this.mode) return
         for(let i=0;i<distance[1].length;i++){
             if(distance[1][i].length>0 && args.ONE==distance[1][i][0]){
                 if(args.TWO == '0'){
@@ -796,6 +981,7 @@ class BricksSensors {
     }
 
     motoranagle(args){
+        if(!this.mode) return
         for(let i=0;i<distance[6].length;i++){
             if(distance[6][i].length>0 && args.ONE==distance[6][i][0]){
                 if(distance[6][i][3]==0){

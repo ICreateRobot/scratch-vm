@@ -313,6 +313,7 @@ class BricksMotor {
   //   return args.ONE
   // }
   async motorSpeed(args){
+    if(!this.mode) return
     // socket.getSocket().send('11111')
     let data=[]
     data.push(Number(args.ONE))
@@ -378,6 +379,7 @@ class BricksMotor {
       });
   }
   async motorSpeedCir(args){
+    if(!this.mode) return
     let data=[]
     //端口
     data.push(Number(args.ONE))
@@ -403,6 +405,7 @@ class BricksMotor {
   }
   async setZero(args){
 
+    if(!this.mode) return
     let data=[]
     data.push(Number(args.ONE))
     data.push(103)
@@ -418,6 +421,7 @@ class BricksMotor {
   }
   async moveto(args){
 
+    if(!this.mode) return
     let data=[]
     data.push(Number(args.ONE))
     data.push(103)
@@ -431,9 +435,11 @@ class BricksMotor {
 
     socket.getSocket().send(JSON.stringify(data))
     await new Promise(resolve => setTimeout(resolve, 100)); 
+    await this.waitForArrayMatchInArray(() =>this.distance[6], [Number(args.ONE), 103, 0, 0]);
   }
   async stop(args){
 
+    if(!this.mode) return
     let data =[Number(args.ONE),103,0,0,0]
     socket.getSocket().send(JSON.stringify(data))
     await new Promise(resolve => setTimeout(resolve, 200)); 
@@ -441,6 +447,7 @@ class BricksMotor {
 
 
   motoranagle(args){
+    if(!this.mode) return
       for(let i=0;i<this.distance[6].length;i++){
           if(this.distance[6][i].length>0 && args.ONE==this.distance[6][i][0]){
               if(this.distance[6][i][3]==0){

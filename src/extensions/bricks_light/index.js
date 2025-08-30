@@ -7,7 +7,7 @@ const socket=require('../../util/localSocket')
 
 const led = require('../../util/img/led_purple.svg')
 const ledCon = require('../../util/img/max_module_led_con.svg')
-
+const currentMode = require('../../util/mode')
 const formatMessage = require('format-message');
 
 let dataControl=[17,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -15,6 +15,13 @@ class BricksLight {
   constructor(runtime){
     this.runtime=runtime
 
+
+    this.mode=true
+    this.channelMode=new BroadcastChannel('mode')
+    this.channelMode.addEventListener('message',(event)=>{
+        this.mode=event.data
+        currentMode.setMode(event.data)
+    })
     if(!socket.getSocket()){
       socket.setSocket()
     }
@@ -188,6 +195,7 @@ class BricksLight {
     return result;
   }
   async outlight(args){
+    if(!this.mode) return
     let data=[]
     data.push(Number(args.ONE))
     data.push(64)
@@ -218,6 +226,7 @@ class BricksLight {
     dataControl[startIndex + 2] = b;
   }
   async inlight(args){
+    if(!this.mode) return
     let rgb=this.hexToRgb(args.TWO)
     this.fillRGB(Number(args.ONE),rgb[0],rgb[1],rgb[2])
     socket.getSocket().send(JSON.stringify(dataControl))

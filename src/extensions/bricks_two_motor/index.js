@@ -2,12 +2,19 @@ const BlockType = require('../../extension-support/block-type');
 const ArgumentType = require('../../extension-support/argument-type')
 const socket=require('../../util/localSocket')
 const formatMessage = require('format-message');
+const currentMode = require('../../util/mode')
 const motorD=require('../../util/img/max_module_motor_d.svg')
 let motor=[8,1]
 class BricksMotor {
 
   constructor(runtime){
     this.runtime=runtime
+    this.mode=true
+    this.channelMode=new BroadcastChannel('mode')
+    this.channelMode.addEventListener('message',(event)=>{
+        this.mode=event.data
+        currentMode.setMode(event.data)
+    })
 
     if(!socket.getSocket()){
       socket.setSocket()
@@ -264,6 +271,7 @@ class BricksMotor {
 //   }
 
 async setmovemotor(args){
+  if(!this.mode) return
   let prePort=[7,0,6,1,5,2,4,3]
   let port = [2,4,6,8,7,5,3,1]
 
@@ -287,6 +295,7 @@ mapTo63to127(value) {
   return Math.round((value / 255) * 63);
 }
 async speedmove(args){
+  if(!this.mode) return
   let data=[252,0,0,0,0,0,0,0,0]
   if(args.ONE=='1'){
     data[motor[0]]=this.mapTo63to127(Number(args.TWO))
@@ -309,9 +318,10 @@ async speedmove(args){
 
 }
 speedmoveplace(){
-
+  return
 }
 async stop(){
+  if(!this.mode) return
   let data=[249]
   socket.getSocket().send(JSON.stringify(data))
   await new Promise(resolve => setTimeout(resolve, 200)); 
