@@ -127,6 +127,11 @@ class robotteachable {
         //     console.log(this.runtime.requestBlocksUpdate)
         //     this.runtime.requestBlocksUpdate();
         // },3000)
+        this.channelLoadModel = new BroadcastChannel('loadmodel')
+        this.channelLoadModel.addEventListener('message',(event)=>{
+            console.log('loadmodel',event)
+            this.loadProjectModel()
+        })
        
         
     }
@@ -220,16 +225,16 @@ class robotteachable {
                 }),
             },
 
-            {
-                func:'importModel',
-                blockType:BlockType.BUTTON,
-                // text:'结束识别(电脑摄像头)'
-                text: formatMessage({
-                    id: 'robotteachable.importModel',
-                    default: 'import model',
-                    description: 'robotteachable.importModel'
-                }),
-            },
+            // {
+            //     func:'importModel',
+            //     blockType:BlockType.BUTTON,
+            //     // text:'结束识别(电脑摄像头)'
+            //     text: formatMessage({
+            //         id: 'robotteachable.importModel',
+            //         default: 'import model',
+            //         description: 'robotteachable.importModel'
+            //     }),
+            // },
             {
                 opcode: 'resultBlock',
                 blockType: BlockType.BOOLEAN,
@@ -1309,6 +1314,7 @@ class robotteachable {
             console.log('新菜单')
             // item=[]
             for(let i=0;i<this.classInfo[0].length;i++){
+                console.log(this.classInfo[1][i])
                 let content={
                     text: formatMessage({
                         id: 'robotteachable.getConnectedSensors',
@@ -1404,7 +1410,7 @@ class robotteachable {
              const specsStr = typeof weightSpecs === 'string' ? weightSpecs : JSON.stringify(weightSpecs);
             if (specsStr.includes('[63,128]')) {
             this.whatModel = 'gesture';
-            } else if (specsStr.includes('[1001,2]')) {
+            } else if (specsStr.includes('[1001')) {
             this.whatModel = 'image';
             } else if (specsStr.includes('[51,128]')) {
             this.whatModel = 'pose';
@@ -1460,6 +1466,99 @@ class robotteachable {
                 this.saveModelToLocalStorage(data);
             }
         });
+    }
+
+    loadProjectModel(){
+        const TF_PREFIX = 'tensorflowjs_models/';
+        const modelData = {};
+        let modelName = null;
+        let foundModelKey = false;
+
+        // Step 1: 遍历 localStorage 查找模型名和模型数据
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(TF_PREFIX)) {
+                foundModelKey = true;
+                const relativePath = key.substring(TF_PREFIX.length); // e.g. modelName/model_topology
+                const parts = relativePath.split('/');
+                if (parts.length >= 2) {
+                    modelName = parts[0]; // 第一个模型名
+                    const subKey = parts[1]; // e.g. model_topology, weight_specs
+
+                    if (!modelData[modelName]) {
+                        modelData[modelName] = {};
+                    }
+
+                    modelData[modelName][subKey] = localStorage.getItem(key);
+                }
+            }
+        }
+
+        if (!foundModelKey) {
+            console.warn('未检测到 tensorflowjs_models 开头的模型数据，终止加载。');
+            return;
+        }
+
+        // Step 2: 加载额外的 labelClass 和 class（独立于模型名）
+        const labelClassRaw = localStorage.getItem('labelClass');
+        const classRaw = localStorage.getItem('class');
+
+        const labelClass = labelClassRaw
+            ? labelClassRaw.split(',').map(str => Number(str.trim()))
+            : [];
+
+        const classList = classRaw
+            ? classRaw.split(',').map(str => str.trim())
+            : [];
+
+
+        this.modelName=modelName
+        this.classInfo=[labelClass,classList]
+        // console.log(this.classInfo)
+        const specsStr = typeof modelData[modelName].weight_specs === 'string' ? modelData[modelName].weight_specs : JSON.stringify(modelData[modelName].weight_specs);
+        // console.log(specsStr)
+        if (specsStr.includes('[63,128]')) {
+        this.whatModel = 'gesture';
+        } else if (specsStr.includes('[1001')) {
+        this.whatModel = 'image';
+        } else if (specsStr.includes('[51,128]')) {
+        this.whatModel = 'pose';
+        } else {
+        this.whatModel = 'unknown';
+        }
+
+        if(this.poseNetmode && typeof this.poseNetmode.dispose ==='function'){
+            this.poseNetmode.dispose()
+        }
+        
+        if(this.whatModel=='image'){
+            this.channelLoad.postMessage(true)
+            tf.ready().then(() => {
+                console.log("使用后端: ", tf.getBackend());//获取当前 TensorFlow.js 所使用的计算后端
+                tf.setBackend('webgl').then(() => {//切换后端
+                    console.log("切换到webgl后端.");
+                    this.loadMobilenet()
+                });
+            });
+        }else if(this.whatModel=='pose'){
+            this.channelLoad.postMessage(true)
+            tf.ready().then(() => {
+                console.log("使用后端: ", tf.getBackend());//获取当前 TensorFlow.js 所使用的计算后端
+                tf.setBackend('webgl').then(() => {//切换后端
+                    console.log("切换到webgl后端.");
+                    this.loadPoseMode()
+                });
+            });
+        }else if(this.whatModel=='gesture'){
+            this.channelLoad.postMessage(true)
+            tf.ready().then(() => {
+                console.log("使用后端: ", tf.getBackend());//获取当前 TensorFlow.js 所使用的计算后端
+                tf.setBackend('webgl').then(() => {//切换后端
+                    console.log("切换到webgl后端.");
+                    this.loadGestureMode()
+                });
+            });
+        }
     }
 
 }
