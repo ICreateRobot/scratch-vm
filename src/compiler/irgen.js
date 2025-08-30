@@ -598,6 +598,11 @@ class ScriptTreeGenerator {
                 kind: 'keyboard.pressed',
                 key: this.descendInputOfBlock(block, 'KEY_OPTION')
             };
+        case 'sensing_keyup':
+            return {
+                kind: 'keyboard.up',
+                key: this.descendInputOfBlock(block, 'KEY_OPTION')
+            };
         case 'sensing_mousedown':
             return {
                 kind: 'mouse.down'
@@ -801,7 +806,8 @@ class ScriptTreeGenerator {
             this.script.yields = true;
             return {
                 kind: 'control.wait',
-                seconds: this.descendInputOfBlock(block, 'DURATION')
+                seconds: this.descendInputOfBlock(block, 'DURATION'),
+                second:block.fields?.SECOND?.value || 'seconds'
             };
         case 'control_wait_until':
             this.script.yields = true;

@@ -260,6 +260,10 @@ class Scratch3SensingBlocks {
     getKeyPressed (args, util) {
         return util.ioQuery('keyboard', 'getKeyIsDown', [args.KEY_OPTION]);
     }
+    getKeyUp(args, util){
+        console.log('按键被松开')
+        return util.ioQuery('keyboard', 'getKeyIsUp', [args.KEY_OPTION]);
+    }
 
     daysSince2000 () {
         const msPerDay = 24 * 60 * 60 * 1000;
