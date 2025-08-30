@@ -201,6 +201,15 @@ class Keyboard {
         return this._keysPressed.indexOf(scratchKey) > -1;
     }
 
+    getKeyIsUp (keyArg) {
+        if (keyArg === 'any') {
+            // If 'any', check if there are no keys pressed
+            return this._keysPressed.length === 0;
+        }
+        const scratchKey = this._keyArgToScratchKey(keyArg);
+        // If the key is not in the _keysPressed array, it means it has been released
+        return this._keysPressed.indexOf(scratchKey) === -1;
+    }
     // tw: expose last pressed key
     getLastKeyPressed () {
         return this.lastKeyPressed;
