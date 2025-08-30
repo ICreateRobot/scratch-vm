@@ -1,5 +1,5 @@
 const StageLayering = require('../engine/stage-layering');
-const jsQR = require('jsqr');  // 引入 jsQR 库
+// const jsQR = require('jsqr');  // 引入 jsQR 库
 const axios = require('axios')
 // const cv = require('opencv.js');  // 引入 OpenCV.js
 const path= require('path')
@@ -45,7 +45,8 @@ const { startQRDetection,
         startWColorBlockDetection,
         stopWColorBlockDetection,
         startTrafficpre,
-        stopTraffic
+        stopTraffic,
+        stopVideo
     } = require('./allmodel');
 
 // require('https://cdnjs.cloudflare.com/ajax/libs/mathjs/7.1.0/math.min.js')
@@ -645,6 +646,9 @@ class Video {
 
     stopTraffic(){
         stopTraffic(this)
+    }
+    stopVideo(){
+        stopVideo(this,Video,StageLayering)
     }
     /**
      * Set the preview ghost effect
