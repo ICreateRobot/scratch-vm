@@ -1,5 +1,5 @@
 const StageLayering = require('../engine/stage-layering');
-// const jsQR = require('jsqr');  // 引入 jsQR 库
+const jsQR = require('jsqr');  // 引入 jsQR 库
 const axios = require('axios')
 // const cv = require('opencv.js');  // 引入 OpenCV.js
 const path= require('path')
