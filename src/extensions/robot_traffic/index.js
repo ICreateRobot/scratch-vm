@@ -1113,7 +1113,7 @@ class RobotTraffic {
         if(message == "请先开启摄像头"){
             toast.textContent = formatMessage({
                 id: 'robotapriltag.showToast.firstCamera',
-                default: 'Robot not connected',
+                default: 'Please open the camera first',
                 description: 'robotapriltag.showToast.firstCamera'
             })
         }else if(message == '未开启路标识别模式'){

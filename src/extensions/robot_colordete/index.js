@@ -818,7 +818,7 @@ class RobotColordete {
         if(message == "请先开启摄像头"){
             toast.textContent = formatMessage({
                 id: 'robotapriltag.showToast.firstCamera',
-                default: 'Please turn on the camera first',
+                default: 'Please open the camera first',
                 description: 'robotapriltag.showToast.firstCamera'
             })
         }else if(message == "未开启颜色识别模式"){
