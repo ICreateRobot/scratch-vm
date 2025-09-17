@@ -150,6 +150,12 @@ const ArgumentTypeMap = (() => {
             fieldName: 'NUM'
         }
     };
+    map[ArgumentType.NUMRES0_10] = {
+        shadow: {
+            type: 'numres0D10',
+            fieldName: 'NUM'
+        }
+    };
 
     map[ArgumentType.NUMRES40_500] = {
         shadow: {
@@ -190,6 +196,12 @@ const ArgumentTypeMap = (() => {
     map[ArgumentType.NUMRES0] = {
         shadow: {
             type: 'numres0',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES1] = {
+        shadow: {
+            type: 'numres1',
             fieldName: 'NUM'
         }
     };

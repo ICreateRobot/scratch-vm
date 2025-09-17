@@ -64,6 +64,11 @@ const ArgumentType = {
       *限制输入大小0-9
      */
      NUMRES0_9: 'numres0D9',
+
+     /**
+      *限制输入大小0-10
+     */
+     NUMRES0_10: 'numres0D10',
  
      /**
       *限制输入大小40-500
@@ -99,6 +104,10 @@ const ArgumentType = {
       *限制输入大小0-
      */
      NUMRES0: 'numres0',
+     /**
+      *限制输入大小1
+     */
+     NUMRES1: 'numres1',
  
      /**
       *限制输入大小0-100
