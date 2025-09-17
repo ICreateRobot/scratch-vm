@@ -2198,6 +2198,8 @@ class RobotImg {
                 this.runtime.stopAll();
                 return
             }
+            if(imageLoad.getTmAiImages()=='tm') return
+
             if(args.ONE!='2'){
                 if((imageLoad.getCameraPlace()=='0' && imageLoad.getWhatCamera().playground.length>0 &&imageLoad.getWhatCamera().playground!='robotImg') || (imageLoad.getCameraPlace()=='1' &&imageLoad.getWhatCamera().dialogCam.length>0 && imageLoad.getWhatCamera().dialogCam!='robotImg')){
                     this.showToast('当前模式已有摄像头占用')
@@ -2581,6 +2583,7 @@ class RobotImg {
     }
     async cstartComputerCamera(args){
 
+        if(imageLoad.getTmAiComputer()=='tm') return
         if(args.ONE!='2'){
              
             if((imageLoad.getCameraPlace()=='0' && imageLoad.getWhatCamera().playground.length>0 &&imageLoad.getWhatCamera().playground!='computer') || (imageLoad.getCameraPlace()=='1' &&imageLoad.getWhatCamera().dialogCam.length>0 && imageLoad.getWhatCamera().dialogCam!='computer')){
@@ -2744,6 +2747,7 @@ class RobotImg {
         });
     }
     async cstartNetCamera(args){
+        if(imageLoad.getTmAiNet()=='tm') return
         if(args.ONE!='2'){
 
             // else if(imageLoad.getIsImage()){

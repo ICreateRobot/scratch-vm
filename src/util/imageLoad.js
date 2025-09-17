@@ -40,6 +40,10 @@ let whatCameraOpen={
 
 let camObj;
 
+let tm_ai_images;
+let tm_ai_net;
+let tm_ai_computer;
+
 function setIsImage(a){
     imageIsLoad=a
 }
@@ -200,6 +204,30 @@ function setCamObj(a){
 function getCamObj(){
     return camObj
 }
+
+function getTmAiImages(){
+    return tm_ai_images
+}
+
+function setTmAiImages(a){
+    tm_ai_images=a
+}
+
+function getTmAiNet(){
+    return tm_ai_net
+}
+
+function setTmAiNet(a){
+    tm_ai_net=a
+}
+
+function getTmAiComputer(){
+    return tm_ai_computer
+}
+
+function setTmAiComputer(a){
+    tm_ai_computer=a
+}
 module.exports={
     setIsImage,
     getIsImage,
@@ -241,4 +269,10 @@ module.exports={
     getWhatCamera,
     setCamObj,
     getCamObj,
+    getTmAiImages,
+    setTmAiImages,
+    getTmAiNet,
+    setTmAiNet,
+    getTmAiComputer,
+    setTmAiComputer
 }
