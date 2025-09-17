@@ -134,71 +134,159 @@ class RobotMove {
             alert('网络连接已断开')
         })
 
-        this.whatSendFun='net'
+        // this.whatSendFun='net'
+        // this.isPortConnected = false
+        // this.isBleConnected = false
+        // this.channelSendIp=new BroadcastChannel('sendIp')
+        // this.channelSendIp.addEventListener('message',(event)=>{
+        //     console.log('设置ip')
+        //     socket.setIp(event.data)
+        //     // this.whatSendFun='net'
+        //     this.updateSendFun()
+        // })
+
+        // this.channelHostPot=new BroadcastChannel('hostpot')
+        // this.channelHostPot.addEventListener('message',async(event)=>{
+        //     if(!event.data){
+                
+                
+        //     }
+            
+        // })
+        // this.channelPort = new BroadcastChannel('channelPort')
+        // this.channelPort.addEventListener('message',(event)=>{
+        //     // console.log(event.data)
+        //     // if(event.data){
+        //     //     this.whatSendFun='port'
+        //     // }else{
+        //     //     this.whatSendFun='net'
+        //     // }
+        //     if (typeof event.data === 'boolean') {
+        //         this.isPortConnected = event.data;
+        //         this.updateSendFun();
+        //     }
+            
+        // })
+
+        // this.channelBle = new BroadcastChannel('isBle')
+        // this.channelBle.addEventListener('message',(event)=>{
+        //     // if(this.whatSendFun=='port') return
+            
+        //     // if(event.data){
+        //     //     console.log('当前为蓝牙模式')
+        //     //     if(!socketBle.getSocket()){
+        //     //         socketBle.setSocket()
+        //     //     }
+        //     //     this.whatSendFun='ble'
+        //     // }else{
+        //     //     // if(socketBle.getSocket()){
+        //     //     //     socketBle.getSocket().close()
+        //     //     // }
+        //     //     this.whatSendFun='net'
+        //     // }
+        //      this.isBleConnected = !!event.data
+
+        //     if (this.isBleConnected) {
+        //         console.log('当前为蓝牙模式')
+        //         if (!socketBle.getSocket()) {
+        //             socketBle.setSocket()
+        //         }
+        //     } else {
+        //         // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
+        //         // if(socketBle.getSocket()){
+        //         //     socketBle.getSocket().close()
+        //         // }
+        //     }
+
+        //     this.updateSendFun()
+        // })
+
+        // this.updateSendFun = () => {
+        //     if (this.isPortConnected) {
+        //         this.whatSendFun = 'port'
+        //     } else if (this.isBleConnected) {
+        //         this.whatSendFun = 'ble'
+        //     } else {
+        //         this.whatSendFun = 'net'
+        //     }
+        //     console.log('当前发送方式:', this.whatSendFun)
+        // }
+
+        this.whatSendFun = 'net' // 默认就是 net
         this.isPortConnected = false
         this.isBleConnected = false
-        this.channelSendIp=new BroadcastChannel('sendIp')
-        this.channelSendIp.addEventListener('message',(event)=>{
+        this.isNetConnected = false
+        this.lastHighPriority = null // 默认 net
+
+        // WiFi 设置与连接
+        this.channelSendIp = new BroadcastChannel('sendIp')
+        this.channelSendIp.addEventListener('message', (event) => {
             console.log('设置ip')
             socket.setIp(event.data)
-            // this.whatSendFun='net'
+            this.isNetConnected = true
+            this.lastHighPriority = 'net'
             this.updateSendFun()
         })
-        this.channelPort = new BroadcastChannel('channelPort')
-        this.channelPort.addEventListener('message',(event)=>{
-            // console.log(event.data)
-            // if(event.data){
-            //     this.whatSendFun='port'
-            // }else{
-            //     this.whatSendFun='net'
-            // }
-            if (typeof event.data === 'boolean') {
-                this.isPortConnected = event.data;
-                this.updateSendFun();
+
+        // WiFi 断开
+        this.channelHostPot = new BroadcastChannel('hostpot')
+        this.channelHostPot.addEventListener('message', async (event) => {
+            if (!event.data) {
+                this.isNetConnected = false
+                if (this.whatSendFun === 'net') {
+                    if (this.isBleConnected) {
+                        this.lastHighPriority = 'ble'
+                    } else {
+                        this.lastHighPriority = null
+                    }
+                }
+                this.updateSendFun()
             }
-            
         })
 
+        // 串口
+        this.channelPort = new BroadcastChannel('channelPort')
+        this.channelPort.addEventListener('message', (event) => {
+            if (typeof event.data === 'boolean') {
+                this.isPortConnected = event.data
+                this.updateSendFun()
+            }
+        })
+
+        // 蓝牙
         this.channelBle = new BroadcastChannel('isBle')
-        this.channelBle.addEventListener('message',(event)=>{
-            // if(this.whatSendFun=='port') return
-            
-            // if(event.data){
-            //     console.log('当前为蓝牙模式')
-            //     if(!socketBle.getSocket()){
-            //         socketBle.setSocket()
-            //     }
-            //     this.whatSendFun='ble'
-            // }else{
-            //     // if(socketBle.getSocket()){
-            //     //     socketBle.getSocket().close()
-            //     // }
-            //     this.whatSendFun='net'
-            // }
-             this.isBleConnected = !!event.data
+        this.channelBle.addEventListener('message', (event) => {
+            this.isBleConnected = !!event.data
 
             if (this.isBleConnected) {
                 console.log('当前为蓝牙模式')
                 if (!socketBle.getSocket()) {
                     socketBle.setSocket()
                 }
+                this.lastHighPriority = 'ble'
             } else {
-                // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
-                // if(socketBle.getSocket()){
-                //     socketBle.getSocket().close()
-                // }
+                if (this.whatSendFun === 'ble') {
+                    if (this.isNetConnected) {
+                        this.lastHighPriority = 'net'
+                    } else {
+                        this.lastHighPriority = null
+                    }
+                }
             }
 
             this.updateSendFun()
         })
 
+        // 更新逻辑
         this.updateSendFun = () => {
-            if (this.isPortConnected) {
+            console.log(this.lastHighPriority)
+            if (this.lastHighPriority) {
+                this.whatSendFun = this.lastHighPriority
+                console.log(this.whatSendFun)
+            } else if (this.isPortConnected) {
                 this.whatSendFun = 'port'
-            } else if (this.isBleConnected) {
-                this.whatSendFun = 'ble'
             } else {
-                this.whatSendFun = 'net'
+                this.whatSendFun = 'net' // 默认兜底仍然是 net
             }
             console.log('当前发送方式:', this.whatSendFun)
         }
@@ -916,6 +1004,10 @@ class RobotMove {
             rightHex
         ];
     }
+    signedToHexValue(num, bits = 8) {
+        let mask = (1 << bits) - 1;
+        return num & mask; // 返回数值
+    }
   async move(args){
     if(this.mode){
         
@@ -976,13 +1068,13 @@ class RobotMove {
             if(args.ONE=='1'){
                 socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x09]))//停止
             }else if(args.ONE == '2'){
-                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x01,Number(args.TWO)]))
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x01,this.signedToHexValue(Number(args.TWO))]))
             }else if(args.ONE == '3'){
-                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x02,Number(args.TWO)]))
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x02,this.signedToHexValue(Number(args.TWO))]))
             }else if(args.ONE == '4'){
-                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x03,Number(args.TWO)]))
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x03,this.signedToHexValue(Number(args.TWO))]))
             }else if(args.ONE == '5'){
-                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x04,Number(args.TWO)]))
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x01,0x04,this.signedToHexValue(Number(args.TWO))]))
             }
 
             await ackPromise
@@ -1116,16 +1208,16 @@ class RobotMove {
             const ackPromise = this.waitForThreeZeros(); 
             if(args.ONE == '2'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.move_forward(${Number(args.TWO)},duration=${Number(args.THREE)},distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x01,Number(args.TWO),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x01,this.signedToHexValue(Number(args.TWO)),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
             }else if(args.ONE == '3'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.move_backward(${Number(args.TWO)},duration=${Number(args.THREE)},distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x02,Number(args.TWO),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x02,this.signedToHexValue(Number(args.TWO)),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
             }else if(args.ONE == '4'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.turn_left(${Number(args.TWO)},duration=${Number(args.THREE)},distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x03,Number(args.TWO),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x03,this.signedToHexValue(Number(args.TWO)),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
             }else if(args.ONE == '5'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.turn_right(${Number(args.TWO)},duration=${Number(args.THREE)},distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x04,Number(args.TWO),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x02,0x04,this.signedToHexValue(Number(args.TWO)),this.toTwoDigitHexadecimalPair(Number(args.THREE))[0],this.toTwoDigitHexadecimalPair(Number(args.THREE))[1]]))
             }
             // await this.waitForArrayMatchInArray(() => [0xcc,0]);
             await ackPromise
@@ -1191,10 +1283,10 @@ class RobotMove {
             const ackPromise = this.waitForThreeZeros(); 
             if(args.THREE=='2'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.move_forward(${Number(args.ONE)},duration=-1,distance=${Number(args.TWO)})\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x01,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x01,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
             }else{
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.move_backward(${Number(args.ONE)},duration=-1,distance=${Number(args.TWO)})\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x02,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x02,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
             }
             // await this.waitForArrayMatchInArray(() =>[0xcc,0]);
             await ackPromise
@@ -1288,10 +1380,10 @@ class RobotMove {
             const ackPromise = this.waitForThreeZeros(); 
             if(args.THREE=='4'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.turn_left(${Number(args.ONE)},duration=-1,distance=${Number(args.TWO)})\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x03,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x03,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
             }else{
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.turn_right(${Number(args.ONE)},duration=-1,distance=${Number(args.TWO)})\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x04,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x03,0x04,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
             }
             // await this.waitForArrayMatchInArray(() =>[0xcc,0]);
             await ackPromise
@@ -1378,7 +1470,7 @@ class RobotMove {
         }else if(this.whatSendFun=='ble'){
             const ackPromise = this.waitForThreeZeros(); 
             // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.drive(${Number(args.ONE)},${Number(args.TWO)})\n`]))
-            socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x04,Number(args.ONE),Number(args.TWO)]))
+            socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x04,this.signedToHexValue(Number(args.ONE)),this.signedToHexValue(Number(args.TWO))]))
             await ackPromise
         }
         
@@ -1504,10 +1596,10 @@ class RobotMove {
             }else{
                 if(args.THREE=='cm'){
                     // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.rightmotor_drive(${Number(args.ONE)},duration=-1,distance=${Number(args.TWO)})\n`]))
-                    socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x06,0x02,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                    socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x06,0x02,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
                 }else if(args.THREE=='秒'){
                     // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.rightmotor_drive(${Number(args.ONE)},duration=${Math.abs(Number(args.TWO))},distance=-1)\n`]))
-                    socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x05,0x02,Number(args.ONE),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
+                    socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x05,0x02,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1]]))
                 }
             }
             // await this.waitForArrayMatchInArray(() =>[0xcc,0]);
@@ -1587,10 +1679,10 @@ class RobotMove {
             const ackPromise = this.waitForThreeZeros(); 
             if(args.TWO=='0'){
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.leftmotor_drive(${Number(args.ONE)},duration=-1,distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x07,0x01,Number(args.ONE)]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x07,0x01,this.signedToHexValue(Number(args.ONE))]))
             }else{
                 // socketBle.getSocket().send(JSON.stringify([`icrobot.motor.rightmotor_drive(${Number(args.ONE)},duration=-1,distance=-1)\n`]))
-                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x07,0x02,Number(args.ONE)]))
+                socketBle.getSocket().send(JSON.stringify([0xAA,0x01,0x07,0x02,this.signedToHexValue(Number(args.ONE))]))
             }
             await ackPromise
         }

@@ -53,71 +53,149 @@ class RobotShow {
 
         this.line;
 
-        this.whatSendFun='net'
+        // this.whatSendFun='net'
+        // this.isPortConnected = false
+        // this.isBleConnected = false
+        // this.channelSendIp=new BroadcastChannel('sendIp')
+        // this.channelSendIp.addEventListener('message',(event)=>{
+        //     console.log('设置ip')
+        //     // socket.setIp(event.data)
+        //     // this.whatSendFun='net'
+        //     this.updateSendFun()
+        // })
+        // this.channelPort = new BroadcastChannel('channelPort')
+        // this.channelPort.addEventListener('message',(event)=>{
+        //     // console.log(event.data)
+        //     // if(event.data){
+        //     //     this.whatSendFun='port'
+        //     // }else{
+        //     //     this.whatSendFun='net'
+        //     // }
+        //     if (typeof event.data === 'boolean') {
+        //         this.isPortConnected = event.data;
+        //         this.updateSendFun();
+        //     }
+            
+        // })
+
+        // this.channelBle = new BroadcastChannel('isBle')
+        // this.channelBle.addEventListener('message',(event)=>{
+        //     // if(this.whatSendFun=='port') return
+            
+        //     // if(event.data){
+        //     //     console.log('当前为蓝牙模式')
+        //     //     if(!socketBle.getSocket()){
+        //     //         socketBle.setSocket()
+        //     //     }
+        //     //     this.whatSendFun='ble'
+        //     // }else{
+        //     //     // if(socketBle.getSocket()){
+        //     //     //     socketBle.getSocket().close()
+        //     //     // }
+        //     //     this.whatSendFun='net'
+        //     // }
+        //         this.isBleConnected = !!event.data
+
+        //     if (this.isBleConnected) {
+        //         console.log('当前为蓝牙模式')
+        //         if (!socketBle.getSocket()) {
+        //             socketBle.setSocket()
+        //         }
+        //     } else {
+        //         // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
+        //         // if(socketBle.getSocket()){
+        //         //     socketBle.getSocket().close()
+        //         // }
+        //     }
+
+        //     this.updateSendFun()
+        // })
+
+        // this.updateSendFun = () => {
+        //     if (this.isPortConnected) {
+        //         this.whatSendFun = 'port'
+        //     } else if (this.isBleConnected) {
+        //         this.whatSendFun = 'ble'
+        //     } else {
+        //         this.whatSendFun = 'net'
+        //     }
+        //     console.log('当前发送方式:', this.whatSendFun)
+        // }
+        this.whatSendFun = 'net' // 默认就是 net
         this.isPortConnected = false
         this.isBleConnected = false
-        this.channelSendIp=new BroadcastChannel('sendIp')
-        this.channelSendIp.addEventListener('message',(event)=>{
+        this.isNetConnected = false
+        this.lastHighPriority = null // 默认 net
+
+        // WiFi 设置与连接
+        this.channelSendIp = new BroadcastChannel('sendIp')
+        this.channelSendIp.addEventListener('message', (event) => {
             console.log('设置ip')
-            // socket.setIp(event.data)
-            // this.whatSendFun='net'
+            socket.setIp(event.data)
+            this.isNetConnected = true
+            this.lastHighPriority = 'net'
             this.updateSendFun()
         })
-        this.channelPort = new BroadcastChannel('channelPort')
-        this.channelPort.addEventListener('message',(event)=>{
-            // console.log(event.data)
-            // if(event.data){
-            //     this.whatSendFun='port'
-            // }else{
-            //     this.whatSendFun='net'
-            // }
-            if (typeof event.data === 'boolean') {
-                this.isPortConnected = event.data;
-                this.updateSendFun();
+
+        // WiFi 断开
+        this.channelHostPot = new BroadcastChannel('hostpot')
+        this.channelHostPot.addEventListener('message', async (event) => {
+            if (!event.data) {
+                this.isNetConnected = false
+                if (this.whatSendFun === 'net') {
+                    if (this.isBleConnected) {
+                        this.lastHighPriority = 'ble'
+                    } else {
+                        this.lastHighPriority = null
+                    }
+                }
+                this.updateSendFun()
             }
-            
         })
 
+        // 串口
+        this.channelPort = new BroadcastChannel('channelPort')
+        this.channelPort.addEventListener('message', (event) => {
+            if (typeof event.data === 'boolean') {
+                this.isPortConnected = event.data
+                this.updateSendFun()
+            }
+        })
+
+        // 蓝牙
         this.channelBle = new BroadcastChannel('isBle')
-        this.channelBle.addEventListener('message',(event)=>{
-            // if(this.whatSendFun=='port') return
-            
-            // if(event.data){
-            //     console.log('当前为蓝牙模式')
-            //     if(!socketBle.getSocket()){
-            //         socketBle.setSocket()
-            //     }
-            //     this.whatSendFun='ble'
-            // }else{
-            //     // if(socketBle.getSocket()){
-            //     //     socketBle.getSocket().close()
-            //     // }
-            //     this.whatSendFun='net'
-            // }
-                this.isBleConnected = !!event.data
+        this.channelBle.addEventListener('message', (event) => {
+            this.isBleConnected = !!event.data
 
             if (this.isBleConnected) {
                 console.log('当前为蓝牙模式')
                 if (!socketBle.getSocket()) {
                     socketBle.setSocket()
                 }
+                this.lastHighPriority = 'ble'
             } else {
-                // 如果蓝牙断开，这里不要强制回到 net，让优先级逻辑自己决定
-                // if(socketBle.getSocket()){
-                //     socketBle.getSocket().close()
-                // }
+                if (this.whatSendFun === 'ble') {
+                    if (this.isNetConnected) {
+                        this.lastHighPriority = 'net'
+                    } else {
+                        this.lastHighPriority = null
+                    }
+                }
             }
 
             this.updateSendFun()
         })
 
+        // 更新逻辑
         this.updateSendFun = () => {
-            if (this.isPortConnected) {
+            console.log(this.lastHighPriority)
+            if (this.lastHighPriority) {
+                this.whatSendFun = this.lastHighPriority
+                console.log(this.whatSendFun)
+            } else if (this.isPortConnected) {
                 this.whatSendFun = 'port'
-            } else if (this.isBleConnected) {
-                this.whatSendFun = 'ble'
             } else {
-                this.whatSendFun = 'net'
+                this.whatSendFun = 'net' // 默认兜底仍然是 net
             }
             console.log('当前发送方式:', this.whatSendFun)
         }
