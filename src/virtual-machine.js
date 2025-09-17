@@ -65,6 +65,7 @@ class VirtualMachine extends EventEmitter {
         this.logic=createVisualLogic(this)
         this.loadProject =(input) => this.logic.loadProject(input)
         this._saveProjectZip = this.logic._saveProjectZip
+        this.loadSB3=(item)=>this.logic.loadSB3(item)
 
         /**
          * VM runtime, to store blocks, I/O devices, sprites/targets, etc.
@@ -245,6 +246,11 @@ class VirtualMachine extends EventEmitter {
             console.log('modemode',event.data)
             this.mode=event.data
             setMode(event.data)
+        })
+        this.channelLoadExample = new BroadcastChannel('load_example')
+        this.channelLoadExample.addEventListener('message',(event)=>{
+            console.log(event.data)
+            this.loadSB3(event.data)
         })
     }
 

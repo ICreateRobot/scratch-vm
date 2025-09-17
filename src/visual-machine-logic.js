@@ -231,9 +231,25 @@ module.exports=function createVisualLogic(componentInstance) {
         return bytes.buffer;
     }
 
+    async function loadSB3(item) {
+        const currentURL = window.location.href;
+        const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+        const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+        const modelPath = twoLevelsUp + '/static/model/';
+        try {
+            const response = await fetch(modelPath+`${item.id}`+".sb3");
+            const arrayBuffer = await response.arrayBuffer();
+            await self.loadProject(arrayBuffer);
+            console.log("项目加载成功！");
+        } catch (err) {
+            console.error("加载失败：", err);
+        }
+    }
+
     
     return {
         loadProject,
-        _saveProjectZip
+        _saveProjectZip,
+        loadSB3
     };
 }
