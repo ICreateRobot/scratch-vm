@@ -8,6 +8,7 @@ const mobilenet = require('./modules/mobilenet')
 const posenet = require('./modules/posenet.js')
 const socket=require('../../util/socket-connect')
 const handpose = require('./modules/handpose.js')
+const imageLoad = require('../../util/imageLoad')
 class robotteachable {
 
     constructor(runtime){
@@ -400,6 +401,31 @@ class robotteachable {
         popup.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
         popup.style.transition = 'z-index 0.3s'; // 添加过渡动画
         popup.style.width = '350px'
+
+        // 🔥 检测主题（和 ExampleModal 保持一致）
+        const local = localStorage.getItem("tw:theme");
+        let isDark = false;
+        try {
+            if (local === "dark") {
+                isDark = true;
+            } else {
+                const parsed = JSON.parse(local);
+                if (parsed?.gui === "dark") {
+                    isDark = true;
+                }
+            }
+        } catch (e) {
+            isDark = false;
+        }
+
+        // 设置背景和文字颜色
+        if (isDark) {
+            popup.style.background = "#1e1e1e";
+            popup.style.color = "#f0f0f0";
+        } else {
+            popup.style.background = "white";
+            popup.style.color = "black";
+        }
     
 
         // 添加可拖动区域（整个弹窗）
@@ -809,6 +835,8 @@ class robotteachable {
             alert('请先关闭机器人摄像头')
             return
         }
+        if(imageLoad.getComputer()) return
+        imageLoad.setTmAiComputer('tm')
         this.isCompoterVideo=true
           // 如果弹窗已存在但被隐藏，直接提升层级
         if (this.videoPopup) {
@@ -920,6 +948,7 @@ class robotteachable {
 
         if(this.whatCamera=='video' || a=='video' || !a){
             this.isCompoterVideo=false
+            imageLoad.setTmAiComputer('')
             // 停止视频流
             if (this.videoElement && this.videoElement.srcObject) {
                         
@@ -927,6 +956,7 @@ class robotteachable {
             }
         }else if(this.whatCamera=='img' || a=='img'){
             this.isRobotVideo=false
+            imageLoad.setTmAiImages('')
             let jsonData={
                 "command":"camera",
                 "params":{
@@ -953,6 +983,7 @@ class robotteachable {
             }
         }else if(this.whatCamera=='net' || a=='net'){
             this.isNetCamera=false
+            imageLoad.setTmAiNet('')
              // 停止视频流
             if (this.imgElement && this.imgElement.src) {
                 this.imgElement.src=''
@@ -971,7 +1002,9 @@ class robotteachable {
             alert('请先关闭电脑摄像头')
             return
         }
+        if(imageLoad.getIsImage()) return
         this.isRobotVideo=true
+        imageLoad.setTmAiImages('tm')
         // 如果弹窗已存在但被隐藏，直接提升层级
         if (this.videoPopup) {
             this.bringToFront();
@@ -1103,6 +1136,7 @@ class robotteachable {
 
     async stopImgIdent(){
         this.isRobotVideo=false
+        imageLoad.setTmAiImages('')
         // 关闭弹窗
         if (this.videoPopup) {
                     
@@ -1145,6 +1179,7 @@ class robotteachable {
             alert('请先关闭电脑摄像头')
             return
         }
+        if(imageLoad.getIsK210()) return
         
         // 如果弹窗已存在但被隐藏，直接提升层级
         let ip = await new Promise(resolve => {
@@ -1159,10 +1194,12 @@ class robotteachable {
             const timestamp = new Date().getTime();
             this.imgElement.src = `http://${ip}:81/stream`; 
             this.whatCamera='net'
+            let that=this
             this.imgElement.onload=async function(){
                 // this.imgElement.width='100'
                 // this.imgElement.height='100'
-                this.isNetCamera=true
+                that.isNetCamera=true
+                imageLoad.setTmAiNet('tm')
 
                 const allStorage = Object.entries(localStorage).reduce((acc, [key, value]) => {
                     acc[key] = value;
@@ -1174,16 +1211,16 @@ class robotteachable {
                 const value=document.createElement('div')
                 value.style.marginTop='20px'
                 document.getElementById('popup').appendChild(value)
-                if(this.classInfo.length>0){
-                    for(let i=0;i<this.classInfo[0].length;i++){
+                if(that.classInfo.length>0){
+                    for(let i=0;i<that.classInfo[0].length;i++){
                         let rowDiv = document.createElement('div'); // 新增容器，作为一行
                         rowDiv.style.display = 'flex'; // 让子元素水平排列
                         rowDiv.style.alignItems = 'center'; // 垂直居中对齐
                         rowDiv.style.marginBottom = '10px'; // 增加行间距
 
                         let span = document.createElement('span');
-                        span.id = 'value' + this.classInfo[0][i];
-                        span.innerText = this.classInfo[1][i];
+                        span.id = 'value' + that.classInfo[0][i];
+                        span.innerText = that.classInfo[1][i];
                         span.style.width = '20%'; // 让 span 占一部分宽度，保持对齐
                         span.style.textAlign = 'right'; // 让文本右对齐
                         span.style.marginRight = '10px'; // 与进度条之间添加间距
@@ -1195,7 +1232,7 @@ class robotteachable {
                         barCon.style.borderRadius = '5px';
                         barCon.style.overflow = 'hidden';
                         barCon.style.margin = '10px 0'; // 只设置上下间距
-                        barCon.id = 'barCon' + this.classInfo[0][i];
+                        barCon.id = 'barCon' + that.classInfo[0][i];
 
                         let bar = document.createElement('div');
                         bar.style.width = '0';
@@ -1206,7 +1243,7 @@ class robotteachable {
                         bar.style.color = 'white';
                         bar.style.borderRadius = '20px';
                         // bar.style.transition = 'width 1s ease';
-                        bar.id = 'bar' + this.classInfo[0][i];
+                        bar.id = 'bar' + that.classInfo[0][i];
 
                         barCon.appendChild(bar);
                         
@@ -1223,38 +1260,38 @@ class robotteachable {
 
                 
 
-                const model = await tf.loadLayersModel('localstorage://'+this.modelName);
-                if(this.whatModel=='image'){
-                    this.timer=setInterval(async()=>{
+                const model = await tf.loadLayersModel('localstorage://'+that.modelName);
+                if(that.whatModel=='image'){
+                    that.timer=setInterval(async()=>{
                         // console.log(this.predict(this.videoElement,model))
-                        this.result=await this.predict(this.imgElement,model)
+                        that.result=await that.predict(that.imgElement,model)
                         // console.log(result)
-                        if(this.classInfo.length>0){
-                            for(let i=0;i<this.classInfo[0].length;i++){
-                                document.getElementById('bar'+this.classInfo[0][i]).style.width=`${(this.result[0][this.classInfo[0][i]]*100).toFixed(0)}%`
-                                document.getElementById('bar'+this.classInfo[0][i]).innerHTML=`${(this.result[0][this.classInfo[0][i]]*100).toFixed(0)}%`
+                        if(that.classInfo.length>0){
+                            for(let i=0;i<that.classInfo[0].length;i++){
+                                document.getElementById('bar'+that.classInfo[0][i]).style.width=`${(that.result[0][that.classInfo[0][i]]*100).toFixed(0)}%`
+                                document.getElementById('bar'+that.classInfo[0][i]).innerHTML=`${(that.result[0][that.classInfo[0][i]]*100).toFixed(0)}%`
                             }
                         }
                         
                     },100)
-                }else if(this.whatModel=='pose'){
+                }else if(that.whatModel=='pose'){
                     const canvasImg=document.createElement('canvas')
                     const ctxImg=canvasImg.getContext('2d')
-                    canvasImg.width=this.imgElement.width;
-                    canvasImg.height=this.imgElement.height
-                    this.timer = setInterval(() => {
+                    canvasImg.width=that.imgElement.width;
+                    canvasImg.height=that.imgElement.height
+                    that.timer = setInterval(() => {
                         // 清空 canvas
                         ctxImg.clearRect(0, 0, canvasImg.width, canvasImg.height);
 
                         // 将 img 画到 canvas 上
                         // ctxImg.drawImage(this.imgElement, 0, 0, this.imgElement.width, this.imgElement.height);
-                        this.detectPoseInRealTime(this.poseNetmode,this.imgElement,'show_canvas');
-                        this.show_value(model);
+                        that.detectPoseInRealTime(that.poseNetmode,that.imgElement,'show_canvas');
+                        that.show_value(model);
                     }, 200); // 10 FPS
-                }else if(this.whatModel=='gesture'){
-                    this.timer = setInterval(() => {
-                        this.detectGestureInRealTime(this.poseNetmode,this.imgElement,'show_canvas');
-                        this.show_gesture_value(model);
+                }else if(that.whatModel=='gesture'){
+                    that.timer = setInterval(() => {
+                        that.detectGestureInRealTime(that.poseNetmode,that.imgElement,'show_canvas');
+                        that.show_gesture_value(model);
                     }, 200); // 10 FPS
                 }
             }
@@ -1264,6 +1301,7 @@ class robotteachable {
     }
 
     async stopNetIdent(){
+        imageLoad.setTmAiNet('')
         this.isNetCamera=false
         // 关闭弹窗
         if (this.videoPopup) {
