@@ -349,7 +349,7 @@ class RobotImg {
                     // this.cstopCamera()
                     // this.cstopComputerCamera()
                     console.log('断网一次')
-                     this.cstartCamera({ONE:'2'})
+                    this.cstartCamera({ONE:'2'})
                     THIS.cstartNetCamera({ONE:'2'})
                     this.cstopComputerCamera()
                     cam.close()
@@ -2283,7 +2283,7 @@ class RobotImg {
                             }else{
                                 this.runtime.ioDevices.video.mirror=true
                             }
-                            this.runtime.ioDevices.video.enableVideo()
+                            this.runtime.ioDevices.video.enableVideoIC()
 
                             await new Promise(resolve => setTimeout(resolve, 2000)); 
                             
@@ -2316,7 +2316,7 @@ class RobotImg {
 
                         await new Promise(resolve => setTimeout(resolve, 500));  
                         this.runtime.ioDevices.video.setProvider(provider)
-                        this.runtime.ioDevices.video.enableVideo()
+                        this.runtime.ioDevices.video.enableVideoIC()
                         await new Promise(resolve => setTimeout(resolve, 2000)); 
                     }else if(imageLoad.getCameraPlace() == '1' && imageLoad.getWhatCamera().dialogCam=='robotImg'){
                         if(args.ONE=='0'){
@@ -2346,7 +2346,7 @@ class RobotImg {
 
                         await new Promise(resolve => setTimeout(resolve, 500));  
                         this.runtime.ioDevices.video.setProvider(provider)
-                        this.runtime.ioDevices.video.enableVideo()
+                        this.runtime.ioDevices.video.enableVideoIC()
                         imageLoad.setPlayGround('robotImg')
                         imageLoad.setIsImage(true)
 
@@ -2516,7 +2516,7 @@ class RobotImg {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 this.runtime.ioDevices.video.disableVideo();
                 await new Promise(resolve => setTimeout(resolve, 100));
-                this.runtime.ioDevices.video.enableVideo()
+                this.runtime.ioDevices.video.enableVideoIC()
 
 
             }
@@ -2853,7 +2853,7 @@ class RobotImg {
                         }else{
                             this.runtime.ioDevices.video.mirror=true
                         }
-                        this.runtime.ioDevices.video.enableVideo()
+                        this.runtime.ioDevices.video.enableVideoIC()
                         
                     }else if(imageLoad.getCameraPlace() == '1'){
                         if(args.ONE=='0'){

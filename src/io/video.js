@@ -349,6 +349,13 @@ class Video {
     }
 
 
+    hashImageData(data) {
+        let hash = 0;
+        for (let i = 0; i < data.length; i += 1000) {
+            hash += data[i]; // 简单 hash 算法
+        }
+        return hash;
+    }
     async enableVideoIC () {
         if (!this.provider) return null;
         console.log('---------------------------')
