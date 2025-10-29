@@ -1624,6 +1624,163 @@ function stopVideo(that,Video,StageLayering){
     that.runtime.requestRedraw();
 }
 
+
+
+// 加载 COCO-SSD 模型
+async function loadItemModel(that,cocoSsd) {
+
+    const currentURL = window.location.href;
+
+    // 获取前一级路径
+    const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+    // 获取前两级路径
+    const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+    const modelPath =twoLevelsUp+'/static/model';  // 你的模型路径
+    try {
+        that.cocomodel = await cocoSsd.load({
+            modelPath:modelPath+'/model.json'
+        });
+        console.log("COCO-SSD 模型已加载");
+    } catch (error) {
+        console.error("模型加载失败:", error);
+    }
+}
+
+ // 开始物品检测
+async function startWItem(that,Video,StageLayering,aiInfo,cocoSsd) {
+    if (!that.cocomodel) {
+        console.log("模型尚未加载完成");
+        await loadItemModel(that,cocoSsd)
+        
+    }
+    // if(!imageTransmission){
+    //     alert("摄像头未开启")
+    //     return
+    // }
+
+
+    that.canvas.width = Video.DIMENSIONS[0];
+    that.canvas.height = Video.DIMENSIONS[1];
+    
+    const {renderer} = that.runtime;
+    that.renderer=renderer
+    if (!that.renderer) {
+        console.error('Renderer 未初始化');
+        return;
+    }
+    // 创建一个新的 skin 和 drawable 用于 face detection
+    that.faceSkinId = that.renderer.createBitmapSkin(new ImageData(...Video.DIMENSIONS), 1);
+    that.faceDrawableId = that.renderer.createDrawable(StageLayering.VIDEO_LAYER);
+
+    console.log('创建的 faceSkinId:', that.faceSkinId);
+    
+    if (that.renderer.markSkinAsPrivate) {
+        that.renderer.markSkinAsPrivate(that.faceSkinId);
+    }
+
+    that.renderer.updateDrawableSkinId(that.faceDrawableId, that.faceSkinId);
+    that.renderer.updateDrawableVisible(that.faceDrawableId, true);
+    that.renderer.updateDrawableEffect(that.faceDrawableId, 'ghost', 0); // 确保没有透明度
+
+    that.isStartObject=true
+    detectObjects(that,Video,aiInfo);
+}
+
+
+async function detectObjects(that,Video,aiInfo) {
+
+    if (!that.isStartObject || that.isProcessingFrame) return;
+
+    that.isProcessingFrame = true;
+    that.canvasCtx.clearRect(0, 0, that.canvas.width, that.canvas.height);  
+    try {
+        const imageData = that.getFrame({
+            format: Video.FORMAT_IMAGE_DATA,
+            cacheTimeout: that.runtime.currentStepTime
+            });
+        const predictions = await that.cocomodel.detect(imageData);
+
+        let objectName=['',0]
+        let location
+        // ... 处理预测结果
+        predictions.forEach(prediction => {
+            const [x, y, width, height] = prediction.bbox;
+            // location=prediction.bbox;
+            
+            
+            //canvasCtx.fillText(`${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`, x, y > 10 ? y - 5 : 10);
+            const chineseClass = that.classNames[prediction.class] || prediction.class;  // 如果没有找到对应的中文，使用英文
+
+            // if(chineseClass=='猫'){
+                aiInfo.setObjectLocation({
+                    x:Math.round(x-255+width/2),
+                    y:Math.round(y-223+height/2)
+                })
+                aiInfo.setObjectWh([Math.round(width),Math.round(height)])
+                that.canvasCtx.strokeStyle = "#00FF00";
+                that.canvasCtx.lineWidth = 2;
+                that.canvasCtx.strokeRect(x, y, width, height);
+
+                that.canvasCtx.font = "16px Arial";
+                that.canvasCtx.fillStyle = "#FF0000";
+                that.canvasCtx.fillText(`${chineseClass} (${(prediction.score * 100).toFixed(1)}%)`, x, y > 10 ? y - 5 : 10);
+                if(prediction.score>objectName[1]){
+                    objectName[0]=chineseClass
+                }
+            // }
+            
+            
+            // nsole.log(`检测到物体: ${chineseClass}, 置信度: ${(prediction.score * 100).toFixed(1)}%`);
+        });
+
+        aiInfo.setObject( objectName[0])
+        
+        // console.log(location)
+
+        // if(this.preObject!=objectName[0]){
+        //     fetch('http://localhost:3000/object-down', {
+        //         method: 'POST',
+        //         headers: {
+        //           'Content-Type': 'text/plain'
+        //         },
+        //         body: objectName[0],
+        //       })
+        //       .then(response => response.text())
+        //       .then(data => {
+        //         console.log('服务器响应:', data);
+        //       })
+        //       .catch(error => {
+        //         // console.error('错误:', error);
+        //       });
+        // }
+        
+        
+
+            // 更新 renderer 的 skin 内容
+            const ImageData = that.canvasCtx.getImageData(0, 0, that.canvas.width, that.canvas.height);
+            that.renderer.updateBitmapSkin(that.faceSkinId, ImageData, 1);
+            that.runtime.requestRedraw();
+
+    } catch (e) {
+        console.error(e);
+    } finally {
+        that.isProcessingFrame = false;
+        if (that.isStartObject) requestAnimationFrame(() => detectObjects(that,Video,aiInfo));
+    }
+
+}
+
+// 停止物品检测
+function stopWItem(that) {
+    that.canvasCtx.clearRect(0, 0, that.canvas.width, that.canvas.height);
+    that.isStartObject=false
+    cancelAnimationFrame(detectObjects);
+    // 更新 renderer 的 skin 内容
+    const ImageData = that.canvasCtx.getImageData(0, 0, that.canvas.width, that.canvas.height);
+    that.renderer.updateBitmapSkin(that.faceSkinId, ImageData, 1);
+    that.runtime.requestRedraw();
+}
+
 // 用 CommonJS 的方式导出
 module.exports = {
     startQRDetection,
@@ -1642,5 +1799,7 @@ module.exports = {
     stopWColorBlockDetection,
     startTrafficpre,
     stopTraffic,
-    stopVideo
+    stopVideo,
+    startWItem,
+    stopWItem
 };

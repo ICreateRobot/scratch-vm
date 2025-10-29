@@ -525,181 +525,297 @@ class RobotGood {
             ]
         },
 
-        MENU_OBJECT:{
+        MENU_OBJECT: {
             acceptReporters: false,
             items: [
                 {
-                    text: '人',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.person',
+                        default: 'person',
+                        description: 'robotgood.menuObject.person'
+                    }),
                     value: '人'
                 },
                 {
-                    text: '自行车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.bicycle',
+                        default: 'bicycle',
+                        description: 'robotgood.menuObject.bicycle'
+                    }),
                     value: '自行车'
                 },
-
-
                 {
-                    text: '汽车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.car',
+                        default: 'car',
+                        description: 'robotgood.menuObject.car'
+                    }),
                     value: '汽车'
                 },
                 {
-                    text: '摩托车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.motorcycle',
+                        default: 'motorcycle',
+                        description: 'robotgood.menuObject.motorcycle'
+                    }),
                     value: '摩托车'
                 },
-
                 {
-                    text: '飞机',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.airplane',
+                        default: 'airplane',
+                        description: 'robotgood.menuObject.airplane'
+                    }),
                     value: '飞机'
                 },
                 {
-                    text: '公交车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.bus',
+                        default: 'bus',
+                        description: 'robotgood.menuObject.bus'
+                    }),
                     value: '公交车'
                 },
-
-
                 {
-                    text: '火车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.train',
+                        default: 'train',
+                        description: 'robotgood.menuObject.train'
+                    }),
                     value: '火车'
                 },
                 {
-                    text: '卡车',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.truck',
+                        default: 'truck',
+                        description: 'robotgood.menuObject.truck'
+                    }),
                     value: '卡车'
                 },
-
                 {
-                    text: '船',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.boat',
+                        default: 'boat',
+                        description: 'robotgood.menuObject.boat'
+                    }),
                     value: '船'
                 },
                 {
-                    text: '红绿灯',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.trafficlight',
+                        default: 'traffic light',
+                        description: 'robotgood.menuObject.trafficlight'
+                    }),
                     value: '红绿灯'
                 },
-
-
                 {
-                    text: '消防栓',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.firehydrant',
+                        default: 'fire hydrant',
+                        description: 'robotgood.menuObject.firehydrant'
+                    }),
                     value: '消防栓'
                 },
                 {
-                    text: '停止标志',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.stopSign',
+                        default: 'stop sign',
+                        description: 'robotgood.menuObject.stopSign'
+                    }),
                     value: '停止标志'
                 },
-
                 {
-                    text: '停车表',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.parkingMeter',
+                        default: 'parking meter',
+                        description: 'robotgood.menuObject.parkingMeter'
+                    }),
                     value: '停车表'
                 },
                 {
-                    text: '长椅',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.bench',
+                        default: 'bench',
+                        description: 'robotgood.menuObject.bench'
+                    }),
                     value: '长椅'
                 },
-
-
                 {
-                    text: '鸟',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.bird',
+                        default: 'bird',
+                        description: 'robotgood.menuObject.bird'
+                    }),
                     value: '鸟'
                 },
                 {
-                    text: '猫',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.cat',
+                        default: 'cat',
+                        description: 'robotgood.menuObject.cat'
+                    }),
                     value: '猫'
                 },
-
-
-
                 {
-                    text: '狗',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.dog',
+                        default: 'dog',
+                        description: 'robotgood.menuObject.dog'
+                    }),
                     value: '狗'
                 },
                 {
-                    text: '西兰花',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.broccoli',
+                        default: 'broccoli',
+                        description: 'robotgood.menuObject.broccoli'
+                    }),
                     value: '西兰花'
                 },
-
-
                 {
-                    text: '胡萝卜',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.carrot',
+                        default: 'carrot',
+                        description: 'robotgood.menuObject.carrot'
+                    }),
                     value: '胡萝卜'
                 },
                 {
-                    text: '热狗',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.hotdog',
+                        default: 'hot dog',
+                        description: 'robotgood.menuObject.hotdog'
+                    }),
                     value: '热狗'
                 },
-
                 {
-                    text: '比萨',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.pizza',
+                        default: 'pizza',
+                        description: 'robotgood.menuObject.pizza'
+                    }),
                     value: '比萨'
                 },
                 {
-                    text: '甜甜圈',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.donut',
+                        default: 'donut',
+                        description: 'robotgood.menuObject.donut'
+                    }),
                     value: '甜甜圈'
                 },
-
-
                 {
-                    text: '蛋糕',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.cake',
+                        default: 'cake',
+                        description: 'robotgood.menuObject.cake'
+                    }),
                     value: '蛋糕'
                 },
                 {
-                    text: '椅子',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.chair',
+                        default: 'chair',
+                        description: 'robotgood.menuObject.chair'
+                    }),
                     value: '椅子'
                 },
-
                 {
-                    text: '沙发',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.sofa',
+                        default: 'sofa',
+                        description: 'robotgood.menuObject.sofa'
+                    }),
                     value: '沙发'
                 },
                 {
-                    text: '盆栽植物',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.pottedPlant',
+                        default: 'potted plant',
+                        description: 'robotgood.menuObject.pottedPlant'
+                    }),
                     value: '盆栽植物'
                 },
-
-
                 {
-                    text: '床',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.bed',
+                        default: 'bed',
+                        description: 'robotgood.menuObject.bed'
+                    }),
                     value: '床'
                 },
                 {
-                    text: '餐桌',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.diningTable',
+                        default: 'dining table',
+                        description: 'robotgood.menuObject.diningTable'
+                    }),
                     value: '餐桌'
                 },
-
                 {
-                    text: '马桶',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.toilet',
+                        default: 'toilet',
+                        description: 'robotgood.menuObject.toilet'
+                    }),
                     value: '马桶'
                 },
                 {
-                    text: '电视',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.tv',
+                        default: 'TV',
+                        description: 'robotgood.menuObject.tv'
+                    }),
                     value: '电视'
                 },
-
-
                 {
-                    text: '笔记本电脑',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.laptop',
+                        default: 'laptop',
+                        description: 'robotgood.menuObject.laptop'
+                    }),
                     value: '笔记本电脑'
                 },
                 {
-                    text: '鼠标',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.mouse',
+                        default: 'mouse',
+                        description: 'robotgood.menuObject.mouse'
+                    }),
                     value: '鼠标'
                 },
-
                 {
-                    text: '遥控器',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.remote',
+                        default: 'remote',
+                        description: 'robotgood.menuObject.remote'
+                    }),
                     value: '遥控器'
                 },
                 {
-                    text: '键盘',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.keyboard',
+                        default: 'keyboard',
+                        description: 'robotgood.menuObject.keyboard'
+                    }),
                     value: '键盘'
                 },
-
-
                 {
-                    text: '手机',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.phone',
+                        default: 'phone',
+                        description: 'robotgood.menuObject.phone'
+                    }),
                     value: '手机'
                 },
                 {
-                    text: '微波炉',
+                    text: formatMessage({
+                        id: 'robotgood.menuObject.microwave',
+                        default: 'microwave',
+                        description: 'robotgood.menuObject.microwave'
+                    }),
                     value: '微波炉'
-                },
+                }
             ]
         },
         MENU_TRAFFIC:{
@@ -873,11 +989,19 @@ class RobotGood {
             acceptReporters: false,
             items: [
                 {
-                    text: '宽度',
+                    text: formatMessage({
+                        id: 'robotapriltag.menuWh.width',
+                        default: 'Width',
+                        description: 'robotapriltag.menuWh.width'
+                    }),
                     value: '0'
                 },
                 {
-                    text: '高度',
+                    text: formatMessage({
+                        id: 'robotapriltag.menuWh.height',
+                        default: 'Height',
+                        description: 'robotapriltag.menuWh.height'
+                    }),
                     value: '1'
                 },
                

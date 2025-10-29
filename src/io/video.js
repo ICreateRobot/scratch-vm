@@ -46,7 +46,9 @@ const { startQRDetection,
         stopWColorBlockDetection,
         startTrafficpre,
         stopTraffic,
-        stopVideo
+        stopVideo,
+        startWItem,
+        stopWItem
     } = require('./allmodel');
 
 // require('https://cdnjs.cloudflare.com/ajax/libs/mathjs/7.1.0/math.min.js')
@@ -656,6 +658,12 @@ class Video {
     }
     stopVideo(){
         stopVideo(this,Video,StageLayering)
+    }
+    startWItem(){
+        startWItem(this,Video,StageLayering,aiInfo,cocoSsd)
+    }
+    stopWItem(){
+        stopWItem(this)
     }
     /**
      * Set the preview ghost effect
