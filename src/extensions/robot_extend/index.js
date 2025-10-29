@@ -162,7 +162,7 @@ class RobotExtend {
                 default: 'External Microbit',
                 description: 'robotextend.name'
             }),
-      color1:'#33cccc',
+      color1:'#cc33c9ff',
       menuIconURI: actuatorIcon,
       blocks: [
         {
@@ -190,7 +190,280 @@ class RobotExtend {
             }
         },
 
+         {
+            opcode: 'servo',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.servo',
+                default: 'Set the servo motor to [ONE]',
+                description: 'robotextend.servo'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PLACE'
+                },
+            }
+        },
 
+         {
+            opcode: 'servoSpeed',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.servoSpeed',
+                default: 'servo motor rotates at a speed of [ONE]',
+                description: 'robotextend.servoSpeed'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'50'
+                },
+            }
+        },
+
+        {
+            opcode: 'servoSpeedTime',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.servoSpeedTime',
+                default: 'servo motor rotates at a speed of [ONE] for [TWO] seconds',
+                description: 'robotextend.servoSpeedTime'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'50'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'2'
+                },
+            }
+        },
+
+         {
+            opcode: 'servoSpeedAbsolute',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.servoSpeedAbsolute',
+                default: 'servo motor rotates to [TWO] degrees at a speed of [ONE]',
+                description: 'robotextend.servoSpeedAbsolute'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'50'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'90'
+                },
+            }
+        },
+
+        {
+            opcode: 'servoSpeedRelative',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.servoSpeedRelative',
+                default: 'servo motor rotates [TWO] degrees at a speed of [ONE]',
+                description: 'robotextend.servoSpeedRelative'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'50'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'90'
+                },
+            }
+        },
+
+        {
+            opcode: 'getServoSpeedAbsolute',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.getServoSpeedAbsolute',
+                default: 'Get the current angle',
+                description: 'robotextend.getServoSpeedAbsolute'
+            }),
+            arguments:{
+               
+            },
+            disableMonitor: true
+        },
+
+
+        {
+            opcode: 'oledShow',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.oledShow',
+                default: 'Display text [ONE] at X [TWO], Y [THREE], in color mode [FOUR]',
+                description: 'robotextend.oledShow'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'hello'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'0'
+                },
+                THREE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'0'
+                },
+                FOUR:{
+                    type: ArgumentType.STRING,
+                    menu:'COLOR_MODE'
+                },
+            }
+        },
+
+         {
+            opcode: 'oledClear',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.oledClear',
+                default: 'Clear screen',
+                description: 'robotextend.oledClear'
+            }),
+            arguments:{
+            }
+        },
+
+        {
+            opcode: 'recording',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.recording',
+                default: 'Recording module plays [ONE]',
+                description: 'robotextend.recording'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_RECORDING'
+                },
+            }
+        },
+
+        {
+            opcode: 'lightRingBrightness',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.lightRingBrightness',
+                default: 'Light ring set Brightness [ONE]',
+                description: 'robotextend.lightRingBrightness'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'0'
+                },
+            }
+        },
+
+        {
+            opcode: 'lightRingColor',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.lightRingColor',
+                default: 'Light ring display color [ONE]',
+                description: 'robotextend.lightRingColor'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_LIGHTRING'
+                },
+            }
+        },
+        {
+            opcode: 'led',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.led',
+                default: 'Set LED brightness to [TWO], power [ONE]',
+                description: 'robotextend.led'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SWITCH'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'10'
+                },
+            }
+        },
+        {
+            opcode: 'laser',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.laser',
+                default: 'Laser sensor set to [ONE] brightness [TWO]',
+                description: 'robotextend.laser'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'0'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SWITCH'
+                },
+            }
+        },
+
+         {
+            opcode: 'fan',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.fan',
+                default: 'fan runs at a speed of [ONE] [TWO]',
+                description: 'robotextend.fan'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    defaultValue:'0'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SWITCH'
+                },
+            }
+        },
+
+        {
+            opcode: 'electronmagnet',
+            blockType: BlockType.COMMAND,
+            // text: '舵机转动至[ONE]度',
+            text: formatMessage({
+                id: 'robotextend.electronmagnet',
+                default: 'electronmagnet Switch to [ONE]',
+                description: 'robotextend.electronmagnet'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SWITCH'
+                },
+            }
+        },
         {
             blockType: BlockType.LABEL,
             text: formatMessage({
@@ -234,7 +507,198 @@ class RobotExtend {
             },
             disableMonitor: true
         },
+
+        {
+            opcode: 'ultrasonic',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.ultrasonic',
+                default: 'Ultrasonic sensor distance',
+                description: 'robotextend.ultrasonic'
+            }),
+            arguments:{
+            }
+        },
+
+        {
+            opcode: 'button',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.button',
+                default: 'Button status',
+                description: 'robotextend.button'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+        {
+            opcode: 'buttonBool',
+            blockType: BlockType.BOOLEAN,
+            text: formatMessage({
+                id: 'robotextend.buttonBool',
+                default: 'Is the button pressed?',
+                description: 'robotextend.buttonBool'
+            }),
+            arguments:{
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'gas',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.gas',
+                default: 'Flammable gas',
+                description: 'robotextend.gas'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
         
+
+        {
+            opcode: 'farState',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.farState',
+                default: 'Long-distance photoelectric sensor',
+                description: 'robotextend.farState'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'grayLevel',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.grayLevel',
+                default: 'Grayscale sensor',
+                description: 'robotextend.grayLevel'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'potentiometer',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.potentiometer',
+                default: 'Potentiometer',
+                description: 'robotextend.potentiometer'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'lightintensity',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.lightintensity',
+                default: 'lightintensity',
+                description: 'robotextend.lightintensity'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'hallsensor',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.hallsensor',
+                default: 'hallsensor',
+                description: 'robotextend.hallsensor'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'flame',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.flame',
+                default: 'flamesensor',
+                description: 'robotextend.flame'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+        {
+            opcode: 'watertemp',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.watertemp',
+                default: 'Waterproof temperature sensor',
+                description: 'robotextend.watertemp'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+         {
+            opcode: 'soilhumidity',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.soilhumidity',
+                default: 'Soil sensor',
+                description: 'robotextend.soilhumidity'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+        {
+            opcode: 'waterlevel',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.waterlevel',
+                default: 'waterlevel',
+                description: 'robotextend.waterlevel'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
+
+         {
+            opcode: 'pir',
+            blockType: BlockType.REPORTER,
+            text: formatMessage({
+                id: 'robotextend.pir',
+                default: 'Human infrared sensor',
+                description: 'robotextend.pir'
+            }),
+            arguments:{
+                
+            },
+            disableMonitor: true
+        },
         
 
       ],
@@ -288,6 +752,231 @@ class RobotExtend {
             {
               text: 'Y',
               value: '1'
+            },
+             
+          ]
+        },
+        MENU_SERVO_PLACE: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.ServoPlace.common',
+                    default: 'general',
+                    description: 'robotextend.ServoPlace.common'
+                }),
+                value: 'GENERAL'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.ServoPlace.red',
+                    default: 'red',
+                    description: 'robotextend.ServoPlace.red'
+                }),
+                value: 'LIGHT_RED'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.ServoPlace.green',
+                    default: 'green',
+                    description: 'robotextend.ServoPlace.green'
+                }),
+                value: 'LIGHT_GREEN'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.ServoPlace.blue',
+                    default: 'blue',
+                    description: 'robotextend.ServoPlace.blue'
+                }),
+                value: 'LIGHT_BLUE'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.ServoPlace.yellow',
+                    default: 'yellow',
+                    description: 'robotextend.ServoPlace.yellow'
+                }),
+                value: 'LIGHT_YELLOW'
+            },
+             
+          ]
+        },
+        COLOR_MODE: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.colorMode.BlackTxt',
+                    default: 'Black text on a white background',
+                    description: 'robotextend.colorMode.BlackTxt'
+                }),
+                value: '0'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.colorMode.WhiteTxt',
+                    default: 'White text on a black background',
+                    description: 'robotextend.colorMode.WhiteTxt'
+                }),
+              value: '1'
+            },
+             
+          ]
+        },
+        MENU_RECORDING: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuRecording.gun',
+                    default: 'machine gun fire',
+                    description: 'robotextend.menuRecording.gun'
+                }),
+                value: 'GUNSHOT'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuRecording.laser',
+                    default: 'laser shoot',
+                    description: 'robotextend.menuRecording.laser'
+                }),
+              value: 'LASER'
+            },
+             
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuRecording.motorcycle',
+                    default: 'Racing Car Acceleration',
+                    description: 'robotextend.menuRecording.motorcycle'
+                }),
+                value: 'MOTORCYCLE'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuRecording.warbegin',
+                    default: 'War Begins',
+                    description: 'robotextend.menuRecording.warbegin'
+                }),
+              value: 'WARBEGIN'
+            },
+
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuRecording.countdown',
+                    default: 'Countdown',
+                    description: 'robotextend.menuRecording.countdown'
+                }),
+                value: 'COUNTDOWN'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuRecording.playrecording',
+                    default: 'Recording',
+                    description: 'robotextend.menuRecording.playrecording'
+                }),
+              value: 'PLAYRECORDING'
+            },
+          ]
+        },
+
+        MENU_LIGHTRING: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuLightring.White',
+                    default: 'White',
+                    description: 'robotextend.menuLightring.White'
+                }),
+                value: 'WHITE'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuLightring.Black',
+                    default: 'Black',
+                    description: 'robotextend.menuLightring.Black'
+                }),
+              value: 'BLACK'
+            },
+             {
+                text: formatMessage({
+                    id: 'robotextend.menuLightring.Red',
+                    default: 'Red',
+                    description: 'robotextend.menuLightring.Red'
+                }),
+                value: 'RED'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuLightring.Orange',
+                    default: 'Orange',
+                    description: 'robotextend.menuLightring.Orange'
+                }),
+              value: 'ORANGE'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuLightring.Yellow',
+                    default: 'Yellow',
+                    description: 'robotextend.menuLightring.Yellow'
+                }),
+                value: 'YELLOW'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuLightring.Green',
+                    default: 'Green',
+                    description: 'robotextend.menuLightring.Green'
+                }),
+              value: 'GREEN'
+            },
+
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuLightring.Cyan',
+                    default: 'Cyan',
+                    description: 'robotextend.menuLightring.Cyan'
+                }),
+                value: 'CYAN'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuLightring.Blue',
+                    default: 'Blue',
+                    description: 'robotextend.menuLightring.Blue'
+                }),
+              value: 'BLUE'
+            },
+
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuLightring.Purple',
+                    default: 'Purple',
+                    description: 'robotextend.menuLightring.Purple'
+                }),
+                value: 'PURPLE'
+              },
+          ]
+        },
+        MENU_SWITCH: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.menuSwitch.on',
+                    default: 'on',
+                    description: 'robotextend.menuSwitch.on'
+                }),
+                value: 'on'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.menuSwitch.off',
+                    default: 'off',
+                    description: 'robotextend.menuSwitch.off'
+                }),
+              value: 'off'
             },
              
           ]
