@@ -45,6 +45,14 @@ class RobotExtend {
             }
         })
 
+        this.sensorSwitch={
+            'joy':0,
+            'ula':0,
+            'poten':0,
+            'hall':0,
+            'human':0
+        }
+
         this.whatSendFun = 'net' // 默认就是 net
         this.isPortConnected = false
         this.isBleConnected = false
@@ -65,6 +73,13 @@ class RobotExtend {
         this.channelHostPot = new BroadcastChannel('hostpot')
         this.channelHostPot.addEventListener('message', async (event) => {
             if (!event.data) {
+                this.sensorSwitch={
+                    'joy':0,
+                    'ula':0,
+                    'poten':0,
+                    'hall':0,
+                    'human':0
+                }
                 this.isNetConnected = false
                 if (this.whatSendFun === 'net') {
                     if (this.isBleConnected) {
@@ -91,6 +106,7 @@ class RobotExtend {
         this.channelBle.addEventListener('message', (event) => {
             this.isBleConnected = !!event.data
 
+            console.log(event.data)
             if (this.isBleConnected) {
                 console.log('当前为蓝牙模式')
                 if (!socketBle.getSocket()) {
@@ -150,7 +166,36 @@ class RobotExtend {
                 console.warn("⚠️ 收到未匹配的响应:", state);
             }
         })
+        this.message=[0,0,0,0,0,0,0,0,0]
         this.channelSerialData=new BroadcastChannel('serial-data')
+        this.channelSerialData.addEventListener('message',(event)=>{
+            // console.log(JSON.parse(event.data))
+            // console.log(event.data)
+            if(this.whatSendFun=='port'){
+                if(Array.isArray(event.data) && event.data.length>1){
+                    this.message=event.data
+                }else{
+                    // console.log(event.data)
+                }
+                
+            }
+
+            if(!this.mode &&event.data.length==1){
+                if(event.data[0]=='success'){
+                    alert('下载成功')
+                }
+            }
+        })
+
+        
+        this.reciveChannel = new BroadcastChannel('reciveChannel')
+        this.reciveChannel.addEventListener('message',(event)=>{
+            if(this.whatSendFun=='net'){
+                this.message=event.data
+            }
+           
+            // console.log(event.data)
+        })
         
     }
   getInfo() {
@@ -159,10 +204,10 @@ class RobotExtend {
       id: 'robotextend',
       name: formatMessage({
                 id: 'robotextend.name',
-                default: 'External Microbit',
+                default: 'External Microbit Module',
                 description: 'robotextend.name'
             }),
-      color1:'#cc33c9ff',
+      color1:'#cc33c9',
       menuIconURI: actuatorIcon,
       blocks: [
         {
@@ -179,7 +224,7 @@ class RobotExtend {
             // text: '舵机转动至[ONE]度',
             text: formatMessage({
                 id: 'robotactuator.motor',
-                default: 'Servo rotates to [ONE] degrees',
+                default: 'port (1) Servo rotates to [ONE] degrees',
                 description: 'robotactuator.motor'
             }),
             arguments:{
@@ -196,13 +241,17 @@ class RobotExtend {
             // text: '舵机转动至[ONE]度',
             text: formatMessage({
                 id: 'robotextend.servo',
-                default: 'Set the servo motor to [ONE]',
+                default: 'port [TWO] Set the servo motor to [ONE]',
                 description: 'robotextend.servo'
             }),
             arguments:{
                 ONE:{
                     type: ArgumentType.STRING,
                     menu:'MENU_SERVO_PLACE'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
                 },
             }
         },
@@ -212,13 +261,17 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.servoSpeed',
-                default: 'servo motor rotates at a speed of [ONE]',
+                default: 'port [TWO] servo motor rotates at a speed of [ONE]',
                 description: 'robotextend.servoSpeed'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
+                    type: ArgumentType.NUMRES0_100,
                     defaultValue:'50'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
                 },
             }
         },
@@ -228,17 +281,21 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.servoSpeedTime',
-                default: 'servo motor rotates at a speed of [ONE] for [TWO] seconds',
+                default: 'port [THREE] servo motor rotates at a speed of [ONE] for [TWO] seconds',
                 description: 'robotextend.servoSpeedTime'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
+                    type: ArgumentType.NUMRES0_100,
                     defaultValue:'50'
                 },
                 TWO:{
                     type: ArgumentType.STRING,
                     defaultValue:'2'
+                },
+                THREE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
                 },
             }
         },
@@ -248,17 +305,21 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.servoSpeedAbsolute',
-                default: 'servo motor rotates to [TWO] degrees at a speed of [ONE]',
+                default: 'port [THREE] servo motor rotates at speed [ONE] to [TWO] degrees',
                 description: 'robotextend.servoSpeedAbsolute'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
+                    type: ArgumentType.NUMRES0_100,
                     defaultValue:'50'
                 },
                 TWO:{
                     type: ArgumentType.STRING,
                     defaultValue:'90'
+                },
+                THREE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
                 },
             }
         },
@@ -268,17 +329,37 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.servoSpeedRelative',
-                default: 'servo motor rotates [TWO] degrees at a speed of [ONE]',
+                default: 'port [THREE] servo motor rotates at speed [ONE] for [TWO] degrees ',
                 description: 'robotextend.servoSpeedRelative'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
+                    type: ArgumentType.NUMRES0_100,
                     defaultValue:'50'
                 },
                 TWO:{
                     type: ArgumentType.STRING,
                     defaultValue:'90'
+                },
+                THREE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
+                },
+            }
+        },
+
+        {
+            opcode: 'servoStop',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.servoStop',
+                default: 'port [TWO] servo motor stop',
+                description: 'robotextend.servoStop'
+            }),
+            arguments:{
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
                 },
             }
         },
@@ -288,138 +369,142 @@ class RobotExtend {
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.getServoSpeedAbsolute',
-                default: 'Get the current angle',
+                default: 'port [ONE] Get the current angle',
                 description: 'robotextend.getServoSpeedAbsolute'
             }),
             arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
+                },
                
             },
             disableMonitor: true
         },
 
 
-        {
-            opcode: 'oledShow',
-            blockType: BlockType.COMMAND,
-            text: formatMessage({
-                id: 'robotextend.oledShow',
-                default: 'Display text [ONE] at X [TWO], Y [THREE], in color mode [FOUR]',
-                description: 'robotextend.oledShow'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'hello'
-                },
-                TWO:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'0'
-                },
-                THREE:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'0'
-                },
-                FOUR:{
-                    type: ArgumentType.STRING,
-                    menu:'COLOR_MODE'
-                },
-            }
-        },
+        // {
+        //     opcode: 'oledShow',
+        //     blockType: BlockType.COMMAND,
+        //     text: formatMessage({
+        //         id: 'robotextend.oledShow',
+        //         default: 'Display text [ONE] at X [TWO], Y [THREE], in color mode [FOUR]',
+        //         description: 'robotextend.oledShow'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:'hello'
+        //         },
+        //         TWO:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:'0'
+        //         },
+        //         THREE:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:'0'
+        //         },
+        //         FOUR:{
+        //             type: ArgumentType.STRING,
+        //             menu:'COLOR_MODE'
+        //         },
+        //     }
+        // },
 
-         {
-            opcode: 'oledClear',
-            blockType: BlockType.COMMAND,
-            text: formatMessage({
-                id: 'robotextend.oledClear',
-                default: 'Clear screen',
-                description: 'robotextend.oledClear'
-            }),
-            arguments:{
-            }
-        },
+        //  {
+        //     opcode: 'oledClear',
+        //     blockType: BlockType.COMMAND,
+        //     text: formatMessage({
+        //         id: 'robotextend.oledClear',
+        //         default: 'Clear screen',
+        //         description: 'robotextend.oledClear'
+        //     }),
+        //     arguments:{
+        //     }
+        // },
 
-        {
-            opcode: 'recording',
-            blockType: BlockType.COMMAND,
-            // text: '舵机转动至[ONE]度',
-            text: formatMessage({
-                id: 'robotextend.recording',
-                default: 'Recording module plays [ONE]',
-                description: 'robotextend.recording'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu:'MENU_RECORDING'
-                },
-            }
-        },
+        // {
+        //     opcode: 'recording',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotextend.recording',
+        //         default: 'Recording module plays [ONE]',
+        //         description: 'robotextend.recording'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_RECORDING'
+        //         },
+        //     }
+        // },
 
-        {
-            opcode: 'lightRingBrightness',
-            blockType: BlockType.COMMAND,
-            // text: '舵机转动至[ONE]度',
-            text: formatMessage({
-                id: 'robotextend.lightRingBrightness',
-                default: 'Light ring set Brightness [ONE]',
-                description: 'robotextend.lightRingBrightness'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'0'
-                },
-            }
-        },
+        // {
+        //     opcode: 'lightRingBrightness',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotextend.lightRingBrightness',
+        //         default: 'Light ring set Brightness [ONE]',
+        //         description: 'robotextend.lightRingBrightness'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:'0'
+        //         },
+        //     }
+        // },
 
-        {
-            opcode: 'lightRingColor',
-            blockType: BlockType.COMMAND,
-            // text: '舵机转动至[ONE]度',
-            text: formatMessage({
-                id: 'robotextend.lightRingColor',
-                default: 'Light ring display color [ONE]',
-                description: 'robotextend.lightRingColor'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu:'MENU_LIGHTRING'
-                },
-            }
-        },
-        {
-            opcode: 'led',
-            blockType: BlockType.COMMAND,
-            // text: '舵机转动至[ONE]度',
-            text: formatMessage({
-                id: 'robotextend.led',
-                default: 'Set LED brightness to [TWO], power [ONE]',
-                description: 'robotextend.led'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu:'MENU_SWITCH'
-                },
-                TWO:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'10'
-                },
-            }
-        },
+        // {
+        //     opcode: 'lightRingColor',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotextend.lightRingColor',
+        //         default: 'Light ring display color [ONE]',
+        //         description: 'robotextend.lightRingColor'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_LIGHTRING'
+        //         },
+        //     }
+        // },
+        // {
+        //     opcode: 'led',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotextend.led',
+        //         default: 'Set LED brightness to [TWO], power [ONE]',
+        //         description: 'robotextend.led'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_SWITCH'
+        //         },
+        //         TWO:{
+        //             type: ArgumentType.STRING,
+        //             defaultValue:'10'
+        //         },
+        //     }
+        // },
         {
             opcode: 'laser',
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.laser',
-                default: 'Laser sensor set to [ONE] brightness [TWO]',
+                default: 'port (1) Laser sensor set to [ONE] brightness [TWO]',
                 description: 'robotextend.laser'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'0'
+                    type: ArgumentType.NUMRES0_100,
+                    defaultValue:'50'
                 },
                 TWO:{
                     type: ArgumentType.STRING,
@@ -433,13 +518,13 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.fan',
-                default: 'fan runs at a speed of [ONE] [TWO]',
+                default: 'port (1) fan runs at a speed of [ONE] [TWO]',
                 description: 'robotextend.fan'
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.STRING,
-                    defaultValue:'0'
+                    type: ArgumentType.NUMRES_100_100,
+                    defaultValue:'50'
                 },
                 TWO:{
                     type: ArgumentType.STRING,
@@ -447,23 +532,24 @@ class RobotExtend {
                 },
             }
         },
+        
 
-        {
-            opcode: 'electronmagnet',
-            blockType: BlockType.COMMAND,
-            // text: '舵机转动至[ONE]度',
-            text: formatMessage({
-                id: 'robotextend.electronmagnet',
-                default: 'electronmagnet Switch to [ONE]',
-                description: 'robotextend.electronmagnet'
-            }),
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu:'MENU_SWITCH'
-                },
-            }
-        },
+        // {
+        //     opcode: 'electronmagnet',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '舵机转动至[ONE]度',
+        //     text: formatMessage({
+        //         id: 'robotextend.electronmagnet',
+        //         default: 'electronmagnet Switch to [ONE]',
+        //         description: 'robotextend.electronmagnet'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu:'MENU_SWITCH'
+        //         },
+        //     }
+        // },
         {
             blockType: BlockType.LABEL,
             text: formatMessage({
@@ -473,19 +559,47 @@ class RobotExtend {
             }),
         },
 
+        {
+            opcode: 'startMode',
+            blockType: BlockType.COMMAND,
+            text: formatMessage({
+                id: 'robotextend.startMode',
+                default: 'port [ONE] [TWO] [THREE]',
+                description: 'robotextend.startMode'
+            }),
+            arguments:{
+                ONE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SWITCH'
+                },
+                THREE:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SENSOR'
+                },
+            }
+        },
+
          {
             opcode: 'joystickBool',
             blockType: BlockType.BOOLEAN,
             text: formatMessage({
                 id: 'robotextend.joystickBool',
-                default: 'Joystick detected  [ONE]',
+                default: 'port [TWO] Joystick detected  [ONE]',
                 description: 'robotextend.joystickBool'
             }),
             arguments:{
                 ONE:{
                     type: ArgumentType.STRING,
                     menu:'MENU_DIR'
-                }
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
+                },
             },
             disableMonitor: true
         },
@@ -496,105 +610,110 @@ class RobotExtend {
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.joystickRepo',
-                default: 'Joystick [ONE] Direction',
+                default: 'port [TWO] Joystick [ONE] Direction',
                 description: 'robotextend.joystickRepo'
             }),
             arguments:{
                 ONE:{
                     type: ArgumentType.STRING,
                     menu:'MENU_XY'
-                }
+                },
+                TWO:{
+                    type: ArgumentType.STRING,
+                    menu:'MENU_SERVO_PORT'
+                },
             },
             disableMonitor: true
         },
 
         {
             opcode: 'ultrasonic',
-            blockType: BlockType.COMMAND,
+            blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.ultrasonic',
-                default: 'Ultrasonic sensor distance',
+                default: 'port (1) Ultrasonic sensor distance',
                 description: 'robotextend.ultrasonic'
             }),
             arguments:{
-            }
-        },
-
-        {
-            opcode: 'button',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.button',
-                default: 'Button status',
-                description: 'robotextend.button'
-            }),
-            arguments:{
-                
-            },
-            disableMonitor: true
-        },
-        {
-            opcode: 'buttonBool',
-            blockType: BlockType.BOOLEAN,
-            text: formatMessage({
-                id: 'robotextend.buttonBool',
-                default: 'Is the button pressed?',
-                description: 'robotextend.buttonBool'
-            }),
-            arguments:{
             },
             disableMonitor: true
         },
 
-        {
-            opcode: 'gas',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.gas',
-                default: 'Flammable gas',
-                description: 'robotextend.gas'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'button',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.button',
+        //         default: 'Button status',
+        //         description: 'robotextend.button'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
+        // {
+        //     opcode: 'buttonBool',
+        //     blockType: BlockType.BOOLEAN,
+        //     text: formatMessage({
+        //         id: 'robotextend.buttonBool',
+        //         default: 'Is the button pressed?',
+        //         description: 'robotextend.buttonBool'
+        //     }),
+        //     arguments:{
+        //     },
+        //     disableMonitor: true
+        // },
+
+        // {
+        //     opcode: 'gas',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.gas',
+        //         default: 'Flammable gas',
+        //         description: 'robotextend.gas'
+        //     }),
+        //     arguments:{
+                
+        //     },
+        //     disableMonitor: true
+        // },
         
 
-        {
-            opcode: 'farState',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.farState',
-                default: 'Long-distance photoelectric sensor',
-                description: 'robotextend.farState'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'farState',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.farState',
+        //         default: 'Long-distance photoelectric sensor',
+        //         description: 'robotextend.farState'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
-        {
-            opcode: 'grayLevel',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.grayLevel',
-                default: 'Grayscale sensor',
-                description: 'robotextend.grayLevel'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'grayLevel',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.grayLevel',
+        //         default: 'Grayscale sensor',
+        //         description: 'robotextend.grayLevel'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
         {
             opcode: 'potentiometer',
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.potentiometer',
-                default: 'Potentiometer',
+                default: 'port (1) Potentiometer',
                 description: 'robotextend.potentiometer'
             }),
             arguments:{
@@ -603,26 +722,26 @@ class RobotExtend {
             disableMonitor: true
         },
 
-        {
-            opcode: 'lightintensity',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.lightintensity',
-                default: 'lightintensity',
-                description: 'robotextend.lightintensity'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'lightintensity',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.lightintensity',
+        //         default: 'lightintensity',
+        //         description: 'robotextend.lightintensity'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
         {
             opcode: 'hallsensor',
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.hallsensor',
-                default: 'hallsensor',
+                default: 'port (1) Hall sensor',
                 description: 'robotextend.hallsensor'
             }),
             arguments:{
@@ -631,67 +750,67 @@ class RobotExtend {
             disableMonitor: true
         },
 
-        {
-            opcode: 'flame',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.flame',
-                default: 'flamesensor',
-                description: 'robotextend.flame'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'flame',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.flame',
+        //         default: 'flamesensor',
+        //         description: 'robotextend.flame'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
-        {
-            opcode: 'watertemp',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.watertemp',
-                default: 'Waterproof temperature sensor',
-                description: 'robotextend.watertemp'
-            }),
-            arguments:{
+        // {
+        //     opcode: 'watertemp',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.watertemp',
+        //         default: 'Waterproof temperature sensor',
+        //         description: 'robotextend.watertemp'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
-         {
-            opcode: 'soilhumidity',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.soilhumidity',
-                default: 'Soil sensor',
-                description: 'robotextend.soilhumidity'
-            }),
-            arguments:{
+        //  {
+        //     opcode: 'soilhumidity',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.soilhumidity',
+        //         default: 'Soil sensor',
+        //         description: 'robotextend.soilhumidity'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
-        {
-            opcode: 'waterlevel',
-            blockType: BlockType.REPORTER,
-            text: formatMessage({
-                id: 'robotextend.waterlevel',
-                default: 'waterlevel',
-                description: 'robotextend.waterlevel'
-            }),
-            arguments:{
+        //     },
+        //     disableMonitor: true
+        // },
+        // {
+        //     opcode: 'waterlevel',
+        //     blockType: BlockType.REPORTER,
+        //     text: formatMessage({
+        //         id: 'robotextend.waterlevel',
+        //         default: 'waterlevel',
+        //         description: 'robotextend.waterlevel'
+        //     }),
+        //     arguments:{
                 
-            },
-            disableMonitor: true
-        },
+        //     },
+        //     disableMonitor: true
+        // },
 
          {
             opcode: 'pir',
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.pir',
-                default: 'Human infrared sensor',
+                default: 'port (1) PIR sensor',
                 description: 'robotextend.pir'
             }),
             arguments:{
@@ -704,6 +823,74 @@ class RobotExtend {
       ],
 
       menus: {
+        MENU_SENSOR: {
+          acceptReporters: false,
+          items: [
+            {
+                text: formatMessage({
+                    id: 'robotextend.sensor.joy',
+                    default: 'joystick',
+                    description: 'robotextend.sensor.joy'
+                }),
+                value: '8'
+              },
+            {
+              text: formatMessage({
+                    id: 'robotextend.sensor.ult',
+                    default: 'ultrasonic(only port one)',
+                    description: 'robotextend.sensor.ult'
+                }),
+              value: '9'
+            },
+            {
+              text: formatMessage({
+                    id: 'robotextend.sensor.poten',
+                    default: 'potentiometer(only port one)',
+                    description: 'robotextend.sensor.poten'
+                }),
+              value: '10'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.sensor.hall',
+                    default: 'hall(only port one)',
+                    description: 'robotextend.sensor.hall'
+                }),
+                value: '11'
+            },
+            {
+                text: formatMessage({
+                    id: 'robotextend.sensor.pir',
+                    default: 'human infrared(only port one)',
+                    description: 'robotextend.sensor.pir'
+                }),
+                value: '12'
+            },
+             
+          ]
+        },
+        MENU_SERVO_PORT: {
+          acceptReporters: false,
+          items: [
+            {
+                text: '1',
+                value: '1'
+            },
+            {
+              text: '2',
+              value: '2'
+            },
+            {
+                text: '3',
+                value: '3'
+            },
+            {
+              text: '4',
+              value: '4'
+            },
+             
+          ]
+        },
         MENU_DIR: {
           acceptReporters: false,
           items: [
@@ -1177,6 +1364,26 @@ class RobotExtend {
     }
 
 
+    toTwoDigitHexadecimalPair(decimal) {
+        if (decimal < 0) {
+            throw new Error("Input must be a non-negative integer");
+        }
+
+        const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
+        const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
+
+        return [
+            // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+            // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+            leftHex,
+            rightHex
+        ];
+    }
+    signedToHexValue(num, bits = 8) {
+        let mask = (1 << bits) - 1;
+        return num & mask; // 返回数值
+    }
+
   async motor(args){
     if(this.mode){
         
@@ -1186,8 +1393,14 @@ class RobotExtend {
         let jsonData={
             "command":"expand",
             "params":{
-                "mode":0,
-                "data":Number(args.ONE)
+                "mode": 0,
+                "anagle":Number(args.ONE) , 
+                "servoMode":"",
+                "speed":50,
+                "time":2,
+                "light":10,
+                "switch":0,
+                "port":1
             }
         }
         // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
@@ -1210,15 +1423,16 @@ class RobotExtend {
                 this.showToast("socket正在连接中，请稍后");
                 this.runtime.stopAll();
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
             await this.sendCommandAndWaitForSuccess(str)
             // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
         }else if(this.whatSendFun=='ble'){
-            // const ackPromise = this.waitForThreeZeros(); 
-            // socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
-            // await ackPromise
+            const ackPromise = this.waitForThreeZeros(); 
+            socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x60,this.toTwoDigitHexadecimalPair(Number(args.ONE))[0],this.toTwoDigitHexadecimalPair(Number(args.ONE))[1]]))
+            await ackPromise
         }
         
         // await new Promise(resolve => setTimeout(resolve, 3000)); 
@@ -1227,11 +1441,1000 @@ class RobotExtend {
 
     
   }
-    async joystickBool(args){
 
+    async servo(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+            let MODE=['GENERAL','LIGHT_RED','LIGHT_GREEN','LIGHT_BLUE','LIGHT_YELLOW']
+
+            let hex_mode={
+                'GENERAL':0x50,
+                'LIGHT_RED':0x51,
+                'LIGHT_GREEN':0x52,
+                'LIGHT_BLUE':0x53,
+                'LIGHT_YELLOW':0x54
+            }
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 1,
+                    "anagle":0, 
+                    "servoMode":hex_mode[args.ONE],
+                    "speed":50,
+                    "time":2,
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.TWO)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x61,hex_mode[args.ONE],Number(args.TWO)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async servoSpeed(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 2,
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":Number(args.ONE),
+                    "time":2,
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.TWO)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x62,this.signedToHexValue(Number(args.ONE)),Number(args.TWO)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async servoStop(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 2,
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":0,
+                    "time":2,
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.TWO)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x62,0,Number(args.TWO)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async servoSpeedTime(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 3,
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":Number(args.ONE),
+                    "time":Number(args.TWO),
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.THREE)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                await this.waitForSuccess()
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x63,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1],Number(args.THREE)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async servoSpeedAbsolute(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 4,
+                    "anagle":Number(args.TWO), 
+                    "servoMode":"",
+                    "speed":Number(args.ONE),
+                    "time":2,
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.THREE)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                await this.waitForSuccess()
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x64,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1],Number(args.THREE)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async servoSpeedRelative(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 5,
+                    "anagle":Number(args.TWO), 
+                    "servoMode":"",
+                    "speed":Number(args.ONE),
+                    "time":2,
+                    "light":10,
+                    "switch":0,
+                    "port":Number(args.THREE)
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                await this.waitForSuccess()
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x65,this.signedToHexValue(Number(args.ONE)),this.toTwoDigitHexadecimalPair(Number(args.TWO))[0],this.toTwoDigitHexadecimalPair(Number(args.TWO))[1],Number(args.THREE)]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async laser(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 6,
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":0,
+                    "time":2,
+                    "light":Number(args.ONE),
+                    "switch":args.TWO=="on" ? 0:1,
+                    "port":1
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x66,Number(args.ONE),args.TWO=="on" ? 0x00:0x01]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+    async fan(args){
+         if(this.mode){
+            
+            let currentTime=Date.now()
+
+
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": 7,
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":Number(args.ONE),
+                    "time":2,
+                    "light":0,
+                    "switch":args.TWO=="on" ? 0:1,
+                    "port":1
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+                await ackPromise
+            }
+            
+            // await new Promise(resolve => setTimeout(resolve, 3000)); 
+        }
+    }
+
+
+    async getServoSpeedAbsolute(args){
+        if(this.mode){
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message.slice(14,18)
+
+                    
+                return result[Number(args.ONE)-1]
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData()).slice(14,18)
+
+                    
+                return result[Number(args.ONE)-1]
+            }
+            
+        }
+    }
+
+    async startMode(args){
+        if(this.mode){
+
+            let mode_hex={
+                '8':0x68,
+                '9':0x69,
+                '10':0x6a,
+                '11':0x6b,
+                '12':0x6c
+            }
+            let jsonData={
+                "command":"expand",
+                "params":{
+                    "mode": Number(args.THREE),
+                    "anagle":0, 
+                    "servoMode":"",
+                    "speed":0,
+                    "time":2,
+                    "light":0,
+                    "switch":args.TWO=="on" ? 0:1,
+                    "port":Number(args.THREE) === 8 ? Number(args.ONE) : 1
+                }
+            }
+            // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            let str = JSON.stringify(jsonData)
+            if(this.whatSendFun=='net'){
+                if(socket.getIp().length==0){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+                    console.log('断开连接，尝试重连')
+                    this.showToast("socket断开，尝试重连......");
+                    let context=[]
+                    context.push(str)
+                    await socket.setSocket(context)
+                }else if(socket.checkWebSocketStatus()==2){
+                    socket.getSocket().send(str);
+                }else if(socket.checkWebSocketStatus()==1){
+                    this.showToast("socket正在连接中，请稍后");
+                    this.runtime.stopAll();
+                }
+                this.sensorSwitch.joy=1
+                socket.setLastPostTime(Date.now())
+            }else if(this.whatSendFun=='port'){
+                // this.channelPort.postMessage(str)
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            }else if(this.whatSendFun=='ble'){
+                const ackPromise = this.waitForThreeZeros(); 
+                socketBle.getSocket().send(JSON.stringify([0XAA,0x01,mode_hex[args.THREE],Number(args.THREE) === 8 ? Number(args.ONE) : 1,args.TWO=="on" ? 0x00:0x01]))
+                await ackPromise
+            }
+        }
+    }
+
+    async joystickBool(args){
+        if(this.mode){
+
+
+            
+            // if(this.sensorSwitch.joy==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 8,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":Number(args.TWO)
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.joy=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+
+            const dirIndex = { x: 0, y: 1 };
+            const getValue = (arr, port, direction) => {
+                const index = (port - 1) * 2 + dirIndex[direction];
+                return arr[index];
+            };
+
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message.slice(18,26)
+
+                if(args.ONE=='0' && getValue(result,Number(args.TWO),'y')>0){
+                    return true
+                }else if(args.ONE=='1' && getValue(result,Number(args.TWO),'y')<0){
+                    return true
+                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'y')<0){
+                    return true
+                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'y')>0){
+                    return true
+                }else{
+                    return false
+                }
+                
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData()).slice(18,26)
+
+                    
+                if(args.ONE=='0' && getValue(result,Number(args.TWO),'y')>0){
+                    return true
+                }else if(args.ONE=='1' && getValue(result,Number(args.TWO),'y')<0){
+                    return true
+                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'y')<0){
+                    return true
+                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'y')>0){
+                    return true
+                }else{
+                    return false
+                }
+            }
+            
+        }
     }
     async joystickRepo(args){
+        if(this.mode){
 
+
+            // if(this.sensorSwitch.joy==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 8,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":Number(args.TWO)
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.joy=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+
+            // const dirIndex = { x: 0, y: 1 };
+            const getValue = (arr, port, direction) => {
+                const index = (port - 1) * 2 + direction;
+                return arr[index];
+            };
+
+
+
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message.slice(18,26)
+
+                console.log(Number(args.TWO))
+                console.log(Number(args.ONE))
+                return getValue(result,Number(args.TWO),Number(args.ONE))
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData()).slice(18,26)
+
+                    
+                return getValue(result,Number(args.TWO),Number(args.ONE))
+            }
+            
+        }
+    }
+
+    async ultrasonic(args){
+        if(this.mode){
+
+
+            // if(this.sensorSwitch.ula==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 9,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":1
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.ula=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+
+
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message[26]
+
+                    
+                return result
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData())[26]
+
+                    
+                return result
+            }
+            
+        }
+    }
+
+    async potentiometer(args){
+        if(this.mode){
+
+            // if(this.sensorSwitch.poten==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 10,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":1
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.poten=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message[27]
+
+                    
+                return result
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData())[27]
+
+                    
+                return result
+            }
+            
+        }
+    }
+
+    async hallsensor(args){
+        if(this.mode){
+            //  if(this.sensorSwitch.hall==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 11,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":1
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.hall=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message[28]
+
+                    
+                return result
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData())[28]
+
+                    
+                return result
+            }
+            
+        }
+    }
+
+    async pir(args){
+        if(this.mode){
+
+            // console.log('执行了')
+            // if(this.sensorSwitch.human==0){
+            //     let jsonData={
+            //         "command":"expand",
+            //         "params":{
+            //             "mode": 12,
+            //             "anagle":0, 
+            //             "servoMode":"",
+            //             "speed":0,
+            //             "time":2,
+            //             "light":0,
+            //             "switch":0,
+            //             "port":1
+            //         }
+            //     }
+            //     // let str = `robot.send_fire(${args.ONE},1,${args.TWO})`;
+            //     let str = JSON.stringify(jsonData)
+            //     if(this.whatSendFun=='net'){
+            //         if(socket.getIp().length==0){
+            //             this.showToast('未连接机器人')
+            //             this.runtime.stopAll();
+            //             return
+            //         }
+            //         if(socket.checkWebSocketStatus()==4 || socket.checkWebSocketStatus()==0){
+            //             console.log('断开连接，尝试重连')
+            //             this.showToast("socket断开，尝试重连......");
+            //             let context=[]
+            //             context.push(str)
+            //             await socket.setSocket(context)
+            //         }else if(socket.checkWebSocketStatus()==2){
+            //             socket.getSocket().send(str);
+            //         }else if(socket.checkWebSocketStatus()==1){
+            //             this.showToast("socket正在连接中，请稍后");
+            //             this.runtime.stopAll();
+            //         }
+            //         this.sensorSwitch.human=1
+            //         socket.setLastPostTime(Date.now())
+            //     }else if(this.whatSendFun=='port'){
+            //         // this.channelPort.postMessage(str)
+            //         await this.sendCommandAndWaitForSuccess(str)
+            //         // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x31,0x02,Number(args.ONE),mode]))
+            //     }else if(this.whatSendFun=='ble'){
+            //         const ackPromise = this.waitForThreeZeros(); 
+            //         socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x67,this.signedToHexValue(Number(args.ONE)),args.TWO=="on" ? 0x00:0x01]))
+            //         await ackPromise
+            //     }
+            // }
+
+
+            if(this.whatSendFun=='net' || this.whatSendFun=='port'){
+                if(socket.getIp().length==0 && this.whatSendFun=='net'){
+                    this.showToast('未连接机器人')
+                    this.runtime.stopAll();
+                    return
+                }
+                console.log(this.message)
+                // return this.line[args.ONE]
+                let result=this.message[29]
+
+                    
+                return result
+            }else if(this.whatSendFun=='ble'){
+                let result=JSON.parse(window.EditorPreload.getRobotData())[29]
+
+                    
+                return result
+            }
+            
+        }
     }
 
 
