@@ -23,33 +23,33 @@ class RobotSensors {
         this.runtime=runtime
 
 
-        this.flag='0'
-        this.channel = new BroadcastChannel('flag_channel');
-        this.channel.addEventListener('message', (event) => {
-            console.log('Received flag data:', event.data);
-            this.flag=event.data
-            // if(event.data=='1'){
-            //     eventSource = new EventSource('http://192.168.4.1:8083/stream');
-            //     eventSource.onerror = function(error) {
-            //         console.error('Error:', error);
-            //         eventSource.close();
-            //     };
-            //     eventSource.onmessage = function(event) {
-            //         // output.innerHTML = "Received from server: " + event.data;
-            //         // console.log(event.data)
-            //         // console.log(Date.now())
+        // this.flag='0'
+        // this.channel = new BroadcastChannel('flag_channel');
+        // this.channel.addEventListener('message', (event) => {
+        //     console.log('Received flag data:', event.data);
+        //     this.flag=event.data
+        //     // if(event.data=='1'){
+        //     //     eventSource = new EventSource('http://192.168.4.1:8083/stream');
+        //     //     eventSource.onerror = function(error) {
+        //     //         console.error('Error:', error);
+        //     //         eventSource.close();
+        //     //     };
+        //     //     eventSource.onmessage = function(event) {
+        //     //         // output.innerHTML = "Received from server: " + event.data;
+        //     //         // console.log(event.data)
+        //     //         // console.log(Date.now())
 
-            //         scratchGet=JSON.parse(event.data)
+        //     //         scratchGet=JSON.parse(event.data)
                     
-            //     };
-            // }else if(event.data=='0'){
-            //     try{
-            //         eventSource.close();
-            //     }catch(e){
+        //     //     };
+        //     // }else if(event.data=='0'){
+        //     //     try{
+        //     //         eventSource.close();
+        //     //     }catch(e){
 
-            //     }
-            // }
-        });
+        //     //     }
+        //     // }
+        // });
         this.mode=true
         this.channelMode=new BroadcastChannel('mode')
         this.channelMode.addEventListener('message',(event)=>{
