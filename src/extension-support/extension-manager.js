@@ -61,6 +61,7 @@ defaultBuiltinExtensions['deepseek'] = () => require('../extensions/deepseek');
 defaultBuiltinExtensions['MicrobitIcreate'] = () => require('../extensions/ICreate_Microbit');
 defaultBuiltinExtensions['MicrobiteIcreateP'] = () => require('../extensions/ICreate_Microbit_P');
 defaultBuiltinExtensions['robotextend'] = () => require('../extensions/robot_extend');
+defaultBuiltinExtensions['k210'] = () => require('../extensions/k210');
 
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument
