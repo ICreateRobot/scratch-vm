@@ -1,4 +1,5 @@
 const JSZip = require('@turbowarp/jszip');
+const formatMessage = require('format-message');
 // ================== 核心逻辑 ==================
 module.exports=function createVisualLogic(componentInstance) {
     const self = componentInstance
@@ -25,13 +26,26 @@ module.exports=function createVisualLogic(componentInstance) {
                 }
                  if (res[1]) { // res[1] 是 zip 对象
                     const modeFile = res[1].files['mode.json'];
+                    const extensionFile = res[1].files['extension.json'];
                     if (modeFile) {
                         modeFile.async('text').then(content => {
                             const mode = JSON.parse(content);
                             if (mode != self.mode) {
                                 // 如果 mode 为 false，拒绝加载并抛出提示
                                 return reject(new Error('项目加载被阻止：当前模式禁止加载此项目'));
+                                // return
                             } else {
+                               if(extensionFile){
+                                    extensionFile.async('text').then(contentExten=>{
+                                        const extension=JSON.parse(contentExten)
+                                        self.channelProjectExtension.postMessage(JSON.stringify({
+                                            type:"load",
+                                            extension:extension
+                                        }))
+                                    }).catch(e=>{
+                                        console.log(e)
+                                    })
+                                }
                                 // 正常恢复模型
                                 _restoreModelFromZip(res[1]);
                                 resolve(res);
@@ -39,10 +53,34 @@ module.exports=function createVisualLogic(componentInstance) {
                         }).catch(e => {
                             // mode.json 解析失败仍继续加载
                             console.warn('mode.json 解析失败，继续加载项目', e);
+
+                            if(extensionFile){
+                                 extensionFile.async('text').then(contentExten=>{
+                                    const extension=JSON.parse(contentExten)
+                                    self.channelProjectExtension.postMessage(JSON.stringify({
+                                        type:"load",
+                                        extension:extension
+                                    }))
+                                }).catch(e=>{
+                                    console.log(e)
+                                })
+                            }
+                           
                             _restoreModelFromZip(res[1]);
                             resolve(res);
                         });
                     } else {
+                        if(extensionFile){
+                                extensionFile.async('text').then(contentExten=>{
+                                const extension=JSON.parse(contentExten)
+                                self.channelProjectExtension.postMessage(JSON.stringify({
+                                    type:"load",
+                                    extension:extension
+                                }))
+                            }).catch(e=>{
+                                console.log(e)
+                            })
+                        }
                         // 没有 mode.json 则正常加载
                         _restoreModelFromZip(res[1]);
                         resolve(res);
@@ -88,7 +126,14 @@ module.exports=function createVisualLogic(componentInstance) {
                 if (Object.prototype.hasOwnProperty.call(error, 'validationError')) {
                     return Promise.reject(JSON.stringify(error));
                 }
-                return Promise.reject(error);
+                console.log(error)
+                alert(formatMessage({
+                    id: 'loadProject.desc',
+                    default: 'The project mode (Interactive / Download) does not match the current software mode (Interactive Download).',
+                    description: 'loadProject.desc'
+                }))
+                return
+                // return Promise.reject(error);
             });
     }
     function _restoreModelFromZip(zip) {
@@ -163,6 +208,10 @@ module.exports=function createVisualLogic(componentInstance) {
         self._addFileDescsToZip(self.serializeAssets(), zip);
         if (self.mode !== undefined) {
             zip.file('mode.json', JSON.stringify(self.mode));
+        }
+
+        if(self.loadExtension){
+            zip.file('extension.json', JSON.stringify(self.loadExtension));
         }
 
         const date = new Date(1591657163000);

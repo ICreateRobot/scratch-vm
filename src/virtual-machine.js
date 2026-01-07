@@ -28,6 +28,7 @@ require('canvas-toBlob');
 const {exportCostume} = require('./serialization/tw-costume-import-export');
 const Base64Util = require('./util/base64-util');
 const {getMode,setMode} = require('./util/modeDb.js')
+const {getDevice,setDevice} = require('./util/currentDevice.js')
 const createVisualLogic =  require('./visual-machine-logic.js')
 const RESERVED_NAMES = ['_mouse_', '_stage_', '_edge_', '_myself_', '_random_'];
 
@@ -251,6 +252,23 @@ class VirtualMachine extends EventEmitter {
         this.channelLoadExample.addEventListener('message',(event)=>{
             console.log(event.data)
             this.loadSB3(event.data)
+        })
+        this.currentDevice;
+        this.channelDevice = new BroadcastChannel('current-device')
+        this.channelDevice.addEventListener('message',(event)=>{
+            this.currentDevice=event.data
+            setDevice(event.data)
+            // this.runtime.requestBlocksUpdate();
+        })
+
+        this.loadExtension;
+        this.channelProjectExtension = new BroadcastChannel('project_extension')
+        this.channelProjectExtension.addEventListener('message',(event)=>{
+            let data=JSON.parse(event.data)
+            if(data.type=='save'){
+                this.loadExtension=data.extension
+            }
+            
         })
     }
 
