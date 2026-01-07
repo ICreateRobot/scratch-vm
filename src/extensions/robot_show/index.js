@@ -1128,18 +1128,20 @@ class RobotShow {
                 await new Promise(resolve => setTimeout(resolve, Number(args.TWO)*1000));
     
                 this.clear()
-    
+                await new Promise(resolve => setTimeout(resolve, 200));
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 this.channelPort.postMessage(str)
                 // this.sendCommandAndWaitForSuccess(JSON.stringify([0XAA,0x01,0x12,Number(args.THREE),...hexArr]))
                 await new Promise(resolve => setTimeout(resolve, Number(args.TWO)*1000));
                 this.clear()
+                await new Promise(resolve => setTimeout(resolve, 200));
             }else if(this.whatSendFun=='ble'){
                 socketBle.getSocket().send(JSON.stringify([0XAA,0x01,0x12,Number(args.THREE),...hexArr]))
                 await new Promise(resolve => setTimeout(resolve, Number(args.TWO)*1000));
     
                 this.clear()
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
         
             
