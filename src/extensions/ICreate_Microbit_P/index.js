@@ -656,7 +656,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_Potentiometer',
-                default: 'Potentiometer [CHOICE]',
+                default: 'Potentiometer Module [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_Potentiometer'
                 }),
                 disableMonitor: true,
@@ -672,7 +672,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_GrayLevel',
-                default: 'Gray Level Sensor [CHOICE]',
+                default: 'GrayScale Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_GrayLevel'
                 }),
                 disableMonitor: true,
@@ -688,7 +688,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_LightIntensity',
-                default: 'Light Intensity Sensor [CHOICE]',
+                default: 'Photosensitive Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_LightIntensity'
                 }),
                 disableMonitor: true,
@@ -736,7 +736,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_GasConcentration',
-                default: 'Combustible Gas Sensor [CHOICE]',
+                default: 'MQ-2 Gas Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_GasConcentration'
                 }),
                 disableMonitor: true,
@@ -752,7 +752,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_SoilHumidity',
-                default: 'Soil Humidity Sensor [CHOICE]',
+                default: 'Soil Moisture Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_SoilHumidity'
                 }),
                 disableMonitor: true,
@@ -768,7 +768,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_WaterTemp',
-                default: 'Waterproof Temperature Sensor [CHOICE]',
+                default: 'Temperature Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_WaterTemp'
                 }),
                 disableMonitor: true,
@@ -832,7 +832,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.BOOLEAN,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_RockerType',
-                default: 'Detect Rocker [CHOICE]',
+                default: 'Detect Joystick [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_RockerType'
                 }),
                 disableMonitor: true,
@@ -848,7 +848,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_Rocker',
-                default: 'Rocker [CHOICE] Direction',
+                default: 'Joystick [CHOICE] Direction',
                 description: 'MicrobiteIcreateP.ICM.ICM_Rocker'
                 }),
                 disableMonitor: true,
@@ -873,7 +873,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.COMMAND,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_server',
-                default: 'Servo [CHOICE] Angle [TEXT]',
+                default: 'Servo Motor [CHOICE] Angle [TEXT]',
                 description: 'MicrobiteIcreateP.ICM.ICM_server'
                 }),
                 arguments: {
@@ -892,7 +892,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.COMMAND,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_DCmotor',
-                default: 'Motor [CHOICE] Speed [TEXT]',
+                default: 'DC Motor [CHOICE] Speed [TEXT]',
                 description: 'MicrobiteIcreateP.ICM.ICM_DCmotor'
                 }),
                 arguments: {
@@ -2142,44 +2142,112 @@ class MicrobiteIcreateP {
 // }
 // let DICT_OLEDColor={'白底黑字':'0','黑底白字':'1'}
 
-let DICT_LEDOff = {'打开':"0",'关闭':"1", 'On':"0", 'Off':"1"}
-let DICT_LaserOff = {'打开':"1",'关闭':"0", 'On':"1", 'Off':"0"}
-let DICT_LightRingPin = {'P0':'P13P0','P1':'P14P1','P2':'P15P2','P8':'P7P8','P12':'P9P12','P16':'P10P16'} // 无需修改
-let DICT_LightRingColor=  {
-    '红色':'(255, 0, 0)', 'Red':'(255, 0, 0)',
-    '橙色':'(255, 165, 0)', 'Orange':'(255, 165, 0)',
-    '黄色':'(255, 255, 0)', 'Yellow':'(255, 255, 0)',
-    '绿色':'(0, 255, 0)', 'Green':'(0, 255, 0)',
-    '青色':'(0, 255, 255)', 'Cyan':'(0, 255, 255)',
-    '蓝色':'(0, 0, 255)', 'Blue':'(0, 0, 255)',
-    '紫色':'(128, 0, 128)', 'Purple':'(128, 0, 128)',
-    '白色':'(255, 255, 255)', 'White':'(255, 255, 255)',
-    '黑色':'(0, 0, 0)', 'Black':'(0, 0, 0)'
+// let DICT_LEDOff = {'打开':"0",'关闭':"1", 'On':"0", 'Off':"1"}
+// let DICT_LaserOff = {'打开':"1",'关闭':"0", 'On':"1", 'Off':"0"}
+// let DICT_LightRingPin = {'P0':'P13P0','P1':'P14P1','P2':'P15P2','P8':'P7P8','P12':'P9P12','P16':'P10P16'} // 无需修改
+// let DICT_LightRingColor=  {
+//     '红色':'(255, 0, 0)', 'Red':'(255, 0, 0)',
+//     '橙色':'(255, 165, 0)', 'Orange':'(255, 165, 0)',
+//     '黄色':'(255, 255, 0)', 'Yellow':'(255, 255, 0)',
+//     '绿色':'(0, 255, 0)', 'Green':'(0, 255, 0)',
+//     '青色':'(0, 255, 255)', 'Cyan':'(0, 255, 255)',
+//     '蓝色':'(0, 0, 255)', 'Blue':'(0, 0, 255)',
+//     '紫色':'(128, 0, 128)', 'Purple':'(128, 0, 128)',
+//     '白色':'(255, 255, 255)', 'White':'(255, 255, 255)',
+//     '黑色':'(0, 0, 0)', 'Black':'(0, 0, 0)'
+// }
+// let DICT_Recording = {
+//     '机枪扫射':'GUNSHOT', 'Machine Gun Fire':'GUNSHOT',
+//     '激光发射':'LASER', 'Laser Shoot':'LASER',
+//     '赛车加速':'MOTORCYCLE', 'Racing Car Acceleration':'MOTORCYCLE',
+//     '战争开始':'WARBEGIN', 'War Begins':'WARBEGIN',
+//     '倒计时':'COUNTDOWN', 'Countdown':'COUNTDOWN',
+//     '录音':'PLAYRECORDING', 'Recording':'PLAYRECORDING'
+// }
+// let DICT_RockerType = {
+//     '上':'is_up', 'Up':'is_up',
+//     '下':'is_down', 'Down':'is_down',
+//     '左':'is_left', 'Left':'is_left',
+//     '右':'is_right', 'Right':'is_right'
+// }
+// let DICT_MotorPin = {
+//     '红':'LIGHT_RED', 'Red':'LIGHT_RED',
+//     '绿':'LIGHT_GREEN', 'Green':'LIGHT_GREEN',
+//     '蓝':'LIGHT_BLUE', 'Blue':'LIGHT_BLUE',
+//     '黄':'LIGHT_YELLOW', 'Yellow':'LIGHT_YELLOW'
+// }
+// let DICT_UltrasonicWavePin = {'(P13,P0)':'0','(P14,P1)':'1','(P9,P12)':'4','(P15,P2)':'2'} // 无需修改
+// let DICT_OLEDColor = {
+//     '白底黑字':'0', 'White Background with Black Text':'0',
+//     '黑底白字':'1', 'Black Background with White Text':'1'
+// }
+
+let DICT_LEDOff = {
+    '打开': "0", '关闭': "1",
+    'On': "0", 'Off': "1",
+    'Włączone': "0", 'Wyłączone': "1",   // 波兰语
+    'включить': "0", 'выключить': "1"   // 俄语（来自语言包）
 }
+
+let DICT_LaserOff = {
+    '打开': "1", '关闭': "0",
+    'On': "1", 'Off': "0",
+    'Włączone': "1", 'Wyłączone': "0",   // 波兰语
+    'включить': "1", 'выключить': "0"   // 俄语（来自语言包）
+}
+
+let DICT_LightRingPin = {
+    'P0': 'P13P0', 'P1': 'P14P1', 'P2': 'P15P2',
+    'P8': 'P7P8', 'P12': 'P9P12', 'P16': 'P10P16'
+}
+
+let DICT_LightRingColor = {
+    '红色': '(255, 0, 0)', 'Red': '(255, 0, 0)', 'Czerwony': '(255, 0, 0)', 'красный': '(255, 0, 0)',
+    '橙色': '(255, 165, 0)', 'Orange': '(255, 165, 0)', 'Pomarańczowy': '(255, 165, 0)', 'оранжевый': '(255, 165, 0)',
+    '黄色': '(255, 255, 0)', 'Yellow': '(255, 255, 0)', 'Żółty': '(255, 255, 0)', 'жёлтый': '(255, 255, 0)',
+    '绿色': '(0, 255, 0)', 'Green': '(0, 255, 0)', 'Zielony': '(0, 255, 0)', 'зелёный': '(0, 255, 0)',
+    '青色': '(0, 255, 255)', 'Cyan': '(0, 255, 255)', 'Turkusowy': '(0, 255, 255)', 'бирюзовый': '(0, 255, 255)',
+    '蓝色': '(0, 0, 255)', 'Blue': '(0, 0, 255)', 'Niebieski': '(0, 0, 255)', 'синий': '(0, 0, 255)',
+    '紫色': '(128, 0, 128)', 'Purple': '(128, 0, 128)', 'Fioletowy': '(128, 0, 128)', 'фиолетовый': '(128, 0, 128)',
+    '白色': '(255, 255, 255)', 'White': '(255, 255, 255)', 'Biały': '(255, 255, 255)', 'белый': '(255, 255, 255)',
+    '黑色': '(0, 0, 0)', 'Black': '(0, 0, 0)', 'Czarny': '(0, 0, 0)', 'чёрный': '(0, 0, 0)'
+}
+
 let DICT_Recording = {
-    '机枪扫射':'GUNSHOT', 'Machine Gun Fire':'GUNSHOT',
-    '激光发射':'LASER', 'Laser Shoot':'LASER',
-    '赛车加速':'MOTORCYCLE', 'Racing Car Acceleration':'MOTORCYCLE',
-    '战争开始':'WARBEGIN', 'War Begins':'WARBEGIN',
-    '倒计时':'COUNTDOWN', 'Countdown':'COUNTDOWN',
-    '录音':'PLAYRECORDING', 'Recording':'PLAYRECORDING'
+    '机枪扫射': 'GUNSHOT', 'Machine Gun Fire': 'GUNSHOT', 'Strzały z karabinu maszynowego': 'GUNSHOT', 'очередь из пулемёта': 'GUNSHOT',
+    '激光发射': 'LASER', 'Laser Shoot': 'LASER', 'Strzał laserem': 'LASER', 'выстрел лазера': 'LASER',
+    '赛车加速': 'MOTORCYCLE', 'Racing Car Acceleration': 'MOTORCYCLE', 'Przyspieszenie Samochodu Wyścigowego': 'MOTORCYCLE', 'ускорение мотоцикла': 'MOTORCYCLE',
+    '战争开始': 'WARBEGIN', 'War Begins': 'WARBEGIN', 'Wyczyść początki': 'WARBEGIN', 'начало войны': 'WARBEGIN',
+    '倒计时': 'COUNTDOWN', 'Countdown': 'COUNTDOWN', 'Odliczanie': 'COUNTDOWN', 'обратный отсчёт': 'COUNTDOWN',
+    '录音': 'PLAYRECORDING', 'Recording': 'PLAYRECORDING', 'Nagrywanie': 'PLAYRECORDING', 'запись': 'PLAYRECORDING'
 }
+
 let DICT_RockerType = {
-    '上':'is_up', 'Up':'is_up',
-    '下':'is_down', 'Down':'is_down',
-    '左':'is_left', 'Left':'is_left',
-    '右':'is_right', 'Right':'is_right'
+    '上': 'is_up', 'Up': 'is_up', 'W górę': 'is_up', 'вверх': 'is_up',
+    '下': 'is_down', 'Down': 'is_down', 'W dół': 'is_down', 'вниз': 'is_down',
+    '左': 'is_left', 'Left': 'is_left', 'W lewo': 'is_left', 'влево': 'is_left',
+    '右': 'is_right', 'Right': 'is_right', 'W prawo': 'is_right', 'вправо': 'is_right'
 }
+
 let DICT_MotorPin = {
-    '红':'LIGHT_RED', 'Red':'LIGHT_RED',
-    '绿':'LIGHT_GREEN', 'Green':'LIGHT_GREEN',
-    '蓝':'LIGHT_BLUE', 'Blue':'LIGHT_BLUE',
-    '黄':'LIGHT_YELLOW', 'Yellow':'LIGHT_YELLOW'
+    '红': 'LIGHT_RED', 'Red': 'LIGHT_RED', 'Czerwony': 'LIGHT_RED', 'красный': 'LIGHT_RED',
+    '绿': 'LIGHT_GREEN', 'Green': 'LIGHT_GREEN', 'Zielony': 'LIGHT_GREEN', 'зелёный': 'LIGHT_GREEN',
+    '蓝': 'LIGHT_BLUE', 'Blue': 'LIGHT_BLUE', 'Niebieski': 'LIGHT_BLUE', 'синий': 'LIGHT_BLUE',
+    '黄': 'LIGHT_YELLOW', 'Yellow': 'LIGHT_YELLOW', 'Żółty': 'LIGHT_YELLOW', 'жёлтый': 'LIGHT_YELLOW'
 }
-let DICT_UltrasonicWavePin = {'(P13,P0)':'0','(P14,P1)':'1','(P9,P12)':'4','(P15,P2)':'2'} // 无需修改
+let DICT_UltrasonicWavePin = {
+    '(P13,P0)': '0', '(P14,P1)': '1', '(P9,P12)': '4', '(P15,P2)': '2'
+}
 let DICT_OLEDColor = {
-    '白底黑字':'0', 'White Background with Black Text':'0',
-    '黑底白字':'1', 'Black Background with White Text':'1'
+    '白底黑字': '0',
+    'White Background with Black Text': '0',
+    'Białe tło z czarnym tekstem': '0',
+    'белый фон, чёрный текст': '0',
+
+    '黑底白字': '1',
+    'Black Background with White Text': '1',
+    'Czarne tło z białym tekstem': '1',
+    'чёрный фон, белый текст': '1'
 }
 
 
@@ -2715,6 +2783,7 @@ async function enterReplMode() {
 }
 
 window.EditorPreload.onUSBDeviceEvent((status, device, msg) => {
+    console.log(status,msg)
     if (status === 'connected') {
         console.log('设备连接:', device);
     } else if (status === 'disconnected') {
