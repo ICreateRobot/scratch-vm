@@ -1001,9 +1001,10 @@ class RobotSound {
                 await new Promise(resolve => setTimeout(resolve, this.musicTime[args.ONE]));  // 等待1秒
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
-                this.channelPort.postMessage(str)
-                // this.channelPort.postMessage(JSON.stringify([0XAA,0x01,0x21,0x02,...this.stringToBinary(`/flash/${args.ONE}`)]))
-                await new Promise(resolve => setTimeout(resolve, this.musicTime[args.ONE]));  
+                await this.sendCommandAndWaitForSuccess(str)
+                // this.channelPort.postMessage(str)
+                // // this.channelPort.postMessage(JSON.stringify([0XAA,0x01,0x21,0x02,...this.stringToBinary(`/flash/${args.ONE}`)]))
+                // await new Promise(resolve => setTimeout(resolve, this.musicTime[args.ONE]));  
 
             }else if(this.whatSendFun=='ble'){
                 const ackPromise = this.waitForThreeZeros();
