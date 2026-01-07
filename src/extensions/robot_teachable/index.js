@@ -1354,11 +1354,12 @@ class robotteachable {
             for(let i=0;i<this.classInfo[0].length;i++){
                 console.log(this.classInfo[1][i])
                 let content={
-                    text: formatMessage({
-                        id: 'robotteachable.getConnectedSensors',
-                        default: this.classInfo[1][i],
-                        description: 'robotteachable.getConnectedSensors'
-                    },{ index: this.classInfo[1][i] }),
+                    // text: formatMessage({
+                    //     id: 'robotteachable.getConnectedSensors',
+                    //     default: this.classInfo[1][i],
+                    //     description: 'robotteachable.getConnectedSensors'
+                    // },{ index: this.classInfo[1][i] }),
+                    text:this.classInfo[1][i],
                     value:`${this.classInfo[0][i]}`
                 }
                 item.push(content)
