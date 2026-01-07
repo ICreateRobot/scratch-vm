@@ -348,11 +348,6 @@ class RobotImg {
                 if(this.runtime.ioDevices.video.videoProvider.constructor.name!='VideoProvider'){
                     // this.cstopCamera()
                     // this.cstopComputerCamera()
-                    console.log('断网一次')
-                    this.cstartCamera({ONE:'2'})
-                    THIS.cstartNetCamera({ONE:'2'})
-                    this.cstopComputerCamera()
-                    cam.close()
                     try{
                         await this.cstopMode({ONE:'3'})
                         await this.cstopMode({ONE:'4'})
@@ -366,6 +361,12 @@ class RobotImg {
                     }catch(e){
 
                     }
+                    console.log('断网一次')
+                    this.cstartCamera({ONE:'2'})
+                    THIS.cstartNetCamera({ONE:'2'})
+                    this.cstopComputerCamera()
+                    cam.close()
+                    
                 }
                 
             }
