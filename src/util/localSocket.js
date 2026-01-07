@@ -18,7 +18,8 @@ let bleChannel = null;
 
 // 判断是否为 Electron 环境
 function isElectron() {
-  return typeof window !== 'undefined' && !!window.process && !!window.process.versions && !!window.process.versions.electron;
+  // return !!(window && window.process && window.process.type);
+  return navigator.userAgent.toLowerCase().includes("electron");
 }
 
 function setSocket() {
