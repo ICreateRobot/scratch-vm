@@ -131,7 +131,11 @@ class RobotMove {
 
     
         window.addEventListener('offline',()=>{
-            alert('网络连接已断开')
+            alert(formatMessage({
+                id: 'robot.wifi',
+                default: 'Network connection has been disconnected',
+                description: 'robot.wifi'
+            }))
         })
 
         // this.whatSendFun='net'
