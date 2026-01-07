@@ -36,7 +36,7 @@ class BricksMotor {
           // text: '将运转电机设置为 [ONE]和[TWO]',
           text: formatMessage({
               id: 'brickstwomotor.setmovemotor',
-              default: 'Set running motors to [ONE] and [TWO]',
+              default: 'set the dual motor running ports to [ONE] and [TWO]',
               description: 'brickstwomotor.setmovemotor'
           }),
           blockIconURI: motorD,
@@ -58,7 +58,7 @@ class BricksMotor {
             // text: '[ONE]以速度[TWO]运行',
             text: formatMessage({
               id: 'brickstwomotor.speedmove',
-              default: '[ONE] runs at speed [TWO]',
+              default: 'set the dual motors to move [ONE] at a speed of [TWO]',
               description: 'brickstwomotor.speedmove'
             }),
             blockIconURI: motorD,
@@ -191,27 +191,27 @@ class BricksMotor {
                 {
                     // text: '圈',
                     text: formatMessage({
-                      id: 'brickstwomotor.formatMenuMode.rot',
+                      id: 'bricksmotor.formatMenuMode.rot',
                       default: '圈',
-                      description: 'brickstwomotor.formatMenuMode.rot'
+                      description: 'bricksmotor.formatMenuMode.rot'
                     }),
                     value: '1'
                 },
                 {
                     // text: '度',
                     text: formatMessage({
-                      id: 'brickstwomotor.formatMenuMode.angle',
+                      id: 'bricksmotor.formatMenuMode.angle',
                       default: '度',
-                      description: 'brickstwomotor.formatMenuMode.angle'
+                      description: 'bricksmotor.formatMenuMode.angle'
                     }),
                     value: '2'
                 },
                 {
                     // text: '秒',
                     text: formatMessage({
-                      id: 'brickstwomotor.formatMenuMode.second',
+                      id: 'bricksmotor.formatMenuMode.second',
                       default: '秒',
-                      description: 'brickstwomotor.formatMenuMode.second'
+                      description: 'bricksmotor.formatMenuMode.second'
                     }),
                     value: '3'
                 },
