@@ -193,28 +193,28 @@ class BricksSensors {
             },
             disableMonitor: true
         },
-         {
-            opcode: 'colorSensor',
-            blockType: BlockType.BOOLEAN,
-            // text: '端口[ONE]颜色[TWO]',
-            text: formatMessage({
-                id: 'brickssensors.colorSensor',
-                default: 'Port [ONE] color [TWO]',
-                description: 'brickssensors.colorSensor'
-            }),
-            blockIconURI: colorLightIco,
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu: 'FORMAT_MENU'
-                },
-                TWO:{
-                    type: ArgumentType.STRING,
-                    menu: 'FORMAT_MENU_COLOR'
-                },
-            },
-            disableMonitor: true
-        },
+        //  {
+        //     opcode: 'colorSensor',
+        //     blockType: BlockType.BOOLEAN,
+        //     // text: '端口[ONE]颜色[TWO]',
+        //     text: formatMessage({
+        //         id: 'brickssensors.colorSensor',
+        //         default: 'Port [ONE] color [TWO]',
+        //         description: 'brickssensors.colorSensor'
+        //     }),
+        //     blockIconURI: colorLightIco,
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu: 'FORMAT_MENU'
+        //         },
+        //         TWO:{
+        //             type: ArgumentType.STRING,
+        //             menu: 'FORMAT_MENU_COLOR'
+        //         },
+        //     },
+        //     disableMonitor: true
+        // },
         {
             opcode: 'touch',
             blockType: BlockType.BOOLEAN,
@@ -338,46 +338,46 @@ class BricksSensors {
             },
             disableMonitor: true
         },
-         {
-            opcode: 'colorRgb',
-            blockType: BlockType.REPORTER,
-            // text: '端口[ONE]声音',
-            text: formatMessage({
-                id: 'brickssensors.colorRgb',
-                default: 'Port [ONE] color value [TWO]',
-                description: 'brickssensors.colorRgb'
-            }),
-            blockIconURI: colorLightIco,
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu: 'FORMAT_MENU',
-                },
-                TWO:{
-                    type: ArgumentType.STRING,
-                    menu: 'FORMAT_MENU_RGB',
-                },
-            },
-            disableMonitor: true
-        },
-        {
-            opcode: 'colorLight',
-            blockType: BlockType.REPORTER,
-            // text: '端口[ONE]声音',
-            text: formatMessage({
-                id: 'brickssensors.colorLight',
-                default: 'Port [ONE] light value',
-                description: 'brickssensors.colorLight'
-            }),
-            blockIconURI: colorLightIco,
-            arguments:{
-                ONE:{
-                    type: ArgumentType.STRING,
-                    menu: 'FORMAT_MENU',
-                },
-            },
-            disableMonitor: true
-        },
+        //  {
+        //     opcode: 'colorRgb',
+        //     blockType: BlockType.REPORTER,
+        //     // text: '端口[ONE]声音',
+        //     text: formatMessage({
+        //         id: 'brickssensors.colorRgb',
+        //         default: 'Port [ONE] color value [TWO]',
+        //         description: 'brickssensors.colorRgb'
+        //     }),
+        //     blockIconURI: colorLightIco,
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu: 'FORMAT_MENU',
+        //         },
+        //         TWO:{
+        //             type: ArgumentType.STRING,
+        //             menu: 'FORMAT_MENU_RGB',
+        //         },
+        //     },
+        //     disableMonitor: true
+        // },
+        // {
+        //     opcode: 'colorLight',
+        //     blockType: BlockType.REPORTER,
+        //     // text: '端口[ONE]声音',
+        //     text: formatMessage({
+        //         id: 'brickssensors.colorLight',
+        //         default: 'Port [ONE] light value',
+        //         description: 'brickssensors.colorLight'
+        //     }),
+        //     blockIconURI: colorLightIco,
+        //     arguments:{
+        //         ONE:{
+        //             type: ArgumentType.STRING,
+        //             menu: 'FORMAT_MENU',
+        //         },
+        //     },
+        //     disableMonitor: true
+        // },
         // {
         //     opcode: 'motoranagle',
         //     blockType: BlockType.REPORTER,
@@ -909,20 +909,21 @@ class BricksSensors {
     incline(args){
         if(!this.mode) return
 
+        let xMin=20;
+        let yMin=20;
         for(let i=0;i<distance[1].length;i++){
             if(distance[1][i].length>0 && args.ONE==distance[1][i][0]){
-                if(args.TWO=='1' && distance[1][i][2]>0 && distance[1][i][3]==0 && distance[1][i][4]>0){
+                // console.log(distance[1][i])
+                if(args.TWO=='1' && distance[1][i][2]>distance[1][i][3] && distance[1][i][2]>xMin && (distance[1][i][4]==128||distance[1][i][4]==192)){
                     return true
-                }else if(args.TWO=='2' && distance[1][i][2]>0 && distance[1][i][3]==0 && distance[1][i][4]==0){
+                }else if(args.TWO=='2' && distance[1][i][2]>distance[1][i][3] && distance[1][i][2]>xMin && (distance[1][i][4]==64||distance[1][i][4]==0)){
                     return true
-                }else if(args.TWO=='3' && distance[1][i][2]==0 && distance[1][i][3]>0 && distance[1][i][4]==0){
+                }else if(args.TWO=='3'  && distance[1][i][3]>distance[1][i][2] && distance[1][i][3]>yMin && (distance[1][i][4]==128||distance[1][i][4]==0)){
                     return true
-                }else if(args.TWO=='4' && distance[1][i][2]==0 && distance[1][i][3]>0 && distance[1][i][4]>0){
+                }else if(args.TWO=='4'  && distance[1][i][3]>distance[1][i][2] && distance[1][i][3]>yMin && (distance[1][i][4]==192||distance[1][i][4]==64)){
                     return true
                 }else if(args.TWO=='0' && distance[1][i][2]==0 && distance[1][i][3]==0){
                     return true
-                }else{
-                    return false
                 }
             }
         }
