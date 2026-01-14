@@ -266,7 +266,7 @@ class RobotExtend {
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue:'50'
                 },
                 TWO:{
@@ -286,7 +286,7 @@ class RobotExtend {
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue:'50'
                 },
                 TWO:{
@@ -310,7 +310,7 @@ class RobotExtend {
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue:'50'
                 },
                 TWO:{
@@ -334,7 +334,7 @@ class RobotExtend {
             }),
             arguments:{
                 ONE:{
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue:'50'
                 },
                 TWO:{
