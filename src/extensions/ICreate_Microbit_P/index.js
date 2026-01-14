@@ -2185,15 +2185,17 @@ class MicrobiteIcreateP {
 let DICT_LEDOff = {
     '打开': "0", '关闭': "1",
     'On': "0", 'Off': "1",
-    'Włączone': "0", 'Wyłączone': "1",   // 波兰语
-    'включить': "0", 'выключить': "1"   // 俄语（来自语言包）
+    'Włączone': "0", 'Wyłączone': "1",
+    'включить': "0", 'выключить': "1",
+    '開啟': "0", '關閉': "1"
 }
 
 let DICT_LaserOff = {
     '打开': "1", '关闭': "0",
     'On': "1", 'Off': "0",
-    'Włączone': "1", 'Wyłączone': "0",   // 波兰语
-    'включить': "1", 'выключить': "0"   // 俄语（来自语言包）
+    'Włączone': "1", 'Wyłączone': "0",
+    'включить': "1", 'выключить': "0",
+    '開啟': "1", '關閉': "0"
 }
 
 let DICT_LightRingPin = {
@@ -2202,24 +2204,24 @@ let DICT_LightRingPin = {
 }
 
 let DICT_LightRingColor = {
-    '红色': '(255, 0, 0)', 'Red': '(255, 0, 0)', 'Czerwony': '(255, 0, 0)', 'красный': '(255, 0, 0)',
+    '红色': '(255, 0, 0)', 'Red': '(255, 0, 0)', 'Czerwony': '(255, 0, 0)', 'красный': '(255, 0, 0)', '紅色': '(255, 0, 0)',
     '橙色': '(255, 165, 0)', 'Orange': '(255, 165, 0)', 'Pomarańczowy': '(255, 165, 0)', 'оранжевый': '(255, 165, 0)',
-    '黄色': '(255, 255, 0)', 'Yellow': '(255, 255, 0)', 'Żółty': '(255, 255, 0)', 'жёлтый': '(255, 255, 0)',
-    '绿色': '(0, 255, 0)', 'Green': '(0, 255, 0)', 'Zielony': '(0, 255, 0)', 'зелёный': '(0, 255, 0)',
+    '黄色': '(255, 255, 0)', 'Yellow': '(255, 255, 0)', 'Żółty': '(255, 255, 0)', 'жёлтый': '(255, 255, 0)', '黃色': '(255, 255, 0)',
+    '绿色': '(0, 255, 0)', 'Green': '(0, 255, 0)', 'Zielony': '(0, 255, 0)', 'зелёный': '(0, 255, 0)', '綠色': '(0, 255, 0)',
     '青色': '(0, 255, 255)', 'Cyan': '(0, 255, 255)', 'Turkusowy': '(0, 255, 255)', 'бирюзовый': '(0, 255, 255)',
-    '蓝色': '(0, 0, 255)', 'Blue': '(0, 0, 255)', 'Niebieski': '(0, 0, 255)', 'синий': '(0, 0, 255)',
+    '蓝色': '(0, 0, 255)', 'Blue': '(0, 0, 255)', 'Niebieski': '(0, 0, 255)', 'синий': '(0, 0, 255)', '藍色': '(0, 0, 255)',
     '紫色': '(128, 0, 128)', 'Purple': '(128, 0, 128)', 'Fioletowy': '(128, 0, 128)', 'фиолетовый': '(128, 0, 128)',
     '白色': '(255, 255, 255)', 'White': '(255, 255, 255)', 'Biały': '(255, 255, 255)', 'белый': '(255, 255, 255)',
     '黑色': '(0, 0, 0)', 'Black': '(0, 0, 0)', 'Czarny': '(0, 0, 0)', 'чёрный': '(0, 0, 0)'
 }
 
 let DICT_Recording = {
-    '机枪扫射': 'GUNSHOT', 'Machine Gun Fire': 'GUNSHOT', 'Strzały z karabinu maszynowego': 'GUNSHOT', 'очередь из пулемёта': 'GUNSHOT',
-    '激光发射': 'LASER', 'Laser Shoot': 'LASER', 'Strzał laserem': 'LASER', 'выстрел лазера': 'LASER',
-    '赛车加速': 'MOTORCYCLE', 'Racing Car Acceleration': 'MOTORCYCLE', 'Przyspieszenie Samochodu Wyścigowego': 'MOTORCYCLE', 'ускорение мотоцикла': 'MOTORCYCLE',
-    '战争开始': 'WARBEGIN', 'War Begins': 'WARBEGIN', 'Wyczyść początki': 'WARBEGIN', 'начало войны': 'WARBEGIN',
-    '倒计时': 'COUNTDOWN', 'Countdown': 'COUNTDOWN', 'Odliczanie': 'COUNTDOWN', 'обратный отсчёт': 'COUNTDOWN',
-    '录音': 'PLAYRECORDING', 'Recording': 'PLAYRECORDING', 'Nagrywanie': 'PLAYRECORDING', 'запись': 'PLAYRECORDING'
+    '机枪扫射': 'GUNSHOT', 'Machine Gun Fire': 'GUNSHOT', 'Strzały z karabinu maszynowego': 'GUNSHOT', 'очередь из пулемёта': 'GUNSHOT', '機槍掃射': 'GUNSHOT',
+    '激光发射': 'LASER', 'Laser Shoot': 'LASER', 'Strzał laserem': 'LASER', 'выстрел лазера': 'LASER', '雷射發射': 'LASER',
+    '赛车加速': 'MOTORCYCLE', 'Racing Car Acceleration': 'MOTORCYCLE', 'Przyspieszenie Samochodu Wyścigowego': 'MOTORCYCLE', 'ускорение мотоцикла': 'MOTORCYCLE', '賽車加速': 'MOTORCYCLE',
+    '战争开始': 'WARBEGIN', 'War Begins': 'WARBEGIN', 'Wyczyść początki': 'WARBEGIN', 'начало войны': 'WARBEGIN', '戰爭開始': 'WARBEGIN',
+    '倒计时': 'COUNTDOWN', 'Countdown': 'COUNTDOWN', 'Odliczanie': 'COUNTDOWN', 'обратный отсчёт': 'COUNTDOWN', '倒數計時': 'COUNTDOWN',
+    '录音': 'PLAYRECORDING', 'Recording': 'PLAYRECORDING', 'Nagrywanie': 'PLAYRECORDING', 'запись': 'PLAYRECORDING', '錄音': 'PLAYRECORDING'
 }
 
 let DICT_RockerType = {
@@ -2230,14 +2232,16 @@ let DICT_RockerType = {
 }
 
 let DICT_MotorPin = {
-    '红': 'LIGHT_RED', 'Red': 'LIGHT_RED', 'Czerwony': 'LIGHT_RED', 'красный': 'LIGHT_RED',
-    '绿': 'LIGHT_GREEN', 'Green': 'LIGHT_GREEN', 'Zielony': 'LIGHT_GREEN', 'зелёный': 'LIGHT_GREEN',
-    '蓝': 'LIGHT_BLUE', 'Blue': 'LIGHT_BLUE', 'Niebieski': 'LIGHT_BLUE', 'синий': 'LIGHT_BLUE',
-    '黄': 'LIGHT_YELLOW', 'Yellow': 'LIGHT_YELLOW', 'Żółty': 'LIGHT_YELLOW', 'жёлтый': 'LIGHT_YELLOW'
+    '红': 'LIGHT_RED', 'Red': 'LIGHT_RED', 'Czerwony': 'LIGHT_RED', 'красный': 'LIGHT_RED', '紅': 'LIGHT_RED',
+    '绿': 'LIGHT_GREEN', 'Green': 'LIGHT_GREEN', 'Zielony': 'LIGHT_GREEN', 'зелёный': 'LIGHT_GREEN', '綠': 'LIGHT_GREEN',
+    '蓝': 'LIGHT_BLUE', 'Blue': 'LIGHT_BLUE', 'Niebieski': 'LIGHT_BLUE', 'синий': 'LIGHT_BLUE', '藍': 'LIGHT_BLUE',
+    '黄': 'LIGHT_YELLOW', 'Yellow': 'LIGHT_YELLOW', 'Żółty': 'LIGHT_YELLOW', 'жёлтый': 'LIGHT_YELLOW', '黃': 'LIGHT_YELLOW'
 }
+
 let DICT_UltrasonicWavePin = {
     '(P13,P0)': '0', '(P14,P1)': '1', '(P9,P12)': '4', '(P15,P2)': '2'
 }
+
 let DICT_OLEDColor = {
     '白底黑字': '0',
     'White Background with Black Text': '0',

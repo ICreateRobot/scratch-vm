@@ -1919,11 +1919,13 @@ let DICT_displayImage = {
   'Small Heart': "HEART_SMALL",
   'Małe serce': "HEART_SMALL",
   'сердце (маленькое)': "HEART_SMALL",
+  '心形（小）': "HEART_SMALL",
 
   '快乐': "HAPPY",
   'Happy': "HAPPY",
   'Szczęśliwy': "HAPPY",
   'радость': "HAPPY",
+  '快樂': "HAPPY",
 
   '微笑': "SMILE",
   'Smile': "SMILE",
@@ -1934,6 +1936,7 @@ let DICT_displayImage = {
   'Sad': "SAD",
   'Smutny': "SAD",
   'грусть': "SAD",
+  '悲傷': "SAD",
 
   '困惑': "CONFUSED",
   'Confused': "CONFUSED",
@@ -1944,16 +1947,19 @@ let DICT_displayImage = {
   'Angry': "ANGRY",
   'Zły': "ANGRY",
   'злость': "ANGRY",
+  '生氣': "ANGRY",
 
   '睡着': "ASLEEP",
   'Asleep': "ASLEEP",
   'Śpiący': "ASLEEP",
   'сон': "ASLEEP",
+  '睡著': "ASLEEP",
 
   '惊讶': "SURPRISED",
   'Surprised': "SURPRISED",
   'Zaskoczony': "SURPRISED",
   'удивление': "SURPRISED",
+  '驚訝': "SURPRISED",
 
   '傻傻的': "SILLY",
   'Silly': "SILLY",
@@ -1964,6 +1970,7 @@ let DICT_displayImage = {
   'Fabulous': "FABULOUS",
   'Fantastyczny': "FABULOUS",
   'великолепно': "FABULOUS",
+  '極好的': "FABULOUS",
 
   '是': "YES",
   'Yes': "YES",
@@ -1979,16 +1986,19 @@ let DICT_displayImage = {
   'Indifferent': "MEH",
   'Obojętny': "MEH",
   'безразличие': "MEH",
+  '不感興趣的': "MEH",
 
   '鸭子': "DUCK",
   'Duck': "DUCK",
   'Kaczka': "DUCK",
   'утка': "DUCK",
+  '鴨子': "DUCK",
 
   '长颈鹿': "GIRAFFE",
   'Giraffe': "GIRAFFE",
   'Żyrafa': "GIRAFFE",
   'жираф': "GIRAFFE",
+  '長頸鹿': "GIRAFFE",
 
   '吃豆人': "PACMAN",
   'Pacman': "PACMAN",
@@ -1999,31 +2009,37 @@ let DICT_displayImage = {
   'Ghost': "GHOST",
   'Duch': "GHOST",
   'призрак': "GHOST",
+  '幽靈': "GHOST",
 
   '骷髅': "SKULL",
   'Skull': "SKULL",
   'Czaszka': "SKULL",
-  'череп': "SKULL"
+  'череп': "SKULL",
+  '骷髏': "SKULL"
 };
 let DICT_musicPlay = {
   '鼓点叭叮': "BA_DING",
   'Drum Beat': "BA_DING",
   'Uderzenie bębna': "BA_DING",
   'ба-динь': "BA_DING",
+  '叭叮': "BA_DING",
 
   '反面角色': "BADDY",
   'Villain': "BADDY",
   'Złoczyńca': "BADDY",
   'злодей': "BADDY",
+  '反派角色': "BADDY",
 
   '生日快乐': "BIRTHDAY",
   'Happy Birthday': "BIRTHDAY",
   'Wszystkiego Najlepszego': "BIRTHDAY",
   'с днём рождения': "BIRTHDAY",
+  '生日快樂': "BIRTHDAY",
 
   '布鲁斯': "BLUES",
   'Blues': "BLUES",
   'блюз': "BLUES",
+  '藍調': "BLUES",
 
   '追逐': "CHASE",
   'Chase': "CHASE",
@@ -2033,20 +2049,24 @@ let DICT_musicPlay = {
   '哒哒哒噔': "DADADADUM",
   'Da Da Da Dum': "DADADADUM",
   'да-да-да-дум': "DADADADUM",
+  '噠噠噠噔': "DADADADUM",
 
   '演艺人': "ENTERTAINER",
   'Entertainer': "ENTERTAINER",
   'Artysta': "ENTERTAINER",
   'артист': "ENTERTAINER",
+  '娛樂藝人': "ENTERTAINER",
 
   '葬礼': "FUNERAL",
   'Funeral': "FUNERAL",
   'Pogrzeb': "FUNERAL",
   'похороны': "FUNERAL",
+  '葬禮': "FUNERAL",
 
   '放克音乐': "FUNK",
   'Funk': "FUNK",
   'фанк': "FUNK",
+  '放克': "FUNK",
 
   '向下跳': "JUMP_DOWN",
   'Jump Down': "JUMP_DOWN",
@@ -2061,21 +2081,25 @@ let DICT_musicPlay = {
   '彩虹猫': "NYAN",
   'Nyan Cat': "NYAN",
   'кот Нян': "NYAN",
+  '彩虹貓': "NYAN",
 
   '欢乐颂': "ODE",
   'Ode to Joy': "ODE",
   'Oda do radości': "ODE",
   'ода радости': "ODE",
+  '歡樂頌': "ODE",
 
   '能力减弱': "POWER_DOWN",
   'Power Down': "POWER_DOWN",
   'Wyłączenie': "POWER_DOWN",
   'ослабление': "POWER_DOWN",
+  '能力減弱': "POWER_DOWN",
 
   '能力增强': "POWER_UP",
   'Power Up': "POWER_UP",
   'Włączenie': "POWER_UP",
   'усиление': "POWER_UP",
+  '能力增強': "POWER_UP",
 
   '前奏': "PRELUDE",
   'Prelude': "PRELUDE",
@@ -2086,6 +2110,7 @@ let DICT_musicPlay = {
   'Punchline': "PUNCHLINE",
   'Puenta': "PUNCHLINE",
   'шутка': "PUNCHLINE",
+  '笑點': "PUNCHLINE",
 
   'PYTHON': "PYTHON",
   'Python': "PYTHON",
@@ -2094,6 +2119,7 @@ let DICT_musicPlay = {
   'Ringtone': "RINGTONE",
   'Dzwonek': "RINGTONE",
   'рингтон': "RINGTONE",
+  '鈴聲': "RINGTONE",
 
   '哇哇哇哇': "WAWAWAWAA",
   'Wah Wah Sound': "WAWAWAWAA",
@@ -2103,7 +2129,8 @@ let DICT_musicPlay = {
   '婚礼': "WEDDING",
   'Wedding': "WEDDING",
   'Ślub': "WEDDING",
-  'свадьба': "WEDDING"
+  'свадьба': "WEDDING",
+  '婚禮': "WEDDING"
 };
 let DICT_audioPlay = {
   '咯咯笑': "GIGGLE",
@@ -2115,6 +2142,7 @@ let DICT_audioPlay = {
   'Happy': "HAPPY",
   'Szczęśliwy': "HAPPY",
   'радость': "HAPPY",
+  '快樂': "HAPPY",
 
   '你好': "HELLO",
   'Hello': "HELLO",
@@ -2130,26 +2158,31 @@ let DICT_audioPlay = {
   'Sad': "SAD",
   'Smutny': "SAD",
   'грусть': "SAD",
+  '難過': "SAD",
 
   '滑': "SLIDE",
   'Slide': "SLIDE",
   'Ślizg': "SLIDE",
   'скольжение': "SLIDE",
+  '滑動': "SLIDE",
 
   '飙升': "SOARING",
   'Soaring': "SOARING",
   'Szybowanie': "SOARING",
   'взлёт': "SOARING",
+  '翱翔': "SOARING",
 
   '弹簧': "SPRING",
   'Spring': "SPRING",
   'Sprężyna': "SPRING",
   'пружина': "SPRING",
+  '彈簧': "SPRING",
 
   '闪烁': "TWINKLE",
   'Twinkle': "TWINKLE",
   'Migotanie': "TWINKLE",
   'мерцание': "TWINKLE",
+  '閃爍': "TWINKLE",
 
   '打哈欠': "YAWN",
   'Yawn': "YAWN",
@@ -2161,16 +2194,19 @@ let DICT_gesturePlay = {
   'Shake': "shake",
   'Potrząśnij': "shake",
   'встряхивание': "shake",
+  '搖晃': "shake",
 
   '标志朝上': "up",
   'Logo Up': "up",
   'Logo w górę': "up",
   'логотип вверх': "up",
+  '標誌朝上': "up",
 
   '标志朝下': "down",
   'Logo Down': "down",
   'Logo w dół': "down",
   'логотип вниз': "down",
+  '標誌朝下': "down",
 
   '正面朝上': "face up",
   'Face Up': "face up",
@@ -2196,6 +2232,7 @@ let DICT_gesturePlay = {
   'Free Fall': "freefall",
   'Swobodny spadek': "freefall",
   'свободное падение': "freefall",
+  '自由落體': "freefall",
 
   '3g': "3g",
   '3G': "3g"
@@ -2212,19 +2249,23 @@ let DICT_magnetStrengthPlay = {
   '强度': "get_field_strength",
   'Intensity': "get_field_strength",
   'Intensywność': "get_field_strength",
-  'сила': "get_field_strength"
+  'сила': "get_field_strength",
+  '強度': "get_field_strength"
 };
 let DICT_speakerPlay = {
   '关闭': "off",
   'Off': "off",
   'Wyłączone': "off",
   'выключить': "off",
+  '關閉': "off",
 
   '打开': "on",
   'On': "on",
   'Włączone': "on",
-  'включить': "on"
+  'включить': "on",
+  '開啟': "on"
 };
+
 
 
 //发送
