@@ -39,6 +39,7 @@ class BricksMotor {
         // console.log(event.data);
         this.distance=event.data
     });
+    this.timer
   }
   getInfo() {
     return {
@@ -78,7 +79,7 @@ class BricksMotor {
                 menu: 'FORMAT_MENU'
             },
             TWO:{
-                type: ArgumentType.NUMBER,
+                type: ArgumentType.NUMRES0_255,
                 defaultValue: 50,
                 min:0,
                 max:100
@@ -105,7 +106,7 @@ class BricksMotor {
                   menu: 'FORMAT_MENU'
               },
               TWO:{
-                  type: ArgumentType.STRING,
+                  type: ArgumentType.NUMRES0_255,
                   defaultValue: 50
               },
               THREE:{
@@ -155,7 +156,7 @@ class BricksMotor {
                   menu: 'FORMAT_MENU'
               },
               TWO:{
-                  type: ArgumentType.STRING,
+                  type: ArgumentType.NUMRES0_255,
                   defaultValue: 50
               },
               THREE:{
@@ -347,13 +348,16 @@ class BricksMotor {
       return new Promise((resolve, reject) => {
           const startTime = Date.now();
 
-          const timer = setInterval(() => {
+          if(this.timer){
+            clearInterval(this.timer)
+          }
+          this.timer = setInterval(() => {
               const currentArray = targetArrayGetter(); // 获取目标数组
 
-              console.log('-------------------------')
-              console.log(currentArray)
-              console.log(expectedArray)
-              console.log('########################')
+              // console.log('-------------------------')
+              // console.log(currentArray)
+              // console.log(expectedArray)
+              // console.log('########################')
               
               // 遍历当前数组，检查每个子数组的第一个元素
               for (let i = 0; i < currentArray.length; i++) {
@@ -363,7 +367,7 @@ class BricksMotor {
                           currentArray[i].length === expectedArray.length &&
                           currentArray[i].every((val, j) => val === expectedArray[j])
                       ) {
-                          clearInterval(timer);
+                          clearInterval(this.timer);
                           resolve(currentArray[i]);
                           return;
                       }

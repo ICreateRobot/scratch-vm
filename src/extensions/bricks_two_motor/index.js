@@ -68,7 +68,7 @@ class BricksMotor {
                   menu: 'FORMAT_MENU_DIR'
               },
               TWO:{
-                  type: ArgumentType.STRING,
+                  type: ArgumentType.NUMRES0_255,
                   defaultValue: '50'
               },
             }
@@ -89,7 +89,7 @@ class BricksMotor {
                     menu: 'FORMAT_MENU_DIR'
                 },
                 TWO:{
-                    type: ArgumentType.STRING,
+                    type: ArgumentType.NUMRES0_255,
                     defaultValue: '50'
                 },
                 THREE:{
