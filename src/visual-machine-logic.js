@@ -129,7 +129,7 @@ module.exports=function createVisualLogic(componentInstance) {
                 console.log(error)
                 alert(formatMessage({
                     id: 'loadProject.desc',
-                    default: 'The project mode (Interactive / Download) does not match the current software mode (Interactive Download).',
+                    default: 'This project can only be opened in either Interactive Mode or Download Mode. Please switch to the appropriate mode and try again.',
                     description: 'loadProject.desc'
                 }))
                 return
