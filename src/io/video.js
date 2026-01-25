@@ -15,7 +15,7 @@ const tflite = require('../util/model/tfjs-tflite.js')
 // require('../util/model/teachablemachine-image.min.js')
 // require('../util/model/tf-backend-cpu.min.js')
 
-const faceapi = require('../util/model/face-api.min.js')
+// const faceapi = require('../util/model/face-api.min.js')
 tf.setBackend('webgl').then(()=>{
     console.log('webgl后台')
 })
@@ -28,6 +28,7 @@ const aiInfo = require('../util/aiInfo.js')
 const imageLoad = require('../util/imageLoad')
 const socket=require('../util/socket-connect')
 // const { AprilTagFamily } = require('apriltag')
+const faceapi = require('../util/model/faceapi.min.js')
 
 // const tagConfig36h11  = require('apriltag/families/36h11.json')
 const { startQRDetection,
@@ -397,6 +398,10 @@ class Video {
                 if(this.isColorDetectionActive){
                     this.stopColorDetection()
                 }
+                if(this.isColorPlaceDetectionActive){
+                    this.stopColorPlaceDetection()
+                }
+                
     
                 this.disableVideo();
                 this.stopVideo()
@@ -450,6 +455,9 @@ class Video {
                         }
                         if(this.isColorDetectionActive){
                             this.stopColorDetection()
+                        }
+                        if(this.isColorPlaceDetectionActive){
+                            this.stopColorPlaceDetection()
                         }
 
 
@@ -560,6 +568,9 @@ class Video {
                         if(this.isColorDetectionActive){
                             this.stopColorDetection()
                         }
+                        if(this.isColorPlaceDetectionActive){
+                            this.stopColorPlaceDetection()
+                        }
         
         
                         let jsonData = {
@@ -604,6 +615,8 @@ class Video {
 
     startFaceDetection(){
         startFaceDetection(this,Video,cv,aiInfo,StageLayering)
+        // startFaceDetection(this,Video,faceapi,aiInfo,StageLayering)
+        
     }
     stopFaceDetection(){
         stopFaceDetection(this,cv)

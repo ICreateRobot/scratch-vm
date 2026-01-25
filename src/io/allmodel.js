@@ -47,7 +47,7 @@ function processQRDetection(self, jsQR, aiInfo, Video) {
                 ];
 
                 const center = calculateCenter(location);
-                location.push({ x: Math.round(center.x), y: Math.round(center.y) });
+                location.push({ x: Math.round(center.x)-240, y: (-1)*(Math.round(center.y)-180) });
 
                 aiInfo.setQrLocation(location);
 
@@ -292,6 +292,50 @@ async function startFaceDetection(that,Video,cv,aiInfo,StageLayering) {
     processVideo(that,Video,cv,aiInfo);
 }
 
+
+// async function loadModels(faceapi) {
+//     const currentURL = window.location.href;
+
+//     // 获取前一级路径
+//     const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+//     // 获取前两级路径
+//     const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+//     const modelPath =twoLevelsUp+'/static/model';  // 你的模型路径
+//     await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath+'/models');
+//     await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath+'/models');
+//     await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath+'/models');
+//     await faceapi.nets.faceExpressionNet.loadFromUri(modelPath+'/models');
+
+//     console.log("所有模型已加载完毕");
+//   }
+// async function startFaceDetection(that,Video,faceapi,aiInfo,StageLayering) {
+
+//     await loadModels(faceapi);
+//     that.canvas.width = Video.DIMENSIONS[0];
+//     that.canvas.height = Video.DIMENSIONS[1];
+
+//     const { renderer } = that.runtime;
+//     that.renderer = renderer;
+//     if (!that.renderer) {
+//         console.error('Renderer 未初始化');
+//         return;
+//     }
+
+//     that.faceSkinId = that.renderer.createBitmapSkin(new ImageData(...Video.DIMENSIONS), 1);
+//     that.faceDrawableId = that.renderer.createDrawable(StageLayering.VIDEO_LAYER);
+
+//     if (that.renderer.markSkinAsPrivate) {
+//         that.renderer.markSkinAsPrivate(that.faceSkinId);
+//     }
+
+//     that.renderer.updateDrawableSkinId(that.faceDrawableId, that.faceSkinId);
+//     that.renderer.updateDrawableVisible(that.faceDrawableId, true);
+//     that.renderer.updateDrawableEffect(that.faceDrawableId, 'ghost', 0);
+
+//     that.isFaceDetectionActive = true;
+//     processVideo(that,Video,faceapi,aiInfo);
+// }
+
 // 停止人脸检测
 function stopFaceDetection(that,cv) {
     that.isFaceDetectionActive = false;
@@ -351,8 +395,8 @@ async function processVideo(that,Video,cv,aiInfo) {
             const wh = [Math.round(face.width), Math.round(face.height)];
             aiInfo.setFaceWh(wh);
             aiInfo.setFaceLocation({
-                x: Math.round(face.x - 255 + face.width / 2),
-                y: Math.round(face.y - 223 + face.height / 2)
+                x: Math.round(face.x - 240 + face.width / 2),
+                y: Math.round(face.y - 180 + face.height / 2)
             });
 
             // 复制用于匹配的 faceImage
@@ -396,6 +440,127 @@ async function processVideo(that,Video,cv,aiInfo) {
     const delay = Math.max(0, 1000 / that.FPS - (Date.now() - begin));
     that.processVideoTimeout = setTimeout(() => processVideo(that,Video,cv,aiInfo), delay);
 }
+
+// let faceMatcher = null;
+// async function processVideo(that,Video,faceapi,aiInfo) {
+//     if (!that.isFaceDetectionActive) return;
+
+//     const begin = Date.now();
+
+//     try {
+        
+//         setInterval(async () => {
+
+//             // 1. 获取当前帧
+//             const imageData = that.getFrame({
+//                 format: Video.FORMAT_IMAGE_DATA,
+//                 cacheTimeout: that.runtime.currentStepTime
+//             });
+
+//             // 创建一个隐藏的 canvas 元素
+//             const hiddenCanvas = document.createElement('canvas');
+//             hiddenCanvas.width = imageData.width;
+//             hiddenCanvas.height = imageData.height;
+//             const ctx = hiddenCanvas.getContext('2d');
+    
+//             // 将 ImageData 填充到隐藏的 canvas 上
+//             ctx.putImageData(imageData, 0, 0);
+    
+//             // 2. 图像处理
+//             const img = hiddenCanvas; // 使用隐藏的 canvas
+
+//             const displaySize = { width: Video.width, height: Video.height };
+//             faceapi.matchDimensions(that.canvas, displaySize);
+    
+//             console.log(img)
+//             try{
+//                 const detections = await faceapi
+//                 .detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+//                 .withFaceLandmarks()
+//                 .withFaceExpressions()
+//                 .withFaceDescriptors(); // 用于识别人脸的向量
+//             }catch(e){
+//                 console.log(e)
+//             }
+          
+  
+//           console.log(detections)
+//            // 3. 清空画布
+//             that.canvasCtx.clearRect(0, 0, that.canvas.width, that.canvas.height);
+//             aiInfo.setFaceNum(detections.length());
+//           const resized = faceapi.resizeResults(detections, displaySize);
+  
+//           that.canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  
+//           faceapi.draw.drawDetections(that.canvas, resized);
+//           faceapi.draw.drawFaceLandmarks(that.canvas, resized);
+//           faceapi.draw.drawFaceExpressions(that.canvas, resized);
+  
+//           // 如果已有学习的人脸 → 执行识别
+//           if (faceMatcher && detections.length > 0) {
+//             resized.forEach(result => {
+//               const bestMatch = faceMatcher.findBestMatch(result.descriptor);
+//               const box = result.detection.box;
+//               const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
+//               drawBox.draw(that.canvas);
+//             });
+//           }
+  
+
+//           // 4. 更新渲染
+//             const renderedImage = that.canvasCtx.getImageData(0, 0, that.canvas.width, that.canvas.height);
+//             that.renderer.updateBitmapSkin(that.faceSkinId, renderedImage, 1);
+//             that.runtime.requestRedraw();
+//             hiddenCanvas.remove()
+          
+//         }, 100);
+
+
+       
+
+//         // for (let i = 0; i < faces.size(); i++) {
+//         //     const face = faces.get(i);
+
+//         //     const faceImage = srcMat.roi(face);
+//         //     const wh = [Math.round(face.width), Math.round(face.height)];
+//         //     aiInfo.setFaceWh(wh);
+//         //     aiInfo.setFaceLocation({
+//         //         x: Math.round(face.x - 255 + face.width / 2),
+//         //         y: Math.round(face.y - 223 + face.height / 2)
+//         //     });
+
+//         //     // 复制用于匹配的 faceImage
+//         //     that.faceImage = faceImage.clone(); // 避免外部引用影响原图
+
+//         //     const name = findClosestMatch(faceImage,cv,that);
+//         //     aiInfo.setIsSym(name !== '陌生人');
+//         //     aiInfo.setResultFace(name);
+
+//         //     // 绘制人脸框与标签
+//         //     that.canvasCtx.strokeStyle = 'red';
+//         //     that.canvasCtx.lineWidth = 2;
+//         //     that.canvasCtx.strokeRect(face.x, face.y, face.width, face.height);
+//         //     that.canvasCtx.fillStyle = 'red';
+//         //     that.canvasCtx.font = '16px Arial';
+//         //     that.canvasCtx.fillText(name, face.x, face.y - 10);
+
+//         //     // ✅ 释放每个 faceImage 临时 Mat
+//         //     faceImage.delete();
+//         // }
+
+        
+
+//     } catch (e) {
+//         console.warn('processVideo error:', e);
+
+//         // 出错时也清空画布，避免残影
+//         that.canvasCtx.clearRect(0, 0, that.canvas.width, that.canvas.height);
+//         const fallbackImage = that.canvasCtx.getImageData(0, 0, that.canvas.width, that.canvas.height);
+//         that.renderer.updateBitmapSkin(that.faceSkinId, fallbackImage, 1);
+//     }
+
+//     // 5. 控制帧率，使用 setTimeout 避免重入
+// }
 
 
 
@@ -599,8 +764,10 @@ async function process_frame(that,aiInfo,Base64,Video) {
             }));
         }
     
-        const xCenter = centerX - 255;
-        const yCenter = -1 * (centerY - 223);
+        // const xCenter = centerX - 255;
+        // const yCenter = -1 * (centerY - 223);
+        const xCenter = centerX - 240;
+        const yCenter = -1 * (centerY - 180);
         const distance = getAprilDistance(det.corners[0].x, det.corners[0].y, det.corners[1].x, det.corners[1].y);
     
         aiInfo.setAprilLocation({
@@ -1359,8 +1526,8 @@ function processColorBlockDetectionW(that,Video,cv,aiInfo) {
     // 如果找到了最大轮廓，绘制它
     if (maxRect) {
         colorNum = 1; // 只找到一个目标
-        location.x = maxRect.x - 255 + maxRect.width / 2;
-        location.y = maxRect.y - 223 + maxRect.height / 2;
+        location.x = maxRect.x - 240 + maxRect.width / 2;
+        location.y = maxRect.y - 180 + maxRect.height / 2;
 
         let wh = [maxRect.width, maxRect.height];
         aiInfo.setColorWh(wh);

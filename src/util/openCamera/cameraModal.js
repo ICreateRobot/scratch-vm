@@ -496,8 +496,8 @@ class CameraModal {
             sumY += p.y;
         }
         return {
-            x: sumX / points.length,
-            y: sumY / points.length
+            x: Math.round(sumX / points.length)-255-60,
+            y: (-1)*(Math.round(sumY / points.length)-223-30)
         };
     }
 
@@ -558,7 +558,7 @@ class CameraModal {
             this.canvasCtx.lineWidth = 2;
             this.canvasCtx.stroke();
 
-            if (typeof this.onQRDetected === 'function') {
+            // if (typeof this.onQRDetected === 'function') {
             const location = [
                 corners.topLeftCorner,
                 corners.topRightCorner,
@@ -573,22 +573,25 @@ class CameraModal {
             ];
 
             aiInfo.setQrLocation(location)
+            // console.log(aiInfo.getQrLocation())
             const wh = [
                 Math.abs(corners.topRightCorner.x - corners.topLeftCorner.x),
                 Math.abs(corners.bottomLeftCorner.y - corners.topLeftCorner.y)
             ];
             aiInfo.setQrWh(wh)
-            this.onQRDetected({
-                data: qrCode.data,
-                location,
-                size: wh
-            });
-            }
+            // this.onQRDetected({
+            //     data: qrCode.data,
+            //     location,
+            //     size: wh
+            // });
+            // }
         } else {
             aiInfo.setQr(null)
-            if (typeof this.onQRDetected === 'function') {
-            this.onQRDetected(null);
-            }
+            aiInfo.setQrLocation(null)
+            aiInfo.setQrWh(null)
+            // if (typeof this.onQRDetected === 'function') {
+            // this.onQRDetected(null);
+            // }
         }
 
         this.qrRequestId = requestAnimationFrame(() => this.processQRDetection());
@@ -786,8 +789,8 @@ class CameraModal {
                 }));
             }
         
-            const xCenter = centerX - 255;
-            const yCenter = -1 * (centerY - 223);
+            const xCenter = centerX - 255-60;
+            const yCenter = -1 * (centerY - 223-30);
             const distance = this.getAprilDistance(det.corners[0].x, det.corners[0].y, det.corners[1].x, det.corners[1].y);
         
             aiInfo.setAprilLocation({
@@ -1511,8 +1514,8 @@ class CameraModal {
         // 如果找到了最大轮廓，绘制它
         if (maxRect) {
             colorNum = 1; // 只找到一个目标
-            location.x = maxRect.x - 255 + maxRect.width / 2;
-            location.y = maxRect.y - 223 + maxRect.height / 2;
+            location.x = maxRect.x - 300 + maxRect.width / 2;
+            location.y = maxRect.y - 250 + maxRect.height / 2;
 
             let wh = [maxRect.width, maxRect.height];
             aiInfo.setColorWh(wh);
@@ -1799,8 +1802,8 @@ class CameraModal {
                 const wh = [Math.round(face.width), Math.round(face.height)];
                 aiInfo.setFaceWh(wh);
                 aiInfo.setFaceLocation({
-                    x: Math.round(face.x - 255 + face.width / 2),
-                    y: Math.round(face.y - 223 + face.height / 2)
+                    x: Math.round(face.x - 300 + face.width / 2),
+                    y: Math.round(face.y - 250 + face.height / 2)
                 });
     
                 // 复制用于匹配的 faceImage

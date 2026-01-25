@@ -1095,9 +1095,9 @@ class RobotQr {
         }
         if(aiInfo.getQrLocation()){
             if(args.ONE=='x'){
-                return aiInfo.getQrLocation()[4].x-255
+                return aiInfo.getQrLocation()[4].x
             }else{
-                return (-1)*(aiInfo.getQrLocation()[4].y-223)
+                return aiInfo.getQrLocation()[4].y
             }
         }else{
             return null
