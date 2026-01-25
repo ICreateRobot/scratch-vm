@@ -2625,6 +2625,7 @@ document.head.appendChild(style);
 //进度条显示
 let progressBar = null;
 let progressBarContainer = null;
+let progressText=null
 
 function showProgress(msg) {
     // 确保msg在0-100范围内
@@ -2638,7 +2639,7 @@ function showProgress(msg) {
     // 更新进度显示
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute('data-progress', progress);
-    
+    progressText.textContent = `${progress}%`;
     // 自动隐藏逻辑（当进度完成时）
     if (progress >= 100) {
         setTimeout(() => {
@@ -2648,6 +2649,7 @@ function showProgress(msg) {
                     progressBarContainer.remove();
                     progressBar = null;
                     progressBarContainer = null;
+                    progressText=null
                 }, 500);
             }
         }, 1000);
@@ -2675,8 +2677,8 @@ function createProgressBar() {
     });
 
     // 创建文本标签
-    const progressText = document.createElement('div');
-    progressText.textContent = '下载中...';
+    progressText = document.createElement('div');
+    // progressText.textContent = '下载中...';
     progressText.style.color = 'white';
     progressText.style.marginBottom = '8px';
     progressText.style.fontSize = '14px';
