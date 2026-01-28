@@ -1398,7 +1398,7 @@ class CameraModal {
         //if (!capColor) return;
 
 
-        console.log('处理帧')
+        // console.log('处理帧')
        let width;
         let height;
 
