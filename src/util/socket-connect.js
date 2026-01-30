@@ -70,6 +70,7 @@ function showToast(message, duration = 3000) {
 const reciveChannel = new BroadcastChannel('reciveChannel')
 async function setSocket(context){
 
+        isSendVersion=false
         console.log('11111')
 
         // 如果已经存在 WebSocket 连接并且状态是 OPEN，就不再创建新的连接
@@ -83,6 +84,7 @@ async function setSocket(context){
         console.log(socket)
         // socket.binaryType = 'arraybuffer';
         socket.addEventListener('open', async (event) => {
+            isSendVersion=true
             showToast(formatMessage({
                 id: 'robot.socket',
                 default: 'socket connect success',
@@ -146,8 +148,10 @@ function getIp(){
 
 
 //接收信息的socket
+let isSendVersion=false
 
 async function setSocketRecive(){
+    isSendVersion = false
 
     // 如果已经存在 WebSocket 连接并且状态是 OPEN，就不再创建新的连接
     if (socketRecive && socketRecive.readyState === WebSocket.OPEN) {
@@ -166,6 +170,7 @@ async function setSocketRecive(){
     socketRecive.addEventListener('open', async (event) => {
         console.log('WebSocket connection opened');
 
+        isSendVersion=true
         messageTime=Date.now()
         // let pass='12345\n'
         // pass=pass.replace(/\n/g, "\r")
@@ -179,6 +184,12 @@ async function setSocketRecive(){
         robotMessage=JSON.parse(event.data)
         // console.log(robotMessage)
         reciveChannel.postMessage(robotMessage)
+        if(robotMessage[30] && isSendVersion){
+            console.log(robotMessage[30])
+            await window.EditorPreload.robotVersion(robotMessage[30])
+            isSendVersion=false
+        }
+            
 
         messageTime=Date.now()
 
