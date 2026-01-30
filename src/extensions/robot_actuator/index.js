@@ -736,6 +736,7 @@ class RobotActuator {
                 this.runtime.stopAll();
             }
     
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
@@ -921,6 +922,7 @@ class RobotActuator {
                 this.showToast("socket正在连接中，请稍后");
                 this.runtime.stopAll();
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)

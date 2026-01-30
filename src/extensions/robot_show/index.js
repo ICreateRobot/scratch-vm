@@ -963,6 +963,25 @@ class RobotShow {
     });
   }
 
+  async waitForSuccess() {
+    return new Promise((resolve) => {
+        function messageHandler(event) {
+            try {
+                let data = event.data;
+                if (data === "success") {
+                    console.log("收到 success 响应");
+                    socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
+                    resolve(); // 继续执行
+                }
+            } catch (error) {
+                console.error("解析 WebSocket 消息出错", error);
+            }
+        }
+
+        socket.getSocket().addEventListener('message', messageHandler);
+    });
+}
+
     async brightness(args){
         if(this.mode){
 
@@ -998,12 +1017,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1058,11 +1078,12 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
+                await this.waitForSuccess()
     
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
@@ -1199,12 +1220,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1301,12 +1323,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1358,12 +1381,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1415,12 +1439,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1471,12 +1496,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1552,12 +1578,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1606,12 +1633,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1665,12 +1693,13 @@ class RobotShow {
                     await socket.setSocket(context)
                 }else if(socket.checkWebSocketStatus()==2){
                     socket.getSocket().send(str);
-                    await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
+                    // await new Promise(resolve => setTimeout(resolve, 50));  // 等待1秒
                 }else if(socket.checkWebSocketStatus()==1){
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)

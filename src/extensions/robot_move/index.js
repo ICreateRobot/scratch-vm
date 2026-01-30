@@ -1050,6 +1050,7 @@ class RobotMove {
             }else if(socket.checkWebSocketStatus()==3){
                 this.showToast("socket正在断开，请稍后");
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
@@ -1466,6 +1467,7 @@ class RobotMove {
                 this.showToast("socket正在连接中，请稍后");
                 this.runtime.stopAll();
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             await this.sendCommandAndWaitForSuccess(str)
@@ -1668,6 +1670,7 @@ class RobotMove {
                 this.showToast("socket正在连接中，请稍后");
                 this.runtime.stopAll();
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             await this.sendCommandAndWaitForSuccess(str)
@@ -1831,6 +1834,7 @@ class RobotMove {
                 this.showToast("socket正在连接中，请稍后");
                 this.runtime.stopAll();
             }
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)

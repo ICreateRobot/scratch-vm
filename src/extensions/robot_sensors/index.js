@@ -1519,6 +1519,7 @@ showToast(message, duration = 3000) {
                 this.runtime.stopAll();
             }
     
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
@@ -1567,6 +1568,7 @@ showToast(message, duration = 3000) {
                 this.runtime.stopAll();
             }
     
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
