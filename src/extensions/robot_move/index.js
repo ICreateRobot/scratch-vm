@@ -323,11 +323,54 @@ class RobotMove {
         //     this.distance=event.data
         // });
 
-
+        this._successWaitQueue = [];
+        this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
+            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
                 socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
+                if (this.responseQueue.length === 0) return;
+
+                const queue = this.responseQueue;
+                this.responseQueue = [];
+        
+                // 用 resolve(false) 结束所有 await
+                for (const item of queue) {
+                    item.resolve(false);
+                }
+            }else if(event.data && this.whatSendFun == 'net'){
+                if (!this._successWaitQueue || this._successWaitQueue.length === 0) {
+                    return;
+                }
+            
+                const queue = this._successWaitQueue;
+                this._successWaitQueue = [];
+            
+                for (const item of queue) {
+                    try {
+                        item.socket.removeEventListener('message', item.handler);
+                    } catch (e) {}
+            
+                    // ✅结束等待（但不影响原来的成功逻辑）
+                    item.resolve();
+                }
+            }else if(event.data && this.whatSendFun == 'port'){
+                if (!this._sendCmdWaitQueue || this._sendCmdWaitQueue.length === 0) {
+                    return;
+                }
+            
+                const queue = this._sendCmdWaitQueue;
+                this._sendCmdWaitQueue = [];
+            
+                for (const item of queue) {
+                    try {
+                        this.channelSerialData.removeEventListener('message', item.handler);
+                    } catch (e) {}
+            
+                    // 结束等待（保持和原来 resolve 行为一致）
+                    item.resolve();
+                }
             }
         })
 
@@ -856,23 +899,76 @@ class RobotMove {
         });
     }
 
-  async waitForSuccess() {
+//   async waitForSuccess() {
+//         return new Promise((resolve) => {
+//             function messageHandler(event) {
+//                 try {
+//                     let data = event.data;
+//                     if (data === "success") {
+//                         console.log("收到 success 响应");
+//                         socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
+//                         resolve(); // 继续执行
+//                     }
+//                 } catch (error) {
+//                     console.error("解析 WebSocket 消息出错", error);
+//                 }
+//             }
+
+//             socket.getSocket().addEventListener('message', messageHandler);
+//         });
+//     }
+
+    async waitForSuccess() {
         return new Promise((resolve) => {
-            function messageHandler(event) {
+
+            const socketInstance = socket.getSocket();
+
+            const messageHandler = (event) => {
                 try {
                     let data = event.data;
+
+                    // ✅ 和你原来完全一样
                     if (data === "success") {
                         console.log("收到 success 响应");
-                        socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
-                        resolve(); // 继续执行
+
+                        socketInstance.removeEventListener('message', messageHandler);
+
+                        // 仅仅多了一行：从等待池移除
+                        this._removeSuccessWaiter(messageHandler);
+
+                        resolve();   // ← 仍然是不带参数 resolve
                     }
                 } catch (error) {
                     console.error("解析 WebSocket 消息出错", error);
                 }
+            };
+
+            // ✅ 仅新增：登记到等待池
+            if (!this._successWaitQueue) {
+                this._successWaitQueue = [];
             }
 
-            socket.getSocket().addEventListener('message', messageHandler);
+            this._successWaitQueue.push({
+                resolve,
+                handler: messageHandler,
+                socket: socketInstance
+            });
+
+            socketInstance.addEventListener('message', messageHandler);
         });
+    }
+
+    _removeSuccessWaiter(handler) {
+
+        if (!this._successWaitQueue) return;
+    
+        const index = this._successWaitQueue.findIndex(
+            item => item.handler === handler
+        );
+    
+        if (index !== -1) {
+            this._successWaitQueue.splice(index, 1);
+        }
     }
 
     showToast(message, duration = 3000) {
@@ -1108,52 +1204,113 @@ class RobotMove {
 //     });
 //   }
 
-  async sendCommandAndWaitForSuccess(command) {
-    //  try {
-    //   const promise = this.createPromiseForSerial();
-    //   this.channelPort.postMessage(command); // 发命令
-    //   await promise; // 等待对应返回
-    //   return true;
-    // } catch (err) {
-    //   console.error("❌ 命令执行失败:", err);
-    //   throw err;
-    // }
+//   async sendCommandAndWaitForSuccess(command) {
+//     //  try {
+//     //   const promise = this.createPromiseForSerial();
+//     //   this.channelPort.postMessage(command); // 发命令
+//     //   await promise; // 等待对应返回
+//     //   return true;
+//     // } catch (err) {
+//     //   console.error("❌ 命令执行失败:", err);
+//     //   throw err;
+//     // }
   
-    return new Promise(async(resolve, reject) => {
+//     return new Promise(async(resolve, reject) => {
       
+//         let resolved = false; // 防止多次 resolve
+  
+//       // 响应监听器
+//       const onMessage = (e) => {
+//         const data = e.data;
+//         console.log(data)
+//         if (Array.isArray(data) && data.length==1 && data[0] === 0) {
+//             if (!resolved) {
+//                 resolved = true;
+//                 this.channelSerialData.removeEventListener('message', onMessage);
+//                 resolve();
+//             }
+//         }else if (typeof data === "string" && data.includes("[0]")) {
+//             if (!resolved) {
+//                 resolved = true;
+//                 this.channelSerialData.removeEventListener('message', onMessage);
+//                 resolve();
+//             }
+//       }
+//       };
+  
+//       this.channelSerialData.addEventListener('message', onMessage);
+//       await new Promise(resolve => setTimeout(resolve, 80));
+//       // 发送命令
+//       this.channelPort.postMessage(command);
+  
+//       // 可选：超时机制（比如 5 秒）
+//     //   setTimeout(() => {
+//     //     this.channelSerialData.removeEventListener('message', onMessage);
+//     //     reject(new Error('超时未收到 success'));
+//     //   }, 5000);
+//     });
+//   }
+
+sendCommandAndWaitForSuccess(command) {
+    return new Promise(async (resolve, reject) => {
+
         let resolved = false; // 防止多次 resolve
-  
-      // 响应监听器
-      const onMessage = (e) => {
-        const data = e.data;
-        console.log(data)
-        if (Array.isArray(data) && data.length==1 && data[0] === 0) {
-            if (!resolved) {
-                resolved = true;
-                this.channelSerialData.removeEventListener('message', onMessage);
-                resolve();
+
+        const onMessage = (e) => {
+            const data = e.data;
+            console.log(data);
+
+            // ✅以下判断逻辑与你原来完全一致
+            if (Array.isArray(data) && data.length == 1 && data[0] === 0) {
+                if (!resolved) {
+                    resolved = true;
+                    this.channelSerialData.removeEventListener('message', onMessage);
+                    this._removeSendCmdWaiter(onMessage); // 仅新增
+                    resolve();
+                }
+            } else if (typeof data === "string" && data.includes("[0]")) {
+                if (!resolved) {
+                    resolved = true;
+                    this.channelSerialData.removeEventListener('message', onMessage);
+                    this._removeSendCmdWaiter(onMessage); // 仅新增
+                    resolve();
+                }
             }
-        }else if (typeof data === "string" && data.includes("[0]")) {
-            if (!resolved) {
-                resolved = true;
-                this.channelSerialData.removeEventListener('message', onMessage);
-                resolve();
-            }
-      }
-      };
-  
-      this.channelSerialData.addEventListener('message', onMessage);
-      await new Promise(resolve => setTimeout(resolve, 80));
-      // 发送命令
-      this.channelPort.postMessage(command);
-  
-      // 可选：超时机制（比如 5 秒）
-    //   setTimeout(() => {
-    //     this.channelSerialData.removeEventListener('message', onMessage);
-    //     reject(new Error('超时未收到 success'));
-    //   }, 5000);
+        };
+
+        // ✅仅新增：登记等待
+        if (!this._sendCmdWaitQueue) {
+            this._sendCmdWaitQueue = [];
+        }
+
+        this._sendCmdWaitQueue.push({
+            resolve,
+            handler: onMessage
+        });
+
+        this.channelSerialData.addEventListener('message', onMessage);
+
+        await new Promise(resolve => setTimeout(resolve, 80));
+
+        // ✅发送命令逻辑完全不变
+        this.channelPort.postMessage(command);
+
+        // 你原来的超时注释保持不动
     });
-  }
+}
+_removeSendCmdWaiter(handler) {
+
+    if (!this._sendCmdWaitQueue) return;
+
+    const index = this._sendCmdWaitQueue.findIndex(
+        item => item.handler === handler
+    );
+
+    if (index !== -1) {
+        this._sendCmdWaitQueue.splice(index, 1);
+    }
+}
+
   async moveDirTime(args){
     if(this.mode){
         
