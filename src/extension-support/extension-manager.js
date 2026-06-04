@@ -62,6 +62,7 @@ defaultBuiltinExtensions['MicrobitIcreate'] = () => require('../extensions/ICrea
 defaultBuiltinExtensions['MicrobiteIcreateP'] = () => require('../extensions/ICreate_Microbit_P');
 defaultBuiltinExtensions['robotextend'] = () => require('../extensions/robot_extend');
 defaultBuiltinExtensions['k210'] = () => require('../extensions/k210');
+defaultBuiltinExtensions['robotpin'] = () => require('../extensions/robot_pin');
 
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument
