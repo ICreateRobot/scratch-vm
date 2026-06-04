@@ -400,7 +400,7 @@ class robotteachable {
         popup.style.borderRadius = '10px';
         popup.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
         popup.style.transition = 'z-index 0.3s'; // 添加过渡动画
-        popup.style.width = '350px'
+        popup.style.width = '400px'
 
         // 🔥 检测主题（和 ExampleModal 保持一致）
         const local = localStorage.getItem("tw:theme");
@@ -483,7 +483,7 @@ class robotteachable {
             video.height = '300';
             video.autoplay = true;
             video.playsInline = true;
-            video.style.borderRadius = '50px';
+            // video.style.borderRadius = '50px';
         }else if(whatVideo=='img' || whatVideo=='net'){
             img = document.createElement('img')
             img.crossOrigin = "anonymous";  // 允许跨域访问
