@@ -186,7 +186,7 @@ async function setSocketRecive(){
         reciveChannel.postMessage(robotMessage)
         if(robotMessage[30] && isSendVersion){
             console.log(robotMessage[30])
-            await window.EditorPreload.robotVersion(robotMessage[30])
+            await window.EditorPreload.robotVersion([robotMessage[30],robotMessage[31]])
             isSendVersion=false
         }
             
