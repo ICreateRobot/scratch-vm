@@ -322,7 +322,8 @@ speedmoveplace(){
 }
 async stop(){
   if(!this.mode) return
-  let data=[249]
+  // let data=[249]
+  let data = [252,0,0,0,0,0,0,0,0]
   socket.getSocket().send(JSON.stringify(data))
   await new Promise(resolve => setTimeout(resolve, 200)); 
 }
