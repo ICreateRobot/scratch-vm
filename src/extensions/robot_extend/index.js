@@ -255,7 +255,7 @@ class RobotExtend {
       id: 'robotextend',
       name: formatMessage({
                 id: 'robotextend.name',
-                default: 'External Microbit Module',
+                default: 'External Module',
                 description: 'robotextend.name'
             }),
       color1:'#cc33c9',
