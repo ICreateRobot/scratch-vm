@@ -27,7 +27,7 @@ function setSocket() {
     console.log(isElectron())
   if (isElectron()) {
     // Electron 环境：使用真实 WebSocket
-    socket = new WebSocket('ws://localhost:8084');
+    socket = new WebSocket('ws://localhost:52731');
     socket.addEventListener('open', () => {
       console.log('🔌 [Electron] WebSocket connected (8084)');
     });
