@@ -216,6 +216,7 @@ class RobotMove {
         //     console.log('当前发送方式:', this.whatSendFun)
         // }
 
+        window.whatSendFun ='net'
         this.whatSendFun = 'net' // 默认就是 net
         this.isPortConnected = false
         this.isBleConnected = false
@@ -292,6 +293,7 @@ class RobotMove {
             } else {
                 this.whatSendFun = 'net' // 默认兜底仍然是 net
             }
+            window.whatSendFun=this.whatSendFun
             console.log('当前发送方式:', this.whatSendFun)
         }
 
