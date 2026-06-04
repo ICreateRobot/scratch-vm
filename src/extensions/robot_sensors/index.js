@@ -61,6 +61,7 @@ class RobotSensors {
         this.reciveChannel.addEventListener('message',(event)=>{
             if(this.whatSendFun=='net'){
                 this.message=event.data
+                this.checkMotorStatus(event.data)
             }
            
             // console.log(event.data)
@@ -283,6 +284,7 @@ class RobotSensors {
             if(this.whatSendFun=='port'){
                 if(Array.isArray(event.data) && event.data.length>1){
                     this.message=event.data
+                    this.checkMotorStatus(event.data)
                 }else{
                     // console.log(event.data)
                 }
@@ -372,6 +374,221 @@ class RobotSensors {
                 console.warn("⚠️ 收到未匹配的响应:", state);
             }
         })
+        window.EditorPreload.sendSenorData((senor) => {
+            // console.log("📩 收到返回值:", senor);
+            this.checkMotorStatus(JSON.parse(senor))
+        })
+
+        this.flag=false
+        this.checkMotorStatus=async(arr)=> {
+            if (!Array.isArray(arr)) {
+                console.error("参数必须是数组");
+                return;
+            }
+            if(!this.mode) return
+        
+            if(this.flag) return
+            // 判断数组2号索引是否为2
+            if (arr[2] === 2) {
+                this.flag=true
+                // 防止重复弹窗
+                if (document.getElementById("motor-stall-mask")) return;
+        
+                //停止软件积木块程序
+                this.runtime.stopAll();
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                try{
+                    //停止机器人程序以及释放阻塞队列
+                    if(this.whatSendFun == 'ble'){
+                        socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
+                        if (this.responseQueue.length != 0) {
+                            const queue = this.responseQueue;
+                            this.responseQueue = [];
+                    
+                            // 用 resolve(false) 结束所有 await
+                            for (const item of queue) {
+                                item.resolve(false);
+                            }
+                        }
+        
+                        
+                    }else if(this.whatSendFun == 'net'){
+                        const Socket = new WebSocket(`ws://${socket.getIp()}:8084`);
+                        
+                        Socket.addEventListener('open', async (event) => {
+                            console.log('连接成功');
+                            Socket.send('stop')
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            Socket.close()
+            
+                                
+                        });
+                        if (this._successWaitQueue && this._successWaitQueue.length != 0) {
+                            const queue = this._successWaitQueue;
+                            this._successWaitQueue = [];
+                        
+                            for (const item of queue) {
+                                try {
+                                    item.socket.removeEventListener('message', item.handler);
+                                } catch (e) {}
+                        
+                                // 结束等待（但不影响原来的成功逻辑）
+                                item.resolve();
+                            }
+                        }
+                    
+                       
+                    }else if(this.whatSendFun == 'port'){
+                        this.channelPort.postMessage(JSON.stringify({
+                            "command": "select_mode",
+                            "params": 
+                                {
+                                    "mode": `stop`,
+                                }
+                        }))
+                        if (this._sendCmdWaitQueue && this._sendCmdWaitQueue.length != 0) {
+                            const queue = this._sendCmdWaitQueue;
+                            this._sendCmdWaitQueue = [];
+                        
+                            for (const item of queue) {
+                                try {
+                                    this.channelSerialData.removeEventListener('message', item.handler);
+                                } catch (e) {}
+                        
+                                // 结束等待（保持和原来 resolve 行为一致）
+                                item.resolve();
+                            }
+                        }
+                    
+                        
+                    }
+                }catch(e){
+                    console.log(e)
+                }
+                
+                console.log('qqqqqqqqqqqqqqqq')
+                // 创建遮罩层
+                const mask = document.createElement("div");
+                mask.id = "motor-stall-mask";
+                mask.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.45);
+                    backdrop-filter: blur(3px);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                `;
+        
+                // 创建弹窗
+                const modal = document.createElement("div");
+                modal.style.cssText = `
+                    width: 360px;
+                    background: #fff;
+                    border-radius: 16px;
+                    padding: 24px;
+                    text-align: center;
+                    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+                    animation: popIn 0.25s ease;
+                `;
+        
+                modal.innerHTML = `
+                    <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+                    <div style="
+                        font-size:22px;
+                        font-weight:600;
+                        color:#e53935;
+                        margin-bottom:10px;
+                    ">
+                        ${
+                            formatMessage({
+                                id: 'robotsensors.motoStop',
+                                default: 'Motor Stall',
+                                description: 'robotsensors.motoStop'
+                            })
+                        }
+                    </div>
+        
+                    <div style="
+                        color:#666;
+                        font-size:14px;
+                        line-height:1.6;
+                        margin-bottom:24px;
+                    ">
+                        ${
+                            formatMessage({
+                                id: 'robotsensors.motoDesc',
+                                default: "A motor stall has been detected. Please check the equipment's operating status and troubleshoot the issue before trying again.",
+                                description: 'robotsensors.motoDesc'
+                            })
+                        }
+                    </div>
+        
+                    <button id="motor-confirm-btn" style="
+                        width:120px;
+                        height:42px;
+                        border:none;
+                        border-radius:8px;
+                        background:linear-gradient(135deg,#ff6b6b,#e53935);
+                        color:#fff;
+                        font-size:15px;
+                        cursor:pointer;
+                        transition:all 0.2s;
+                    ">
+                        ${
+                            formatMessage({
+                                id: 'robotsensors.motoOK',
+                                default: 'OK',
+                                description: 'robotsensors.motoOK'
+                            })
+                        }
+                    </button>
+                `;
+        
+                mask.appendChild(modal);
+                document.body.appendChild(mask);
+                // 按钮事件
+                document
+                    .getElementById("motor-confirm-btn")
+                    .addEventListener("click", () => {
+                        mask.remove();
+                        this.flag=false
+                    });
+        
+                // 动画
+                if (!document.getElementById("motor-popup-style")) {
+                    const style = document.createElement("style");
+                    style.id = "motor-popup-style";
+                    style.innerHTML = `
+                        @keyframes popIn {
+                            from {
+                                transform: scale(0.8);
+                                opacity: 0;
+                            }
+                            to {
+                                transform: scale(1);
+                                opacity: 1;
+                            }
+                        }
+        
+                        #motor-confirm-btn:hover{
+                            transform: translateY(-2px);
+                            box-shadow:0 6px 16px rgba(229,57,53,.35);
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        }
+        // setTimeout(()=>{
+        //     const data = [0, 1, 2, 3];
+        //     this.checkMotorStatus(data)
+        // },5000)
 
         // this.robotData=window.EditorWindow.getRobotDate()
 
