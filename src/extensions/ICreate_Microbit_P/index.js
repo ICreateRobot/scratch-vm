@@ -1074,7 +1074,7 @@ class MicrobiteIcreateP {
                     menu: 'choice_ICmotorPin'
                 },
                 TEXT1: {
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue: 0
                 },
                 TEXT3: {
@@ -1097,7 +1097,7 @@ class MicrobiteIcreateP {
                     menu: 'choice_ICmotorPin'
                 },
                 TEXT1: {
-                    type: ArgumentType.NUMRES0_100,
+                    type: ArgumentType.NUMRES_100_100,
                     defaultValue: 0
                 },
                 TEXT3: {
@@ -1262,11 +1262,11 @@ class MicrobiteIcreateP {
                     defaultValue: 'hello'
                 },
                 X: {
-                    type: ArgumentType.NUMBER,
+                    type: ArgumentType.NUMRES0_12,
                     menu: 0
                 },
                 Y: {
-                    type: ArgumentType.NUMBER,
+                    type: ArgumentType.NUMRES0_3,
                     menu: 0
                 },
                 COLOR: {
