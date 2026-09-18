@@ -63,6 +63,8 @@ defaultBuiltinExtensions['MicrobiteIcreateP'] = () => require('../extensions/ICr
 defaultBuiltinExtensions['robotextend'] = () => require('../extensions/robot_extend');
 defaultBuiltinExtensions['k210'] = () => require('../extensions/k210');
 defaultBuiltinExtensions['robotpin'] = () => require('../extensions/robot_pin');
+defaultBuiltinExtensions['arduinouno'] = () => require('../extensions/arduino_uno');
+defaultBuiltinExtensions['py32'] = () => require('../extensions/py32');
 
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument
