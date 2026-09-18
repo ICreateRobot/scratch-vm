@@ -9,6 +9,10 @@ const posenet = require('./modules/posenet.js')
 const socket=require('../../util/socket-connect')
 const handpose = require('./modules/handpose.js')
 const imageLoad = require('../../util/imageLoad')
+
+
+const handPoseDetection = require('./modules/hand-pose-detection')
+require('./modules/hands')
 class robotteachable {
 
     constructor(runtime){
@@ -144,7 +148,7 @@ class robotteachable {
                 default: 'Machine Learning',
                 description: 'robotteachable.name'
             }),
-        color1: '#66ffcc',
+        color1: '#0083ff',
         blocks: [
 
             {
@@ -334,14 +338,38 @@ class robotteachable {
 
     async loadGestureMode(){
         //加载PoseNet模型
-        const poseNet = await handpose.load().then(model => {
-            this.poseNetmode = model; // 保存加载好的模型
-            console.log("模型加载完成")
+        // const poseNet = await handpose.load().then(model => {
+        //     this.poseNetmode = model; // 保存加载好的模型
+        //     console.log("模型加载完成")
 
-        })
-        .catch(e=>{
-            console.log("posenet加载出错")
-        });
+        // })
+        // .catch(e=>{
+        //     console.log("posenet加载出错")
+        // });
+        const model = handPoseDetection.SupportedModels.MediaPipeHands;
+
+        const currentURL = window.location.href;
+
+        // 获取前一级路径
+        const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+        // 获取前两级路径
+        const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+        const modelPath =twoLevelsUp+'/static/aiModel/gesture/modules';  // 你的模型路径
+        const detectorConfig = {
+            runtime: 'tfjs', // 或 mediapipe
+            modelType: 'full',
+            solutionPath:modelPath+'/hands.js',
+            detectorModelUrl: modelPath+'/detector/model.json',
+            landmarkModelUrl: modelPath+'/landmark/model.json',
+            maxHands: 1
+        };
+    
+        this.poseNetmode  = await handPoseDetection.createDetector(
+            model,
+            detectorConfig
+        );
+    
+        console.log("Hand Pose Detection 加载完成");
         this.channelLoad.postMessage(false)
     }
 
@@ -372,8 +400,14 @@ class robotteachable {
 
     /*使用模型*/
     predictGesture(pose,model) {
-        const landmarks=pose.landmarks;
-        const input=tf.tensor2d([landmarks.flat()]);
+        // const landmarks=pose.landmarks;
+        const landmarks = pose.keypoints.flatMap(p => [
+            p.x,
+            p.y,
+            p.z || 0
+        ]);
+        // const input=tf.tensor2d([landmarks.flat()]);
+        const input = tf.tensor2d([landmarks]);
         const floatInput=tf.cast(input,'float32');
         const result=model.predict(floatInput).arraySync();
 
@@ -385,197 +419,679 @@ class robotteachable {
         this.channelTrain.postMessage(true)
     }
 
-    // 新增：创建视频弹窗
-    createVideoPopup(whatVideo) {
-        console.log('创建')
-        const popup = document.createElement('div');
-        popup.id='popup'
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.zIndex = 1000; // 初始较高层级
-        popup.style.background = 'white';
-        popup.style.padding = '20px';
-        popup.style.borderRadius = '10px';
-        popup.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
-        popup.style.transition = 'z-index 0.3s'; // 添加过渡动画
-        popup.style.width = '400px'
+    // // 新增：创建视频弹窗
+    // createVideoPopup(whatVideo) {
+    //     console.log('创建')
+    //     const popup = document.createElement('div');
+    //     popup.id='popup'
+    //     popup.style.position = 'fixed';
+    //     popup.style.top = '50%';
+    //     popup.style.left = '50%';
+    //     popup.style.transform = 'translate(-50%, -50%)';
+    //     popup.style.zIndex = 1000; // 初始较高层级
+    //     popup.style.background = 'white';
+    //     popup.style.padding = '20px';
+    //     popup.style.borderRadius = '10px';
+    //     popup.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+    //     popup.style.transition = 'z-index 0.3s'; // 添加过渡动画
+    //     popup.style.width = '400px'
 
-        // 🔥 检测主题（和 ExampleModal 保持一致）
-        const local = localStorage.getItem("tw:theme");
-        let isDark = false;
-        try {
-            if (local === "dark") {
-                isDark = true;
-            } else {
-                const parsed = JSON.parse(local);
-                if (parsed?.gui === "dark") {
-                    isDark = true;
-                }
-            }
-        } catch (e) {
-            isDark = false;
-        }
+    //     // 🔥 检测主题（和 ExampleModal 保持一致）
+    //     const local = localStorage.getItem("tw:theme");
+    //     let isDark = false;
+    //     try {
+    //         if (local === "dark") {
+    //             isDark = true;
+    //         } else {
+    //             const parsed = JSON.parse(local);
+    //             if (parsed?.gui === "dark") {
+    //                 isDark = true;
+    //             }
+    //         }
+    //     } catch (e) {
+    //         isDark = false;
+    //     }
 
-        // 设置背景和文字颜色
-        if (isDark) {
-            popup.style.background = "#1e1e1e";
-            popup.style.color = "#f0f0f0";
-        } else {
-            popup.style.background = "white";
-            popup.style.color = "black";
-        }
+    //     // 设置背景和文字颜色
+    //     if (isDark) {
+    //         popup.style.background = "#1e1e1e";
+    //         popup.style.color = "#f0f0f0";
+    //     } else {
+    //         popup.style.background = "white";
+    //         popup.style.color = "black";
+    //     }
     
 
-        // 添加可拖动区域（整个弹窗）
-        // popup.style.cursor = 'move'; // 鼠标显示可拖动图标
-        // popup.addEventListener('mousedown', (e) => this.startDrag(e));
-        // 添加点击弹窗提升层级的功能
-        // popup.addEventListener('click', (e) => {
-        //     this.bringToFront();
-        //     e.stopPropagation(); // 阻止事件冒泡
-        // });
+    //     // 添加可拖动区域（整个弹窗）
+    //     // popup.style.cursor = 'move'; // 鼠标显示可拖动图标
+    //     // popup.addEventListener('mousedown', (e) => this.startDrag(e));
+    //     // 添加点击弹窗提升层级的功能
+    //     // popup.addEventListener('click', (e) => {
+    //     //     this.bringToFront();
+    //     //     e.stopPropagation(); // 阻止事件冒泡
+    //     // });
 
-        // 创建拖动按钮
-        const dragBtn = document.createElement('button');
-        dragBtn.textContent = '⠿'; // Unicode字符，模拟拖动图标
-        dragBtn.style.position = 'absolute';
-        dragBtn.style.left = '10px';
-        dragBtn.style.top = '10px';
-        dragBtn.style.width = '30px';
-        dragBtn.style.height = '30px';
-        dragBtn.style.border = 'none';
-        dragBtn.style.borderRadius = '5px';
-        dragBtn.style.background = '#ccc';
-        dragBtn.style.color = '#333';
-        dragBtn.style.fontSize = '18px';
-        dragBtn.style.fontWeight = 'bold';
-        dragBtn.style.display = 'flex';
-        dragBtn.style.alignItems = 'center';
-        dragBtn.style.justifyContent = 'center';
-        dragBtn.style.cursor = 'move';
-        dragBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
-        dragBtn.style.transition = 'background 0.3s, transform 0.2s';
-        dragBtn.onmouseover = () => dragBtn.style.background = '#bbb';
-        dragBtn.onmouseleave = () => dragBtn.style.background = '#ccc';
-        dragBtn.onmousedown = (e) => {
-            dragBtn.style.cursor = 'move';
-            this.startDrag(e);
-        };
-        dragBtn.onmouseup = () => dragBtn.style.cursor = 'move';
+    //     // 创建拖动按钮
+    //     const dragBtn = document.createElement('button');
+    //     dragBtn.textContent = '⠿'; // Unicode字符，模拟拖动图标
+    //     dragBtn.style.position = 'absolute';
+    //     dragBtn.style.left = '10px';
+    //     dragBtn.style.top = '10px';
+    //     dragBtn.style.width = '30px';
+    //     dragBtn.style.height = '30px';
+    //     dragBtn.style.border = 'none';
+    //     dragBtn.style.borderRadius = '5px';
+    //     dragBtn.style.background = '#ccc';
+    //     dragBtn.style.color = '#333';
+    //     dragBtn.style.fontSize = '18px';
+    //     dragBtn.style.fontWeight = 'bold';
+    //     dragBtn.style.display = 'flex';
+    //     dragBtn.style.alignItems = 'center';
+    //     dragBtn.style.justifyContent = 'center';
+    //     dragBtn.style.cursor = 'move';
+    //     dragBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
+    //     dragBtn.style.transition = 'background 0.3s, transform 0.2s';
+    //     dragBtn.onmouseover = () => dragBtn.style.background = '#bbb';
+    //     dragBtn.onmouseleave = () => dragBtn.style.background = '#ccc';
+    //     dragBtn.onmousedown = (e) => {
+    //         dragBtn.style.cursor = 'move';
+    //         this.startDrag(e);
+    //     };
+    //     dragBtn.onmouseup = () => dragBtn.style.cursor = 'move';
 
 
-        // 只在拖动按钮上触发拖动
-        dragBtn.addEventListener('mousedown', (e) => this.startDrag(e));
+    //     // 只在拖动按钮上触发拖动
+    //     dragBtn.addEventListener('mousedown', (e) => this.startDrag(e));
 
-        popup.appendChild(dragBtn);
-        let video
-        let img
+    //     popup.appendChild(dragBtn);
+    //     let video
+    //     let img
 
-        if(whatVideo=='video'){
-            // 创建视频元素
-            video = document.createElement('video');
-            video.style.transform = 'scaleX(-1)'; 
-            video.style.position='relative'
-            video.style.top='30px'
-            video.width = '350';
-            video.height = '300';
-            video.autoplay = true;
-            video.playsInline = true;
-            // video.style.borderRadius = '50px';
-        }else if(whatVideo=='img' || whatVideo=='net'){
-            img = document.createElement('img')
-            img.crossOrigin = "anonymous";  // 允许跨域访问
-            img.style.position='relative'
-            img.style.top='25px'
-            img.width='350'
-            img.height='300'
-            img.style.transform = "scaleX(-1)";
-            // img.style.marginBottom='20px'
+    //     if(whatVideo=='video'){
+    //         // 创建视频元素
+    //         video = document.createElement('video');
+    //         video.style.transform = 'scaleX(-1)'; 
+    //         video.style.position='relative'
+    //         video.style.top='40px'
+    //         video.style.borderRadius='20px'
+    //         video.width = '360';
+    //         video.height = '270';
+    //         video.autoplay = true;
+    //         video.playsInline = true;
+    //         // video.style.borderRadius = '50px';
+    //     }else if(whatVideo=='img' || whatVideo=='net'){
+    //         img = document.createElement('img')
+    //         img.crossOrigin = "anonymous";  // 允许跨域访问
+    //         img.style.position='relative'
+    //         img.style.top='35px'
+    //         img.style.borderRadius='20px'
+    //         img.width='360'
+    //         img.height='270'
+    //         img.style.transform = "scaleX(-1)";
+    //         // img.style.marginBottom='20px'
             
-        }
+    //     }
         
 
-        const canvas = document.createElement('canvas')
-        canvas.style.transform = 'scaleX(-1)'; 
-        canvas.width='350'
-        canvas.height='300'
-        canvas.id='show_canvas'
-        canvas.style.position = 'absolute'; // 绝对定位
-        canvas.style.top = '38px';
-        canvas.style.left='12px'
-        // canvas.style.pointerEvents = 'none'; // 确保鼠标事件不会影响画布
-        // canvas.style.border = '2px solid red'; // 红色 2px 宽的实线边框
+    //     const canvas = document.createElement('canvas')
+    //     canvas.style.transform = 'scaleX(-1)'; 
+    //     canvas.width='360'
+    //     canvas.height='270'
+    //     canvas.id='show_canvas'
+    //     canvas.style.position = 'absolute'; // 绝对定位
+    //     canvas.style.top = '60px';
+    //     canvas.style.left='20px'
+    //     // canvas.style.pointerEvents = 'none'; // 确保鼠标事件不会影响画布
+    //     // canvas.style.border = '2px solid red'; // 红色 2px 宽的实线边框
 
-       // 创建关闭按钮
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = '×';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.right = '10px';
-        closeBtn.style.top = '10px';
-        closeBtn.style.width = '30px';
-        closeBtn.style.height = '30px';
-        closeBtn.style.border = 'none';
-        closeBtn.style.borderRadius = '50%';
-        closeBtn.style.background = '#ff5f56'; // 红色i，符合 Mac 风格
-        closeBtn.style.color = 'white';
-        closeBtn.style.fontSize = '18px';
-        closeBtn.style.fontWeight = 'bold';
-        closeBtn.style.display = 'flex';
-        closeBtn.style.alignItems = 'center';
-        closeBtn.style.justifyContent = 'center';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
-        closeBtn.style.transition = 'background 0.3s, transform 0.2s';
-        closeBtn.onmouseover = () => closeBtn.style.background = '#e04b42';
-        closeBtn.onmouseleave = () => closeBtn.style.background = '#ff5f56';
-        closeBtn.onmousedown = () => closeBtn.style.transform = 'scale(0.9)';
-        closeBtn.onmouseup = () => closeBtn.style.transform = 'scale(1)';
-        closeBtn.onclick = () => this.stopIdent(whatVideo);
+    //    // 创建关闭按钮
+    //     const closeBtn = document.createElement('button');
+    //     closeBtn.textContent = '×';
+    //     closeBtn.style.position = 'absolute';
+    //     closeBtn.style.right = '10px';
+    //     closeBtn.style.top = '10px';
+    //     closeBtn.style.width = '30px';
+    //     closeBtn.style.height = '30px';
+    //     closeBtn.style.border = 'none';
+    //     closeBtn.style.borderRadius = '50%';
+    //     closeBtn.style.background = '#ff5f56'; // 红色i，符合 Mac 风格
+    //     closeBtn.style.color = 'white';
+    //     closeBtn.style.fontSize = '18px';
+    //     closeBtn.style.fontWeight = 'bold';
+    //     closeBtn.style.display = 'flex';
+    //     closeBtn.style.alignItems = 'center';
+    //     closeBtn.style.justifyContent = 'center';
+    //     closeBtn.style.cursor = 'pointer';
+    //     closeBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
+    //     closeBtn.style.transition = 'background 0.3s, transform 0.2s';
+    //     closeBtn.onmouseover = () => closeBtn.style.background = '#e04b42';
+    //     closeBtn.onmouseleave = () => closeBtn.style.background = '#ff5f56';
+    //     closeBtn.onmousedown = () => closeBtn.style.transform = 'scale(0.9)';
+    //     closeBtn.onmouseup = () => closeBtn.style.transform = 'scale(1)';
+    //     closeBtn.onclick = () => this.stopIdent(whatVideo);
 
-        // 创建最小化按钮
-        const minimizeBtn = document.createElement('button');
-        minimizeBtn.textContent = '−';
-        minimizeBtn.style.position = 'absolute';
-        minimizeBtn.style.right = '50px';
-        minimizeBtn.style.top = '10px';
-        minimizeBtn.style.width = '30px';
-        minimizeBtn.style.height = '30px';
-        minimizeBtn.style.border = 'none';
-        minimizeBtn.style.borderRadius = '50%';
-        minimizeBtn.style.background = '#fdbc40'; // 黄色，符合 Mac 风格
-        minimizeBtn.style.color = 'white';
-        minimizeBtn.style.fontSize = '18px';
-        minimizeBtn.style.fontWeight = 'bold';
-        minimizeBtn.style.display = 'flex';
-        minimizeBtn.style.alignItems = 'center';
-        minimizeBtn.style.justifyContent = 'center';
-        minimizeBtn.style.cursor = 'pointer';
-        minimizeBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
-        minimizeBtn.style.transition = 'background 0.3s, transform 0.2s';
-        minimizeBtn.onmouseover = () => minimizeBtn.style.background = '#e0a933';
-        minimizeBtn.onmouseleave = () => minimizeBtn.style.background = '#fdbc40';
-        minimizeBtn.onmousedown = () => minimizeBtn.style.transform = 'scale(0.9)';
-        minimizeBtn.onmouseup = () => minimizeBtn.style.transform = 'scale(1)';
-        minimizeBtn.onclick = () => this.lowerToBack();
+    //     // 创建最小化按钮
+    //     const minimizeBtn = document.createElement('button');
+    //     minimizeBtn.textContent = '−';
+    //     minimizeBtn.style.position = 'absolute';
+    //     minimizeBtn.style.right = '50px';
+    //     minimizeBtn.style.top = '10px';
+    //     minimizeBtn.style.width = '30px';
+    //     minimizeBtn.style.height = '30px';
+    //     minimizeBtn.style.border = 'none';
+    //     minimizeBtn.style.borderRadius = '50%';
+    //     minimizeBtn.style.background = '#fdbc40'; // 黄色，符合 Mac 风格
+    //     minimizeBtn.style.color = 'white';
+    //     minimizeBtn.style.fontSize = '18px';
+    //     minimizeBtn.style.fontWeight = 'bold';
+    //     minimizeBtn.style.display = 'flex';
+    //     minimizeBtn.style.alignItems = 'center';
+    //     minimizeBtn.style.justifyContent = 'center';
+    //     minimizeBtn.style.cursor = 'pointer';
+    //     minimizeBtn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.2)';
+    //     minimizeBtn.style.transition = 'background 0.3s, transform 0.2s';
+    //     minimizeBtn.onmouseover = () => minimizeBtn.style.background = '#e0a933';
+    //     minimizeBtn.onmouseleave = () => minimizeBtn.style.background = '#fdbc40';
+    //     minimizeBtn.onmousedown = () => minimizeBtn.style.transform = 'scale(0.9)';
+    //     minimizeBtn.onmouseup = () => minimizeBtn.style.transform = 'scale(1)';
+    //     minimizeBtn.onclick = () => this.lowerToBack();
 
-        popup.appendChild(minimizeBtn);
+    //     popup.appendChild(minimizeBtn);
 
-        popup.appendChild(closeBtn);
-        if(whatVideo=='video'){
-            popup.appendChild(video);
-        }else if(whatVideo=='img' ||whatVideo=='net'){
-            popup.appendChild(img);
+    //     popup.appendChild(closeBtn);
+
+    //     const divLine = document.createElement('div')
+    //     divLine.style.width='100%'
+    //     divLine.style.borderBottom='1px solid'
+    //     divLine.style.position='relative'
+    //     divLine.style.top='30px'
+    //     popup.appendChild(divLine)
+
+    //     // const videoCon = document.createElement('div')
+    //     // videoCon.style.borderRadius='20px'
+    //     // videoCon.style.overflow='hidden'
+    //     // videoCon.style.position='relative'
+    //     // videoCon.style.top='30px'
+    //     // videoCon.style.width='350px'
+    //     // videoCon.style.height='260px'
+    //     if(whatVideo=='video'){
+    //         popup.appendChild(video);
+    //         // videoCon.appendChild(video)
+    //     }else if(whatVideo=='img' ||whatVideo=='net'){
+    //         popup.appendChild(img);
+    //         // videoCon.appendChild(img)
+    //     }
+    //     // videoCon.appendChild(canvas)
+    //     // popup.appendChild(videoCon)
+    //     popup.appendChild(canvas)
+    //     document.body.appendChild(popup);
+
+    //     this.videoPopup = popup;
+    //     this.videoElement = video;
+    //     this.imgElement=img
+    // }
+
+    // 新增：创建视频弹窗
+// 新增：创建视频弹窗
+createVideoPopup(whatVideo) {
+    console.log('创建');
+
+    const popup = document.createElement('div');
+    popup.id = 'popup';
+
+    // ==============================
+    // 弹窗整体
+    // ==============================
+    popup.style.position = 'fixed';
+    popup.style.top = '50%';
+    popup.style.left = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.zIndex = 1000;
+
+    popup.style.width = '400px';
+    popup.style.minHeight = '345px';
+    popup.style.boxSizing = 'border-box';
+
+    popup.style.padding = '0';
+    popup.style.borderRadius = '16px';
+
+    popup.style.background = 'white';
+    popup.style.color = '#1f2937';
+
+    popup.style.boxShadow =
+        '0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08)';
+
+    popup.style.border = '1px solid rgba(0, 0, 0, 0.08)';
+
+    popup.style.overflow = 'visible';
+
+    popup.style.transition = 'z-index 0.3s';
+
+    // ==============================
+    // 检测主题
+    // ==============================
+    const local = localStorage.getItem("tw:theme");
+
+    let isDark = false;
+
+    try {
+        if (local === "dark") {
+            isDark = true;
+        } else {
+            const parsed = JSON.parse(local);
+
+            if (parsed?.gui === "dark") {
+                isDark = true;
+            }
         }
-        
-        popup.appendChild(canvas)
-        document.body.appendChild(popup);
-
-        this.videoPopup = popup;
-        this.videoElement = video;
-        this.imgElement=img
+    } catch (e) {
+        isDark = false;
     }
+
+    // ==============================
+    // 主题颜色
+    // ==============================
+    if (isDark) {
+        popup.style.background = '#202124';
+        popup.style.color = '#f1f3f4';
+        popup.style.border = '1px solid rgba(255,255,255,0.08)';
+
+        popup.style.boxShadow =
+            '0 20px 50px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.3)';
+    } else {
+        popup.style.background = '#ffffff';
+        popup.style.color = '#1f2937';
+    }
+
+    // ==============================
+    // 顶部标题栏
+    // ==============================
+    const header = document.createElement('div');
+
+    header.style.position = 'absolute';
+    header.style.left = '0';
+    header.style.top = '0';
+    header.style.width = '100%';
+    header.style.height = '52px';
+
+    header.style.boxSizing = 'border-box';
+
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+
+    header.style.background = isDark
+        ? 'rgba(255,255,255,0.025)'
+        : 'rgba(248,250,252,0.9)';
+
+    header.style.borderBottom = isDark
+        ? '1px solid rgba(255,255,255,0.07)'
+        : '1px solid rgba(0,0,0,0.06)';
+
+    header.style.borderRadius = '16px 16px 0 0';
+
+    // ==============================
+    // 拖动按钮
+    // ==============================
+    const dragBtn = document.createElement('button');
+
+    dragBtn.textContent = '⠿';
+
+    dragBtn.style.position = 'absolute';
+    dragBtn.style.left = '14px';
+    dragBtn.style.top = '11px';
+
+    dragBtn.style.width = '30px';
+    dragBtn.style.height = '30px';
+
+    dragBtn.style.padding = '0';
+    dragBtn.style.border = 'none';
+    dragBtn.style.borderRadius = '8px';
+
+    dragBtn.style.background = isDark
+        ? 'rgba(255,255,255,0.08)'
+        : '#eef1f5';
+
+    dragBtn.style.color = isDark
+        ? '#c8ccd1'
+        : '#667085';
+
+    dragBtn.style.fontSize = '19px';
+    dragBtn.style.fontWeight = 'bold';
+
+    dragBtn.style.display = 'flex';
+    dragBtn.style.alignItems = 'center';
+    dragBtn.style.justifyContent = 'center';
+
+    dragBtn.style.cursor = 'move';
+
+    dragBtn.style.boxShadow = 'none';
+
+    dragBtn.style.transition =
+        'background 0.2s ease, transform 0.15s ease, color 0.2s ease';
+
+    dragBtn.onmouseover = () => {
+        dragBtn.style.background = isDark
+            ? 'rgba(255,255,255,0.14)'
+            : '#e2e6ec';
+
+        dragBtn.style.color = isDark
+            ? '#ffffff'
+            : '#344054';
+    };
+
+    dragBtn.onmouseleave = () => {
+        dragBtn.style.background = isDark
+            ? 'rgba(255,255,255,0.08)'
+            : '#eef1f5';
+
+        dragBtn.style.color = isDark
+            ? '#c8ccd1'
+            : '#667085';
+    };
+
+    dragBtn.onmousedown = (e) => {
+        dragBtn.style.cursor = 'move';
+        dragBtn.style.transform = 'scale(0.94)';
+        this.startDrag(e);
+    };
+
+    dragBtn.onmouseup = () => {
+        dragBtn.style.cursor = 'move';
+        dragBtn.style.transform = 'scale(1)';
+    };
+
+    // 保留原来的事件
+    dragBtn.addEventListener('mousedown', (e) => this.startDrag(e));
+
+    header.appendChild(dragBtn);
+
+    // ==============================
+    // 关闭按钮
+    // ==============================
+    const closeBtn = document.createElement('button');
+
+    closeBtn.textContent = '×';
+
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.right = '12px';
+    closeBtn.style.top = '11px';
+
+    closeBtn.style.width = '30px';
+    closeBtn.style.height = '30px';
+
+    closeBtn.style.padding = '0';
+
+    closeBtn.style.border = 'none';
+    closeBtn.style.borderRadius = '50%';
+
+    closeBtn.style.background = '#ff5f57';
+
+    closeBtn.style.color = 'white';
+
+    closeBtn.style.fontSize = '21px';
+    closeBtn.style.fontWeight = '400';
+
+    closeBtn.style.lineHeight = '28px';
+
+    closeBtn.style.display = 'flex';
+    closeBtn.style.alignItems = 'center';
+    closeBtn.style.justifyContent = 'center';
+
+    closeBtn.style.cursor = 'pointer';
+
+    closeBtn.style.boxShadow =
+        '0 2px 6px rgba(0,0,0,0.15)';
+
+    closeBtn.style.transition =
+        'background 0.2s ease, transform 0.15s ease';
+
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#e54840';
+    };
+
+    closeBtn.onmouseleave = () => {
+        closeBtn.style.background = '#ff5f57';
+    };
+
+    closeBtn.onmousedown = () => {
+        closeBtn.style.transform = 'scale(0.88)';
+    };
+
+    closeBtn.onmouseup = () => {
+        closeBtn.style.transform = 'scale(1)';
+    };
+
+    closeBtn.onclick = () => this.stopIdent(whatVideo);
+
+    header.appendChild(closeBtn);
+
+    // ==============================
+    // 最小化按钮
+    // ==============================
+    const minimizeBtn = document.createElement('button');
+
+    minimizeBtn.textContent = '−';
+
+    minimizeBtn.style.position = 'absolute';
+    minimizeBtn.style.right = '50px';
+    minimizeBtn.style.top = '11px';
+
+    minimizeBtn.style.width = '30px';
+    minimizeBtn.style.height = '30px';
+
+    minimizeBtn.style.padding = '0';
+
+    minimizeBtn.style.border = 'none';
+    minimizeBtn.style.borderRadius = '50%';
+
+    minimizeBtn.style.background = '#ffbd2e';
+
+    minimizeBtn.style.color = 'white';
+
+    minimizeBtn.style.fontSize = '20px';
+    minimizeBtn.style.fontWeight = '400';
+
+    minimizeBtn.style.lineHeight = '28px';
+
+    minimizeBtn.style.display = 'flex';
+    minimizeBtn.style.alignItems = 'center';
+    minimizeBtn.style.justifyContent = 'center';
+
+    minimizeBtn.style.cursor = 'pointer';
+
+    minimizeBtn.style.boxShadow =
+        '0 2px 6px rgba(0,0,0,0.15)';
+
+    minimizeBtn.style.transition =
+        'background 0.2s ease, transform 0.15s ease';
+
+    minimizeBtn.onmouseover = () => {
+        minimizeBtn.style.background = '#e5a91f';
+    };
+
+    minimizeBtn.onmouseleave = () => {
+        minimizeBtn.style.background = '#ffbd2e';
+    };
+
+    minimizeBtn.onmousedown = () => {
+        minimizeBtn.style.transform = 'scale(0.88)';
+    };
+
+    minimizeBtn.onmouseup = () => {
+        minimizeBtn.style.transform = 'scale(1)';
+    };
+
+    minimizeBtn.onclick = () => this.lowerToBack();
+
+    header.appendChild(minimizeBtn);
+
+    popup.appendChild(header);
+
+    // ==============================
+    // 视频内容区域
+    // ==============================
+    const mediaArea = document.createElement('div');
+
+    mediaArea.style.position = 'relative';
+
+    // 给顶部栏留空间
+    mediaArea.style.marginTop = '52px';
+
+    mediaArea.style.width = '100%';
+    mediaArea.style.height = '285px';
+
+    mediaArea.style.boxSizing = 'border-box';
+
+    mediaArea.style.padding = '15px 20px 0 20px';
+
+    // ==============================
+    // 视频 / 图片
+    // ==============================
+    let video;
+    let img;
+
+    if (whatVideo == 'video') {
+
+        video = document.createElement('video');
+
+        video.style.transform = 'scaleX(-1)';
+
+        video.style.display = 'block';
+
+        video.style.width = '360px';
+        video.style.height = '270px';
+
+        video.style.borderRadius = '12px';
+
+        video.style.objectFit = 'cover';
+
+        video.style.background = '#101214';
+
+        video.style.boxShadow =
+            '0 4px 14px rgba(0,0,0,0.12)';
+
+        video.width = '360';
+        video.height = '270';
+
+        video.autoplay = true;
+        video.playsInline = true;
+
+        mediaArea.appendChild(video);
+
+    } else if (whatVideo == 'img' || whatVideo == 'net') {
+
+        img = document.createElement('img');
+
+        img.crossOrigin = "anonymous";
+
+        img.style.display = 'block';
+
+        img.style.width = '360px';
+        img.style.height = '270px';
+
+        img.style.borderRadius = '12px';
+
+        img.style.objectFit = 'cover';
+
+        img.style.background = '#101214';
+
+        img.style.boxShadow =
+            '0 4px 14px rgba(0,0,0,0.12)';
+
+        img.style.transform = "scaleX(-1)";
+
+        mediaArea.appendChild(img);
+    }
+
+    // ==============================
+    // Canvas
+    // ==============================
+    const canvas = document.createElement('canvas');
+
+    canvas.style.position = 'absolute';
+
+    canvas.style.left = '20px';
+    canvas.style.top = '15px';
+
+    canvas.style.width = '360px';
+    canvas.style.height = '270px';
+
+    canvas.width = '360';
+    canvas.height = '270';
+
+    canvas.id = 'show_canvas';
+
+    canvas.style.transform = 'scaleX(-1)';
+
+    canvas.style.borderRadius = '12px';
+
+    canvas.style.pointerEvents = 'none';
+
+    mediaArea.appendChild(canvas);
+
+    // ==============================
+    // 加入媒体区域
+    // ==============================
+    popup.appendChild(mediaArea);
+
+    // ==============================
+    // 给后续动态 appendChild 的元素
+    // 预留正常文档流区域
+    // ==============================
+
+    const contentArea = document.createElement('div');
+
+    contentArea.style.width = '100%';
+
+    contentArea.style.boxSizing = 'border-box';
+
+    contentArea.style.padding = '0 20px 20px 20px';
+
+    contentArea.style.marginTop = '0';
+
+    contentArea.style.position = 'relative';
+
+    // 注意：
+    // 不改变 popup 的 ID，也不改变后续 appendChild 行为。
+    // 这里使用 CSS Grid/普通流，让后来 append 的元素正常排列。
+
+    popup.appendChild(contentArea);
+
+    // ==============================
+    // 关键：重写 popup.appendChild
+    // 让后续动态添加的普通元素进入 contentArea
+    // ==============================
+
+    const originalAppendChild = popup.appendChild.bind(popup);
+
+    popup.appendChild = function(child) {
+
+        // 已经属于弹窗结构的元素正常添加
+        if (
+            child === header ||
+            child === mediaArea ||
+            child === contentArea
+        ) {
+            return originalAppendChild(child);
+        }
+
+        // 后续 startIdent 中：
+        //
+        // document.getElementById('popup').appendChild(value)
+        //
+        // 自动进入内容区域
+        return contentArea.appendChild(child);
+    };
+
+    // ==============================
+    // 保存引用
+    // ==============================
+    document.body.appendChild(popup);
+
+    this.videoPopup = popup;
+    this.videoElement = video;
+    this.imgElement = img;
+}
 
      // ========== 新增拖动相关方法 ==========
      startDrag(e) {
@@ -760,13 +1276,12 @@ class robotteachable {
                 const scaleY = canvasHeight / videoHeight;
 
                 // 画出手部关键点
-                hand.landmarks.forEach((landmark, index) => {
+                hand.keypoints.forEach((point, index) => {
                     // 跳过每个手指的第二个关键点 (i*4 + 1)
                     if (index % 4 === 3) return;  // 跳过手指的第二个关键点
                     // 缩放坐标
-                    const adjustedX = landmark[0] * scaleX;
-                    const adjustedY = landmark[1] * scaleY;
-
+                    const adjustedX = point.x
+                    const adjustedY = point.y
                     // 设置关键点的大小
                     const pointSize = 3;
 
@@ -779,14 +1294,22 @@ class robotteachable {
 
                 // 绘制手指骨骼连线
                 this.connections.forEach(([startIdx, endIdx]) => {
-                    const start = hand.landmarks[startIdx];
-                    const end = hand.landmarks[endIdx];
+                    // const start = hand.landmarks[startIdx];
+                    // const end = hand.landmarks[endIdx];
 
-                    // 缩放后绘制连线
-                    const adjustedStartX = start[0] * scaleX;
-                    const adjustedStartY = start[1] * scaleY;
-                    const adjustedEndX = end[0] * scaleX;
-                    const adjustedEndY = end[1] * scaleY;
+                    // // 缩放后绘制连线
+                    // const adjustedStartX = start[0] * scaleX;
+                    // const adjustedStartY = start[1] * scaleY;
+                    // const adjustedEndX = end[0] * scaleX;
+                    // const adjustedEndY = end[1] * scaleY;
+                    const start = hand.keypoints[startIdx];
+                    const end = hand.keypoints[endIdx];
+                    const adjustedStartX = start.x ;
+                    const adjustedStartY = start.y ;
+
+                    const adjustedEndX = end.x ;
+                    const adjustedEndY = end.y ;
+
 
                     ctx.beginPath();
                     ctx.moveTo(adjustedStartX, adjustedStartY);
@@ -855,7 +1378,49 @@ class robotteachable {
             // this.runtime.ioDevices.video.enableVideo()
     
             const value=document.createElement('div')
+            value.style.marginTop='40px'
+            value.style.height='180px'
+            value.style.overflowY='scroll'
             document.getElementById('popup').appendChild(value)
+
+             // 保存本次生成已经使用过的色相
+            const usedHues = [];
+
+            // 生成一个随机且尽量不重复的颜色
+            function getRandomColor() {
+                let hue;
+                let minDistance = 30; // 两个颜色至少间隔 30°
+        
+                // 尝试生成一个与已有颜色差距较大的色相
+                let attempts = 0;
+        
+                do {
+                    hue = Math.floor(Math.random() * 360);
+                    attempts++;
+        
+                    // 判断与已经使用的颜色是否太接近
+                    const isTooClose = usedHues.some(oldHue => {
+                        let distance = Math.abs(hue - oldHue);
+        
+                        // 色轮首尾也是相连的
+                        distance = Math.min(distance, 360 - distance);
+        
+                        return distance < minDistance;
+                    });
+        
+                    if (!isTooClose || attempts > 100) {
+                        break;
+                    }
+        
+                } while (true);
+        
+                usedHues.push(hue);
+        
+                // HSL：
+                // S = 饱和度
+                // L = 明度
+                return `hsl(${hue}, 70%, 55%)`;
+            }
             if(this.classInfo.length>0){
                 for(let i=0;i<this.classInfo[0].length;i++){
                     let rowDiv = document.createElement('div'); // 新增容器，作为一行
@@ -880,13 +1445,14 @@ class robotteachable {
                     barCon.id = 'barCon' + this.classInfo[0][i];
     
                     let bar = document.createElement('div');
+                    const randomColor = getRandomColor();
                     bar.style.width = '0';
-                    bar.style.height = '18px';
-                    bar.style.backgroundColor = '#38ceb1';
+                    bar.style.height = '30px';
+                    bar.style.backgroundColor = randomColor;
                     bar.style.textAlign = 'center';
-                    bar.style.lineHeight = '18px'; // 让文本垂直居中
+                    bar.style.lineHeight = '30px'; // 让文本垂直居中
                     bar.style.color = 'white';
-                    bar.style.borderRadius = '20px';
+                    bar.style.borderRadius = '5px';
                     // bar.style.transition = 'width 1s ease';
                     bar.id = 'bar' + this.classInfo[0][i];
     
