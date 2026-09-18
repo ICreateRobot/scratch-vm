@@ -2208,9 +2208,9 @@ _removeSuccessWaiter(handler) {
                     return true
                 }else if(args.ONE=='1' && getValue(result,Number(args.TWO),'y')<0){
                     return true
-                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'y')<0){
+                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'x')<0){
                     return true
-                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'y')>0){
+                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'x')>0){
                     return true
                 }else{
                     return false
@@ -2224,9 +2224,9 @@ _removeSuccessWaiter(handler) {
                     return true
                 }else if(args.ONE=='1' && getValue(result,Number(args.TWO),'y')<0){
                     return true
-                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'y')<0){
+                }else if(args.ONE=='2' && getValue(result,Number(args.TWO),'x')<0){
                     return true
-                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'y')>0){
+                }else if(args.ONE=='3' && getValue(result,Number(args.TWO),'x')>0){
                     return true
                 }else{
                     return false
