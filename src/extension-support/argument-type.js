@@ -128,6 +128,14 @@ const ArgumentType = {
       *限制输入大小0-65535
      */
      NUMRES0_65535: 'numres0D65535',
+      /**
+      *限制输入大小0-3
+     */
+      NUMRES0_3: 'numres0D3',
+      /**
+      *限制输入大小0-12
+     */
+      NUMRES0_12: 'numres0D12',
 };
 
 module.exports = ArgumentType;

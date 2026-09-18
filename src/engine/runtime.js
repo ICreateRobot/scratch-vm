@@ -229,6 +229,18 @@ const ArgumentTypeMap = (() => {
             fieldName: 'NUM'
         }
     };
+    map[ArgumentType.NUMRES0_3] = {
+        shadow: {
+            type: 'numres0D3',
+            fieldName: 'NUM'
+        }
+    };
+    map[ArgumentType.NUMRES0_12] = {
+        shadow: {
+            type: 'numres0D12',
+            fieldName: 'NUM'
+        }
+    };
     return map;
 })();
 
