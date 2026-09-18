@@ -220,57 +220,162 @@ class CameraModal {
 
         const style = document.createElement('style');
         style.id = 'camera-style';
-        style.innerHTML = `
-       .camera-modal {
-        width: 600px;
+    //     style.innerHTML = `
+    //    .camera-modal {
+    //     width: 600px;
+    //     height: 500px;
+    //     position: fixed;
+    //     top: 100px;
+    //     left: 100px;
+    //     background: #ffffff;
+    //     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    //     z-index: 9999;
+    //     border-radius: 10px;
+    //     overflow: hidden;
+    //     font-family: 'Segoe UI', sans-serif;
+    //     border: 1px solid rgb(157, 253, 235);
+    //     resize: both;
+    //     overflow: auto;
+    // }
+
+    // .camera-header {
+    //     height: 42px;
+    //     background:rgb(89, 246, 227);
+    //     color: white;
+    //     display: flex;
+    //     justify-content: space-between;
+    //     align-items: center;
+    //     padding: 0 12px;
+    //     font-weight: bold;
+    //     user-select: none;
+    //     cursor: move;
+    //     z-index: 100;
+    // }
+
+    // .camera-title {
+    //     font-size: 16px;
+    // }
+
+    // .camera-close {
+    //     cursor: pointer;
+    //     font-size: 20px;
+    //     font-weight: normal;
+    //     transition: color 0.2s;
+    // }
+
+    // .camera-close:hover {
+    //     color: #ffdddd;
+    // }
+
+    // .camera-body {
+    //     width: 100%;
+    //     height: calc(100% - 42px);
+    //     background: #e9f1ff;
+    //     display: flex;
+    //     justify-content: center;
+    //     align-items: center;
+    // }
+
+    // .camera-body video,
+    // .camera-body img,
+    // .camera-body canvas{
+    //     width: 100%;
+    //     height: 100%;
+    //     border-radius: 6px;
+    //     // background: black;
+    // }
+    //     `;
+    style.innerHTML = `
+    .camera-modal {
+        width: 610px;
         height: 500px;
         position: fixed;
         top: 100px;
         left: 100px;
         background: #ffffff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
         z-index: 9999;
         border-radius: 10px;
         overflow: hidden;
-        font-family: 'Segoe UI', sans-serif;
-        border: 1px solid rgb(157, 253, 235);
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        border: 1px solid #d8dce5;
         resize: both;
         overflow: auto;
     }
 
+    /* 顶部标题栏 */
     .camera-header {
         height: 42px;
-        background:rgb(89, 246, 227);
-        color: white;
+
+        /* 修改这里：蓝紫色渐变 */
+        background: linear-gradient(
+            135deg,
+            #667eea 0%,
+            #764ba2 100%
+        );
+
+        color: #ffffff;
+
         display: flex;
         justify-content: space-between;
         align-items: center;
+
         padding: 0 12px;
-        font-weight: bold;
+
+        font-weight: 600;
+
         user-select: none;
         cursor: move;
+
         z-index: 100;
+
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
+    /* 标题 */
     .camera-title {
-        font-size: 16px;
+        font-size: 15px;
+        letter-spacing: 0.3px;
+        color: #ffffff;
     }
 
+    /* 关闭按钮 */
     .camera-close {
+        width: 28px;
+        height: 28px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
         cursor: pointer;
-        font-size: 20px;
-        font-weight: normal;
-        transition: color 0.2s;
+
+        font-size: 21px;
+        font-weight: 300;
+        line-height: 1;
+
+        border-radius: 6px;
+
+        color: rgba(255, 255, 255, 0.9);
+
+        transition: all 0.2s ease;
     }
 
     .camera-close:hover {
-        color: #ffdddd;
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .camera-close:active {
+        background: rgba(255, 255, 255, 0.3);
     }
 
     .camera-body {
         width: 100%;
         height: calc(100% - 42px);
-        background: #e9f1ff;
+
+        background: #111111;
+
         display: flex;
         justify-content: center;
         align-items: center;
@@ -278,13 +383,12 @@ class CameraModal {
 
     .camera-body video,
     .camera-body img,
-    .camera-body canvas{
+    .camera-body canvas {
         width: 100%;
         height: 100%;
         border-radius: 6px;
-        // background: black;
     }
-        `;
+`;
         document.head.appendChild(style);
     }
 
@@ -1074,10 +1178,15 @@ class CameraModal {
         this.upper_yellow.data.set([35, 255, 255]); // 黄色上限 (H=35, S=255, V=255)
 
         // 绿色范围的 HSV 值
-        this.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        this.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        this.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
-        this.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
+        // this.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        // this.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        // this.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
+        // this.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
+        that.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        that.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        that.lower_green.data.set([35, 80, 40]); // 绿色下限 (H=50, S=150, V=50)
+        that.upper_green.data.set([85, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
+
 
         // 黑色范围的 HSV 值
         this.lower_black = new cv.Mat(1, 3, cv.CV_8UC1);
