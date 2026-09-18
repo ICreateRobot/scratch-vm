@@ -130,13 +130,14 @@ class RobotMove {
         },3000)
 
     
-        window.addEventListener('offline',()=>{
-            alert(formatMessage({
-                id: 'robot.wifi',
-                default: 'Network connection has been disconnected',
-                description: 'robot.wifi'
-            }))
-        })
+        // window.addEventListener('offline',()=>{
+        //     // alert(formatMessage({
+        //     //     id: 'robot.wifi',
+        //     //     default: 'Network connection has been disconnected',
+        //     //     description: 'robot.wifi'
+        //     // }))
+        //     alert('qqqqqqq')
+        // })
 
         // this.whatSendFun='net'
         // this.isPortConnected = false
@@ -1091,20 +1092,44 @@ class RobotMove {
     }
 
 
+    // toTwoDigitHexadecimalPair(decimal) {
+    //     if (decimal < 0) {
+    //         throw new Error("Input must be a non-negative integer");
+    //     }
+
+    //     const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
+    //     const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
+
+    //     return [
+    //         // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+    //         // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+    //         leftHex,
+    //         rightHex
+    //     ];
+    // }
     toTwoDigitHexadecimalPair(decimal) {
-        if (decimal < 0) {
-            throw new Error("Input must be a non-negative integer");
+        // 必须是整数
+        if (!Number.isInteger(decimal)) {
+            throw new Error("Input must be an integer");
         }
-
-        const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
-        const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
-
-        return [
-            // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
-            // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
-            leftHex,
-            rightHex
-        ];
+    
+        // 16 位有符号整数范围
+        if (decimal < -32768 || decimal > 32767) {
+            throw new Error("Input must be between -32768 and 32767");
+        }
+    
+        // 负数转换成 16 位补码
+        const unsignedValue = decimal < 0
+            ? decimal + 65536
+            : decimal;
+    
+        // 高 8 位
+        const highByte = (unsignedValue >> 8) & 0xFF;
+    
+        // 低 8 位
+        const lowByte = unsignedValue & 0xFF;
+    
+        return [highByte, lowByte];
     }
     signedToHexValue(num, bits = 8) {
         let mask = (1 << bits) - 1;
