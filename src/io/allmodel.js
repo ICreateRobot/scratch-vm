@@ -1100,10 +1100,15 @@ function startColorPlaceDetection(that,Video,cv,StageLayering,aiInfo) {
     that.upper_yellow.data.set([35, 255, 255]); // 黄色上限 (H=35, S=255, V=255)
 
     // 绿色范围的 HSV 值
+    // that.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
+    // that.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
+    // that.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
+    // that.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
     that.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
     that.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
-    that.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
-    that.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
+    that.lower_green.data.set([35, 80, 40]); // 绿色下限 (H=50, S=150, V=50)
+    that.upper_green.data.set([85, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
+
 
     // 黑色范围的 HSV 值
     that.lower_black = new cv.Mat(1, 3, cv.CV_8UC1);
