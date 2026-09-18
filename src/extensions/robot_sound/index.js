@@ -1412,7 +1412,9 @@ class RobotSound {
             console.log(arrayBuffer)
 
             let name = await new Promise(resolve => {
-                resolve(prompt('请输入音频名称'));  // 在异步函数中包装 prompt
+                
+                resolve(prompt('Please enter the audio name.')); 
+                // resolve(prompt('请输入音频名称'));  // 在异步函数中包装 prompt
             });
 
             this.upLoadSound.push({
