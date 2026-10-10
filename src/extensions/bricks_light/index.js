@@ -22,6 +22,9 @@ class BricksLight {
         this.mode=event.data
         currentMode.setMode(event.data)
     })
+
+
+
     if(!socket.getSocket()){
       socket.setSocket()
     }

@@ -2,7 +2,8 @@ const jsQR = require('jsqr');  // 引入 jsQR 库
 const aiInfo = require('../aiInfo.js')
 
 const Comlink = require('../model/comlink.js')
-const cv = require('../model/opencv1')
+// const cv = require('../model/opencv1')
+let cv
 
 const cocoSsd = require('../model/coco-ssd')
 const tfjs = require('../model/tfjs.js')
@@ -10,6 +11,116 @@ const tfjs = require('../model/tfjs.js')
 const imageLoad = require('../imageLoad.js');
 const { createElement } = require('react');
 let THIS;
+let handLandmarker;
+const HAND_CONNECTIONS = [
+
+// 拇指
+[0, 1],
+[1, 2],
+[2, 3],
+[3, 4],
+
+// 食指
+[0, 5],
+[5, 6],
+[6, 7],
+[7, 8],
+
+// 中指
+[0, 9],
+[9, 10],
+[10, 11],
+[11, 12],
+
+// 无名指
+[0, 13],
+[13, 14],
+[14, 15],
+[15, 16],
+
+// 小指
+[0, 17],
+[17, 18],
+[18, 19],
+[19, 20],
+
+// 手掌
+[5, 9],
+[9, 13],
+[13, 17]
+];
+
+let poseLandmarker;
+
+
+// ========================================
+// 需要绘制的姿态关键点
+// ========================================
+
+const POSE_DRAW_POINTS = [
+    0,  // 鼻子
+    2,  // 左眼
+    5,  // 右眼
+
+    11, // 左肩
+    12, // 右肩
+
+    13, // 左肘
+    14, // 右肘
+
+    15, // 左手腕
+    16, // 右手腕
+
+    23, // 左髋
+    24, // 右髋
+
+    25, // 左膝
+    26, // 右膝
+
+    27, // 左脚踝
+    28  // 右脚踝
+];
+
+
+// ========================================
+// 姿态骨骼连接
+// ========================================
+
+const POSE_CONNECTIONS = [
+
+    // 头部
+    [0, 2],
+    [0, 5],
+
+    // 肩膀
+    [11, 12],
+
+    // 左手
+    [11, 13],
+    [13, 15],
+
+    // 右手
+    [12, 14],
+    [14, 16],
+
+    // 左身体
+    [11, 23],
+
+    // 右身体
+    [12, 24],
+
+    // 髋部
+    [23, 24],
+
+    // 左腿
+    [23, 25],
+    [25, 27],
+
+    // 右腿
+    [24, 26],
+    [26, 28]
+];
+
 class CameraModal {
   constructor() {
     THIS=this
@@ -41,7 +152,8 @@ class CameraModal {
 
     this.isColorDetectionActive = false;
 
-
+    this.isGestureActive=false
+    this.isPoseActive = false
 
 
 
@@ -213,6 +325,8 @@ class CameraModal {
 
 
       this.isColorPlaceDetectionActive = false;
+      this._loadingCV=null
+      window._loadingCV=null
 
   }
     insertStyle() {
@@ -220,162 +334,57 @@ class CameraModal {
 
         const style = document.createElement('style');
         style.id = 'camera-style';
-    //     style.innerHTML = `
-    //    .camera-modal {
-    //     width: 600px;
-    //     height: 500px;
-    //     position: fixed;
-    //     top: 100px;
-    //     left: 100px;
-    //     background: #ffffff;
-    //     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    //     z-index: 9999;
-    //     border-radius: 10px;
-    //     overflow: hidden;
-    //     font-family: 'Segoe UI', sans-serif;
-    //     border: 1px solid rgb(157, 253, 235);
-    //     resize: both;
-    //     overflow: auto;
-    // }
-
-    // .camera-header {
-    //     height: 42px;
-    //     background:rgb(89, 246, 227);
-    //     color: white;
-    //     display: flex;
-    //     justify-content: space-between;
-    //     align-items: center;
-    //     padding: 0 12px;
-    //     font-weight: bold;
-    //     user-select: none;
-    //     cursor: move;
-    //     z-index: 100;
-    // }
-
-    // .camera-title {
-    //     font-size: 16px;
-    // }
-
-    // .camera-close {
-    //     cursor: pointer;
-    //     font-size: 20px;
-    //     font-weight: normal;
-    //     transition: color 0.2s;
-    // }
-
-    // .camera-close:hover {
-    //     color: #ffdddd;
-    // }
-
-    // .camera-body {
-    //     width: 100%;
-    //     height: calc(100% - 42px);
-    //     background: #e9f1ff;
-    //     display: flex;
-    //     justify-content: center;
-    //     align-items: center;
-    // }
-
-    // .camera-body video,
-    // .camera-body img,
-    // .camera-body canvas{
-    //     width: 100%;
-    //     height: 100%;
-    //     border-radius: 6px;
-    //     // background: black;
-    // }
-    //     `;
-    style.innerHTML = `
-    .camera-modal {
-        width: 610px;
+        style.innerHTML = `
+       .camera-modal {
+        width: 600px;
         height: 500px;
         position: fixed;
         top: 100px;
         left: 100px;
         background: #ffffff;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         z-index: 9999;
         border-radius: 10px;
         overflow: hidden;
-        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-        border: 1px solid #d8dce5;
+        font-family: 'Segoe UI', sans-serif;
+        border: 1px solid rgb(157, 253, 235);
         resize: both;
         overflow: auto;
     }
 
-    /* 顶部标题栏 */
     .camera-header {
         height: 42px;
-
-        /* 修改这里：蓝紫色渐变 */
-        background: linear-gradient(
-            135deg,
-            #667eea 0%,
-            #764ba2 100%
-        );
-
-        color: #ffffff;
-
+        background:rgb(89, 246, 227);
+        color: white;
         display: flex;
         justify-content: space-between;
         align-items: center;
-
         padding: 0 12px;
-
-        font-weight: 600;
-
+        font-weight: bold;
         user-select: none;
         cursor: move;
-
         z-index: 100;
-
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
-    /* 标题 */
     .camera-title {
-        font-size: 15px;
-        letter-spacing: 0.3px;
-        color: #ffffff;
+        font-size: 16px;
     }
 
-    /* 关闭按钮 */
     .camera-close {
-        width: 28px;
-        height: 28px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
         cursor: pointer;
-
-        font-size: 21px;
-        font-weight: 300;
-        line-height: 1;
-
-        border-radius: 6px;
-
-        color: rgba(255, 255, 255, 0.9);
-
-        transition: all 0.2s ease;
+        font-size: 20px;
+        font-weight: normal;
+        transition: color 0.2s;
     }
 
     .camera-close:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
-    }
-
-    .camera-close:active {
-        background: rgba(255, 255, 255, 0.3);
+        color: #ffdddd;
     }
 
     .camera-body {
         width: 100%;
         height: calc(100% - 42px);
-
-        background: #111111;
-
+        background: #e9f1ff;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -383,12 +392,13 @@ class CameraModal {
 
     .camera-body video,
     .camera-body img,
-    .camera-body canvas {
+    .camera-body canvas{
         width: 100%;
         height: 100%;
         border-radius: 6px;
+        // background: black;
     }
-`;
+        `;
         document.head.appendChild(style);
     }
 
@@ -546,6 +556,101 @@ class CameraModal {
     }
   }
 
+
+  async loadModel() {
+
+    
+        // 已经可用
+    if (window.cv) {
+        return window.cv;
+    }
+
+    // 防止重复加载
+    if (window._loadingCV) {
+        return window._loadingCV;
+    }
+    console.log('弹窗加载cv')
+
+    window._loadingCV = new Promise((resolve, reject) => {
+
+        const currentURL = window.location.href;
+        // 获取前一级路径
+        const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+        const modelPath =oneLevelUp+'/static/model';  // 你的模型路径
+        console.log(`${modelPath}/opencv1.js`)
+        const script = document.createElement('script');
+        script.src = `${modelPath}/opencv1.js`;
+        script.async = true;
+        // script.defer = true;
+
+        script.onerror = () => {
+            reject(new Error('opencv1.js 加载失败'));
+        };
+
+        script.onload = () => {
+            // console.log('opencv1.js script loaded');
+
+            // const start = performance.now();
+            // const timeout = 15000;
+
+            // resolve(true);
+
+            // // const waitForCV = () => {
+            // //     if (window.cv && window.cv.Mat) {
+            // //         console.log('OpenCV ready');
+            // //         resolve(window.cv);
+            // //         return;
+            // //     }
+
+            // //     if (performance.now() - start > timeout) {
+            // //         reject(new Error('OpenCV 初始化超时'));
+            // //         return;
+            // //     }
+
+            // //     requestAnimationFrame(waitForCV);
+            // // };
+
+            // // waitForCV();
+            console.log('opencv1.js script loaded');
+
+            const start = performance.now();
+            const timeout = 15000;
+        
+            const waitForCV = () => {
+        
+                if (window.cv && window.cv.Mat) {
+        
+                    console.log(
+                        'OpenCV ready',
+                        performance.now() - start
+                    );
+                       
+        
+                    resolve(true);
+                    return;
+                }
+        
+                if (performance.now() - start > timeout) {
+        
+                    reject(
+                        new Error('OpenCV 初始化超时')
+                    );
+        
+                    return;
+                }
+        
+                requestAnimationFrame(waitForCV);
+            };
+        
+            waitForCV();
+        };
+
+        document.head.appendChild(script);
+    });
+
+    return window._loadingCV;
+    }
+
   setRemoteUrl(url) {
     this.remoteUrl = url;
     this.videoType = 'remote';
@@ -677,7 +782,6 @@ class CameraModal {
             ];
 
             aiInfo.setQrLocation(location)
-            // console.log(aiInfo.getQrLocation())
             const wh = [
                 Math.abs(corners.topRightCorner.x - corners.topLeftCorner.x),
                 Math.abs(corners.bottomLeftCorner.y - corners.topLeftCorner.y)
@@ -696,6 +800,7 @@ class CameraModal {
             // if (typeof this.onQRDetected === 'function') {
             // this.onQRDetected(null);
             // }
+
         }
 
         this.qrRequestId = requestAnimationFrame(() => this.processQRDetection());
@@ -729,7 +834,7 @@ class CameraModal {
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         // 获取前两级路径
         const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath =twoLevelsUp+'/static/model';  // 你的模型路径
+        const modelPath =oneLevelUp+'/static/model';  // 你的模型路径
         // WebWorkers use `postMessage` and therefore work with Comlink.
         const Apriltag = Comlink.wrap(new Worker(modelPath+"/apriltag.js"));
 
@@ -893,8 +998,8 @@ class CameraModal {
                 }));
             }
         
-            const xCenter = centerX - 255-60;
-            const yCenter = -1 * (centerY - 223-30);
+            const xCenter = centerX - 300;
+            const yCenter = -1 * (centerY - 250);
             const distance = this.getAprilDistance(det.corners[0].x, det.corners[0].y, det.corners[1].x, det.corners[1].y);
         
             aiInfo.setAprilLocation({
@@ -960,11 +1065,22 @@ class CameraModal {
 
 
      // 启动颜色识别
-    startColorDetection() {
+    async startColorDetection() {
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
 
 
         this.isColorDetectionActive = true;
 
+        // if(!cv) cv = require('../model/opencv1')
 
         this.processColorDetection();
     }
@@ -985,7 +1101,7 @@ class CameraModal {
         // console.log('-----------')
         // let canvasOutput = document.getElementById('canvasOutput');
         // let ctx = canvasOutput.getContext('2d');
- let width;
+        let width;
         let height;
 
         let imageData;
@@ -1155,7 +1271,18 @@ class CameraModal {
 
 
      // 启动色块位置识别
-    startColorPlaceDetection() {
+    async startColorPlaceDetection() {
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        // if(!cv) cv = require('../model/opencv1')
 
         // 设置蓝色范围的 HSV 值
         this.lower_blue = new cv.Mat(1, 3, cv.CV_8UC1); // 1行3列矩阵
@@ -1178,15 +1305,10 @@ class CameraModal {
         this.upper_yellow.data.set([35, 255, 255]); // 黄色上限 (H=35, S=255, V=255)
 
         // 绿色范围的 HSV 值
-        // this.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        // this.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        // this.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
-        // this.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
-        that.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        that.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
-        that.lower_green.data.set([35, 80, 40]); // 绿色下限 (H=50, S=150, V=50)
-        that.upper_green.data.set([85, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
-
+        this.lower_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        this.upper_green = new cv.Mat(1, 3, cv.CV_8UC1);
+        this.lower_green.data.set([50, 150, 50]); // 绿色下限 (H=50, S=150, V=50)
+        this.upper_green.data.set([70, 255, 255]); // 绿色上限 (H=70, S=255, V=255)
 
         // 黑色范围的 HSV 值
         this.lower_black = new cv.Mat(1, 3, cv.CV_8UC1);
@@ -1434,8 +1556,20 @@ class CameraModal {
 
      //颜色追踪
     // 启动色块检测
-    startWColorBlockDetection() {
+    async startWColorBlockDetection() {
         console.log('执行了颜色追踪')
+
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        // if(!cv) cv = require('../model/opencv1')
 
         // 设置蓝色范围的 HSV 值
         this.lower_blue = new cv.Mat(1, 3, cv.CV_8UC1); // 1行3列矩阵
@@ -1507,7 +1641,7 @@ class CameraModal {
         //if (!capColor) return;
 
 
-        // console.log('处理帧')
+        console.log('处理帧')
        let width;
         let height;
 
@@ -1677,13 +1811,14 @@ class CameraModal {
     // 初始化 OpenCV 和人脸检测
      async initializeOpenCV() {
 
+        // if(!cv) cv = require('../model/opencv1')
         const currentURL = window.location.href;
 
         // 获取前一级路径
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         // 获取前两级路径
         const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath =twoLevelsUp+'/static/model';  // 你的模型路径
+        const modelPath =oneLevelUp+'/static/model';  // 你的模型路径
         console.log(modelPath)
         console.log(window.location.href)
 
@@ -1796,8 +1931,21 @@ class CameraModal {
     }
 
     // 学习新人脸
-    learnNewFace(name) {
+    async learnNewFace(name) {
+        console.log('00000')
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        console.log('111')
         const features = this.extractLBPFeatures(this.faceImage);
+        console.log('222')
         this.faceDatabase.push({ name, features });
         console.log(`Learned new face: ${name}`);
     }
@@ -1808,6 +1956,16 @@ class CameraModal {
 
     // 启动人脸检测
     async startFaceDetection() {
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         if (!this.classifier) {
             console.log('OpenCV 尚未初始化，开始初始化...');
             await this.initializeOpenCV();
@@ -1819,7 +1977,18 @@ class CameraModal {
     }
 
     // 停止人脸检测
-    stopFaceDetection() {
+    async stopFaceDetection() {
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        // if(!cv) cv = require('../model/opencv1')
         this.isFaceDetectionActive = false;
         clearTimeout(this.processVideoTimeout);
         if (this.src) this.src.delete();
@@ -1964,7 +2133,7 @@ class CameraModal {
           const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
           // 获取前两级路径
           const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-          const modelPath =twoLevelsUp+'/static/model';  // 你的模型路径
+          const modelPath =oneLevelUp+'/static/model';  // 你的模型路径
           try {
               this.cocomodel = await cocoSsd.load({
                   modelPath:modelPath+'/model.json'
@@ -2057,8 +2226,8 @@ class CameraModal {
 
                 // if(chineseClass=='猫'){
                     aiInfo.setObjectLocation({
-                        x:Math.round(x-255+width/2),
-                        y:Math.round(y-223+height/2)
+                        x:Math.round(x-300+width/2),
+                        y:Math.round(y-250+height/2)
                     })
                     aiInfo.setObjectWh([Math.round(width),Math.round(height)])
                     this.canvasCtx.strokeStyle = "#00FF00";
@@ -2112,7 +2281,7 @@ class CameraModal {
         const currentURL = window.location.href;
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath = twoLevelsUp + '/static/model/tfjs_model4/';
+        const modelPath = oneLevelUp + '/static/model/tfjs_model4/';
 
         try {
             this.traficModel = await tfjs.loadGraphModel(modelPath + 'model.json');
@@ -2233,6 +2402,1194 @@ class CameraModal {
         clearInterval(this.timerTraffic)
     }
 
+    async startGestureDetection(gestureLandmark){
+        console.log('开始弹窗手势识别')
+        if(this.videoType !== 'local'){
+            const img = this.modal.querySelector('img');
+              if (!img) {
+                  console.warn('视频流未准备好');
+                  return;
+              }
+          }else{
+              const video = this.modal.querySelector('video');
+              if (!video || video.readyState < 2) {
+                  console.warn('视频流未准备好');
+                  return;
+              }
+          }
+        // const currentURL = window.location.href;
+        // // 获取前一级路径
+        // const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+        // const modelPath =oneLevelUp+'/static/model/gestureModel';
+        // const { HandLandmarker, FilesetResolver } = await import(
+        //     /* webpackIgnore: true */
+        //     modelPath+"/tasks-vision@latest.js"
+        //   );
+        // //   const { HandLandmarker, FilesetResolver } = await import(
+        // //     /* webpackIgnore: true */
+        // //     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest"
+        // //   );
+        //   console.log(HandLandmarker)
+        //   console.log(FilesetResolver)
+          this.isGestureActive=true
+          await this.init(gestureLandmark)
+    }
+
+    async init(gestureLandmark) {
+
+        try {
+            console.log('开始初始化')
+    
+            // ------------------------------------
+            // 加载 MediaPipe WASM
+            // ------------------------------------
+    
+            // const currentURL = window.location.href;
+            // // 获取前一级路径
+            // const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+            // const modelPath =oneLevelUp+'/static/model/gestureModel';
+            // const vision = await FilesetResolver.forVisionTasks(
+            // modelPath+"/wasm"
+            // // "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+            // );
+    
+            // console.log('vision',vision)
+    
+    
+            //  // 保存 OpenCV 的 Module
+            //  const savedModule = window.Module;
+    
+            //  try {
+            //      // 防止 OpenCV 的全局 Module 干扰 MediaPipe
+            //      window.Module = undefined;
+     
+            //      console.log(
+            //          '开始创建 HandLandmarker'
+            //      );
+     
+            //      handLandmarker =
+            //          await HandLandmarker.createFromOptions(
+            //              vision,
+            //              {
+            //                  baseOptions: {
+            //                      modelAssetPath:
+            //                          modelPath +
+            //                          "/hand_landmarker.task"
+            //                  },
+     
+            //                  runningMode: "VIDEO",
+     
+            //                  numHands: 1
+            //              }
+            //          );
+     
+            //      console.log(
+            //          'handLandmarker',
+            //          handLandmarker
+            //      );
+     
+            //  } finally {
+            //      // 恢复 OpenCV Module
+            //      window.Module = savedModule;
+     
+            //      console.log(
+            //          'OpenCV Module 已恢复'
+            //      );
+            //  }
+            handLandmarker=gestureLandmark
+            
+        
+            console.log('handLandmarker',handLandmarker)
+    
+    
+            // 开始检测
+            // requestAnimationFrame(() => detect(that, video,aiInfo));
+            this.detect()
+        } catch (error) {
+    
+            console.error("初始化失败:", error);
+    
+            // resultDiv.innerText = "初始化失败";
+    
+        }
+    
+    }
+
+    // ========================================
+    // 绘制手部骨骼连接线
+    // ========================================
+
+    drawHandConnections(hand) {
+
+        this.canvasCtx.beginPath();
+
+
+        HAND_CONNECTIONS.forEach(([startIndex, endIndex]) => {
+
+            const start = hand[startIndex];
+
+            const end = hand[endIndex];
+
+
+            // MediaPipe 的 x/y 是 0~1 的归一化坐标
+            const startX = this.mirror
+                ? (1 - start.x) * this.canvas.width
+                : start.x * this.canvas.width;
+            const startY =
+            start.y *this.canvas.height;
+
+
+            const endX = this.mirror
+                ? (1 - end.x) * this.canvas.width
+                : end.x * this.canvas.width;
+
+            const endY =
+            end.y * this.canvas.height;
+
+
+            // 绘制线段
+            this.canvasCtx.moveTo(startX, startY);
+
+            this.canvasCtx.lineTo(endX, endY);
+
+        });
+
+
+        // 连接线颜色
+        this.canvasCtx.strokeStyle = "#00ff00";
+
+        // 连接线宽度
+        this.canvasCtx.lineWidth = 4;
+
+        // 让线条更加平滑
+        this.canvasCtx.lineCap = "round";
+
+        this.canvasCtx.lineJoin = "round";
+
+        this.canvasCtx.stroke();
+    }
+
+
+  
+
+    //  drawHandPoints(hand) {
+
+    //     hand.forEach((point, index) => {
+
+    //         // const x = point.x * that.canvas.width;
+    //         const x = this.mirror
+    //         ? (1 - point.x) * this.canvas.width
+    //         : point.x * this.canvas.width;
+    //         const y = point.y * this.canvas.height;
+
+
+    //         // ====================================
+    //         // 绘制关键点
+    //         // ====================================
+
+    //         this.canvasCtx.beginPath();
+
+    //         this.canvasCtx.arc(
+    //             x,
+    //             y,
+    //             7,
+    //             0,
+    //             Math.PI * 2
+    //         );
+
+    //         if (index === 0) {
+    //             console.log("("+x+","+y+")")
+    //             this.canvasCtx.fillStyle = "#ff0000";
+    //         } else {
+    //             this.canvasCtx.fillStyle = "#00ffff";
+    //         }
+
+    //         this.canvasCtx.fill();
+
+    //         this.canvasCtx.strokeStyle = "#ffffff";
+    //         this.canvasCtx.lineWidth = 2;
+    //         this.canvasCtx.stroke();
+
+
+    //         // ====================================
+    //         // 绘制关键点编号
+    //         // ====================================
+
+    //         this.canvasCtx.save();
+
+    //         /*
+    //             * 注意：
+    //             *
+    //             * 整个 Canvas 本身已经：
+    //             *
+    //             * transform: scaleX(-1)
+    //             *
+    //             * 所以关键点位置是正确的，
+    //             * 但是文字也会跟着被镜像。
+    //             *
+    //             * 这里单独把文字反向一次，
+    //             * 抵消 Canvas 的镜像。
+    //             */
+
+    //         this.canvasCtx.translate(x, y);
+
+    //         // that.canvasCtx.scale(-1, 1);
+
+    //         this.canvasCtx.fillStyle = "#ffffff";
+
+    //         this.canvasCtx.font = "bold 16px Arial";
+
+    //         // that.canvasCtx.textAlign = "left";
+
+    //         this.canvasCtx.textBaseline = "alphabetic";
+
+    //         this.canvasCtx.fillText(
+    //             index,
+    //             9,
+    //             9
+    //         );
+
+    //         this.canvasCtx.restore();
+
+    //     });
+
+    // }
+    drawHandPoints(hand) {
+
+        // ========================================
+        // 保存所有关键点的中心坐标
+        // ========================================
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        // index 对应坐标
+        const handCenterPoints = {};
+
+        hand.forEach((point, index) => {
+
+            // ====================================
+            // 绘制坐标
+            // ====================================
+
+            // 注意：
+            // 这里保持你现在的绘制逻辑，不改变
+            const x = this.mirror
+                ? (1 - point.x) * this.canvas.width
+                : point.x * this.canvas.width;
+
+            const y =
+                point.y * this.canvas.height;
+
+
+            // ====================================
+            // 计算以画面中心为原点的坐标
+            // ====================================
+
+            const centerPointX =
+            Math.round(x - centerX);
+
+            const centerPointY =
+            Math.round(centerY - y);
+
+
+            // ====================================
+            // 保存 index 对应的中心坐标
+            // ====================================
+
+            handCenterPoints[index] = {
+                x: centerPointX,
+                y: centerPointY
+            };
+
+
+            // ====================================
+            // 绘制关键点
+            // ====================================
+
+            this.canvasCtx.beginPath();
+
+            this.canvasCtx.arc(
+                x,
+                y,
+                7,
+                0,
+                Math.PI * 2
+            );
+
+            if (index === 0) {
+                // console.log(handCenterPoints[0])
+
+                this.canvasCtx.fillStyle = "#ff0000";
+            } else {
+                this.canvasCtx.fillStyle = "#00ffff";
+            }
+
+            this.canvasCtx.fill();
+
+            this.canvasCtx.strokeStyle = "#ffffff";
+            this.canvasCtx.lineWidth = 2;
+            this.canvasCtx.stroke();
+
+
+            // ====================================
+            // 绘制关键点编号
+            // ====================================
+
+            this.canvasCtx.save();
+
+            this.canvasCtx.translate(x, y);
+
+            this.canvasCtx.fillStyle = "#ffffff";
+
+            this.canvasCtx.font = "bold 16px Arial";
+
+            this.canvasCtx.textBaseline = "alphabetic";
+
+            this.canvasCtx.fillText(
+                index,
+                9,
+                9
+            );
+
+            this.canvasCtx.restore();
+
+        });
+        aiInfo.setGesture(handCenterPoints)
+
+    }
+
+
+
+    // ========================================
+    // 绘制完整的手部关键点
+    // ========================================
+
+    async drawHandLandmarks(hand) {
+
+        // 先绘制骨骼连接线
+        this.drawHandConnections(hand);
+
+        // 再绘制关键点
+        this.drawHandPoints(hand);
+        
+
+    }
+
+
+
+    // ========================================
+    // 实时检测
+    // ========================================
+
+    async detect() {
+
+        if(!this.isGestureActive) return
+
+        let width;
+        let height;
+
+        let imageData;
+        if(this.videoType !== 'local'){
+          const img = this.modal.querySelector('img');
+          // img.crossOrigin = "anonymous";
+          if (!img) return;
+          if (img && img.complete && img.naturalWidth === 0) {
+             console.log('图像加载失败')
+              return;
+          }
+
+          width = img.width;
+          height = img.height;
+          // console.log(width)
+          this.canvas.width = width;
+          this.canvas.height = height;
+
+          this.canvasCtx.drawImage(img, 0, 0, width, height);
+
+          imageData = this.canvasCtx.getImageData(0, 0, width, height);
+          // console.log(imageData.data)
+        }else{
+          const video = this.modal.querySelector('video');
+          if (!video || video.readyState < 2) return;
+
+          width = video.videoWidth;
+          height = video.videoHeight;
+          this.canvas.width = width;
+          this.canvas.height = height;
+
+          this.canvasCtx.drawImage(video, 0, 0, width, height);
+          imageData = this.canvasCtx.getImageData(0, 0, width, height);
+          // console.log(imageData.data)
+        }
+
+        this.canvasCtx.clearRect(0, 0, width, height); // 清除上一帧绘制
+
+        //  // 始终复制原始 imageData，无论是否镜像
+        // const copied = new Uint8ClampedArray(imageData.data); // 拷贝 pixel 数据
+        // imageData = new ImageData(copied, imageData.width, imageData.height);
+
+        // if (this.mirror) {
+        //     imageData = this.mirrorImageData(imageData);
+        // }
+        // console.log('开始检测')
+        // 获取当前时间戳
+        const now = performance.now();
+
+
+        // ------------------------------------
+        // MediaPipe 手部检测
+        // ------------------------------------
+
+        const result =
+            handLandmarker.detectForVideo(
+            imageData,
+            now
+            );
+
+
+        // ------------------------------------
+        // 清除上一帧 Canvas
+        // ------------------------------------
+
+        // ------------------------------------
+        // 判断是否检测到手
+        // ------------------------------------
+
+        if (
+            result.landmarks &&
+            result.landmarks.length > 0
+        ) {
+
+            // 获取第一只手的 21 个关键点
+            const hand =
+            result.landmarks[0];
+
+
+            // ------------------------------------
+            // 绘制关键点和骨骼
+            // ------------------------------------
+
+            await this.drawHandLandmarks(hand);
+            // console.log(hand)
+
+
+            // ------------------------------------
+            // 获取左右手信息
+            // ------------------------------------
+
+            const handedness =
+            result.handedness[0][0].categoryName;
+
+
+            const isRightHand =
+            handedness === "Right";
+
+
+        } else {
+
+            console.log('未检测到手')
+            await new Promise(resolve => setTimeout(resolve, 100));
+            aiInfo.setGesture(null)
+            // const video = this.modal.querySelector('video');
+            // this.canvasCtx.drawImage(video, 0, 0, width, height);
+            // ------------------------------------
+            // 没检测到手
+            // ------------------------------------
+
+            // resultDiv.innerText =
+            // "未检测到手";
+
+        }
+
+
+       
+        // await new Promise(resolve => setTimeout(resolve, 50));
+        // ------------------------------------
+        // 下一帧继续检测
+        // ------------------------------------
+
+        // console.log('结束检测')
+        requestAnimationFrame(this.detect.bind(this));
+
+    }
+    stopGesture(){
+        this.isGestureActive = false;
+        cancelAnimationFrame(this.detect);
+        this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+
+    // ========================================
+    // 开始姿态识别
+    // ========================================
+
+    async startPoseDetection(poseLandmark) {
+
+        console.log('开始弹窗姿态识别');
+        console.log('poseLandmark',poseLandmark)
+
+        // ------------------------------------
+        // 检查视频 / 图片是否准备好
+        // ------------------------------------
+
+        if (this.videoType !== 'local') {
+
+            const img = this.modal.querySelector('img');
+
+            if (!img) {
+                console.warn('视频流未准备好');
+                return;
+            }
+
+        } else {
+
+            const video = this.modal.querySelector('video');
+
+            if (!video || video.readyState < 2) {
+                console.warn('视频流未准备好');
+                return;
+            }
+        }
+
+
+        // ------------------------------------
+        // 开启姿态识别
+        // ------------------------------------
+
+        this.isPoseActive = true;
+
+
+        // ------------------------------------
+        // 初始化
+        // ------------------------------------
+
+        await this.initPose(poseLandmark);
+    }
+
+
+    // ========================================
+    // 初始化姿态识别
+    // ========================================
+
+    async initPose(poseLandmark) {
+
+        try {
+
+            console.log('开始初始化姿态识别');
+
+
+            // ------------------------------------
+            // 保存 Pose Landmarker
+            // ------------------------------------
+
+            poseLandmarker = poseLandmark;
+
+
+            console.log(
+                'poseLandmarker',
+                poseLandmarker
+            );
+
+
+            // ------------------------------------
+            // 开始检测
+            // ------------------------------------
+
+            this.detectPose();
+
+
+        } catch (error) {
+
+            console.error(
+                "姿态识别初始化失败:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ========================================
+    // 绘制姿态骨骼连接线
+    // ========================================
+
+    drawPoseConnections(pose) {
+
+        this.canvasCtx.beginPath();
+
+
+        POSE_CONNECTIONS.forEach(
+            ([startIndex, endIndex]) => {
+
+                const start = pose[startIndex];
+                const end = pose[endIndex];
+
+
+                // ------------------------------------
+                // 防止关键点不存在
+                // ------------------------------------
+
+                if (!start || !end) {
+                    return;
+                }
+
+
+                // ------------------------------------
+                // MediaPipe x/y 是 0~1
+                // ------------------------------------
+
+                const startX = this.mirror
+                    ? (1 - start.x) * this.canvas.width
+                    : start.x * this.canvas.width;
+
+                const startY =
+                    start.y * this.canvas.height;
+
+
+                const endX = this.mirror
+                    ? (1 - end.x) * this.canvas.width
+                    : end.x * this.canvas.width;
+
+                const endY =
+                    end.y * this.canvas.height;
+
+
+                // ------------------------------------
+                // 绘制线段
+                // ------------------------------------
+
+                this.canvasCtx.moveTo(
+                    startX,
+                    startY
+                );
+
+                this.canvasCtx.lineTo(
+                    endX,
+                    endY
+                );
+
+            }
+        );
+
+
+        // ------------------------------------
+        // 连接线样式
+        // ------------------------------------
+
+        this.canvasCtx.strokeStyle = "#00ff00";
+
+        this.canvasCtx.lineWidth = 4;
+
+        this.canvasCtx.lineCap = "round";
+
+        this.canvasCtx.lineJoin = "round";
+
+
+        this.canvasCtx.stroke();
+
+    }
+
+
+    // ========================================
+    // 绘制姿态关键点
+    // ========================================
+
+    drawPosePoints(pose) {
+
+        // ------------------------------------
+        // 画面中心
+        // ------------------------------------
+
+        const centerX =
+            this.canvas.width / 2;
+
+        const centerY =
+            this.canvas.height / 2;
+
+
+        // ------------------------------------
+        // 保存所有姿态关键点中心坐标
+        // ------------------------------------
+
+        const poseCenterPoints = {};
+
+
+        // ------------------------------------
+        // 只遍历指定的15个关键点
+        // ------------------------------------
+
+        POSE_DRAW_POINTS.forEach(index => {
+
+            const point = pose[index];
+
+
+            // ------------------------------------
+            // 防止关键点不存在
+            // ------------------------------------
+
+            if (!point) {
+                return;
+            }
+
+
+            // ------------------------------------
+            // 计算 Canvas 上的位置
+            // ------------------------------------
+
+            const x = this.mirror
+                ? (1 - point.x) * this.canvas.width
+                : point.x * this.canvas.width;
+
+
+            const y =
+                point.y * this.canvas.height;
+
+
+            // ------------------------------------
+            // 转换成以画面中心为原点的坐标
+            // ------------------------------------
+
+            const centerPointX =
+                Math.round(x - centerX);
+
+
+            const centerPointY =
+                Math.round(centerY - y);
+
+
+            // ------------------------------------
+            // 保存关键点坐标
+            //
+            // 例如：
+            //
+            // poseCenterPoints[0]  -> 鼻子
+            // poseCenterPoints[2]  -> 左眼
+            // poseCenterPoints[5]  -> 右眼
+            //
+            // poseCenterPoints[11] -> 左肩
+            // poseCenterPoints[12] -> 右肩
+            // ------------------------------------
+
+            poseCenterPoints[index] = {
+
+                x: centerPointX,
+
+                y: centerPointY
+
+            };
+
+
+            // ------------------------------------
+            // 绘制关键点
+            // ------------------------------------
+
+            this.canvasCtx.beginPath();
+
+            this.canvasCtx.arc(
+                x,
+                y,
+                7,
+                0,
+                Math.PI * 2
+            );
+
+
+            // ------------------------------------
+            // 鼻子使用红色
+            // 其他点使用青色
+            // ------------------------------------
+
+            if (index === 0) {
+
+                this.canvasCtx.fillStyle =
+                    "#ff0000";
+
+            } else {
+
+                this.canvasCtx.fillStyle =
+                    "#00ffff";
+
+            }
+
+
+            this.canvasCtx.fill();
+
+
+            // ------------------------------------
+            // 白色边框
+            // ------------------------------------
+
+            this.canvasCtx.strokeStyle =
+                "#ffffff";
+
+            this.canvasCtx.lineWidth = 2;
+
+            this.canvasCtx.stroke();
+
+
+            // ------------------------------------
+            // 绘制关键点编号
+            // ------------------------------------
+
+            this.canvasCtx.save();
+
+
+            this.canvasCtx.translate(
+                x,
+                y
+            );
+
+
+            this.canvasCtx.fillStyle =
+                "#ffffff";
+
+
+            this.canvasCtx.font =
+                "bold 16px Arial";
+
+
+            this.canvasCtx.textBaseline =
+                "alphabetic";
+
+
+            this.canvasCtx.fillText(
+                index,
+                9,
+                9
+            );
+
+
+            this.canvasCtx.restore();
+
+        });
+
+
+        // ------------------------------------
+        // 将姿态关键点传出去
+        // ------------------------------------
+
+        if (aiInfo && aiInfo.setPose) {
+
+            aiInfo.setPose(
+                poseCenterPoints
+            );
+
+        }
+
+    }
+
+
+    // ========================================
+    // 绘制完整姿态
+    // ========================================
+
+    async drawPoseLandmarks(pose) {
+
+        // ------------------------------------
+        // 先画骨骼
+        // ------------------------------------
+
+        this.drawPoseConnections(
+            pose
+        );
+
+
+        // ------------------------------------
+        // 再画关键点
+        // ------------------------------------
+
+        this.drawPosePoints(
+            pose
+        );
+
+    }
+
+
+    // ========================================
+    // 实时姿态检测
+    // ========================================
+
+    async detectPose() {
+
+        // ------------------------------------
+        // 判断是否仍然开启姿态识别
+        // ------------------------------------
+
+        if (!this.isPoseActive) {
+            return;
+        }
+
+
+        let width;
+
+        let height;
+
+        let imageData;
+
+
+        // ====================================
+        // 图片模式
+        // ====================================
+
+        if (this.videoType !== 'local') {
+
+            const img =
+                this.modal.querySelector('img');
+
+
+            if (!img) {
+                return;
+            }
+
+
+            // ------------------------------------
+            // 图片加载失败
+            // ------------------------------------
+
+            if (
+                img.complete &&
+                img.naturalWidth === 0
+            ) {
+
+                console.log(
+                    '图像加载失败'
+                );
+
+                return;
+            }
+
+
+            // ------------------------------------
+            // 获取图片尺寸
+            // ------------------------------------
+
+            width = img.width;
+
+            height = img.height;
+
+
+            this.canvas.width =
+                width;
+
+            this.canvas.height =
+                height;
+
+
+            // ------------------------------------
+            // 绘制原始图片
+            // ------------------------------------
+
+            this.canvasCtx.drawImage(
+                img,
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            // ------------------------------------
+            // 获取 ImageData
+            // ------------------------------------
+
+            imageData =
+                this.canvasCtx.getImageData(
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+        }
+
+        // ====================================
+        // 视频模式
+        // ====================================
+
+        else {
+
+            const video =
+                this.modal.querySelector('video');
+
+
+            if (
+                !video ||
+                video.readyState < 2
+            ) {
+
+                return;
+            }
+
+
+            // ------------------------------------
+            // 获取视频尺寸
+            // ------------------------------------
+
+            width =
+                video.videoWidth;
+
+            height =
+                video.videoHeight;
+
+
+            this.canvas.width =
+                width;
+
+            this.canvas.height =
+                height;
+
+
+            // ------------------------------------
+            // 绘制视频
+            // ------------------------------------
+
+            this.canvasCtx.drawImage(
+                video,
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            // ------------------------------------
+            // 获取 ImageData
+            // ------------------------------------
+
+            imageData =
+                this.canvasCtx.getImageData(
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+        }
+
+
+        // ====================================
+        // 清除上一帧绘制
+        // ====================================
+
+        this.canvasCtx.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        // ====================================
+        // 获取时间戳
+        // ====================================
+
+        const now =
+            performance.now();
+
+
+        // ====================================
+        // MediaPipe Pose 检测
+        // ====================================
+
+        const result =
+            poseLandmarker.detectForVideo(
+                imageData,
+                now
+            );
+
+
+        // ====================================
+        // 判断是否检测到人体
+        // ====================================
+
+        if (
+            result.landmarks &&
+            result.landmarks.length > 0
+        ) {
+
+            // ------------------------------------
+            // 获取第一个人体
+            // ------------------------------------
+
+            const pose =
+                result.landmarks[0];
+
+
+            // ------------------------------------
+            // 绘制姿态
+            // ------------------------------------
+
+            await this.drawPoseLandmarks(
+                pose
+            );
+
+
+            // ------------------------------------
+            // 如果需要，可以获取世界坐标
+            // ------------------------------------
+
+            // const worldPose =
+            //     result.worldLandmarks[0];
+
+        }
+
+        // ====================================
+        // 没有检测到人体
+        // ====================================
+
+        else {
+
+            console.log(
+                '未检测到人体'
+            );
+
+
+            // ------------------------------------
+            // 等待100ms
+            // ------------------------------------
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        100
+                    )
+            );
+
+
+            // ------------------------------------
+            // 通知没有姿态
+            // ------------------------------------
+
+            if (
+                aiInfo &&
+                aiInfo.setPose
+            ) {
+
+                aiInfo.setPose(
+                    null
+                );
+
+            }
+
+        }
+
+
+        // ====================================
+        // 下一帧继续检测
+        // ====================================
+
+        requestAnimationFrame(
+            this.detectPose.bind(this)
+        );
+
+    }
+    stopPose(){
+        this.isPoseActive = false;
+        cancelAnimationFrame(this.detectPose);
+        this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 
 }
 

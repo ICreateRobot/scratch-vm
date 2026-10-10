@@ -41,6 +41,10 @@ let region=null
 let colorRgb=null
 
 let traffic=null
+
+let gestureLocation = null
+
+let poseLocation = null
 function getQr(){
     return qrInfo
 }
@@ -216,7 +220,21 @@ function setTraffic(a){
 function getTraffic(){
     return traffic
 }
+function setGesture(a){
+    gestureLocation=a
 
+}
+
+function getGesture(){
+    return gestureLocation
+}
+
+function setPose(a){
+    poseLocation=a
+}
+function getPose(){
+    return poseLocation
+}
 module.exports={
     getQr,
     setQr,
@@ -261,5 +279,9 @@ module.exports={
     setColorRgb,
     getColorRgb,
     setTraffic,
-    getTraffic
+    getTraffic,
+    setGesture,
+    getGesture,
+    setPose,
+    getPose
 }

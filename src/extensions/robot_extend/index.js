@@ -139,14 +139,39 @@ class RobotExtend {
             }
             console.log('当前发送方式:', this.whatSendFun)
         }
+        this.distance
+
+        this.channel = new BroadcastChannel('distance_channel');
+         this.responseQueue = []; // 等待中的 Promise 队列
+        this.stateBuffer = [];   // 最近 3 个 state
+        window.EditorPreload.sendStateData((state) => {
+            console.log("📩 收到状态:", state);
+            // if (this.responseQueue.length > 0) {
+            //     // 只要收到一个 0，就 resolve
+            //     if (state === 0) {
+            //     const { resolve, timer } = this.responseQueue.shift();
+            //     clearTimeout(timer);
+            //     resolve(true);
+            //     }
+            // } else {
+            //     console.warn("⚠️ 收到未匹配的响应:", state);
+            // }
+            if (this.responseQueue.length > 0) {
+                // 收到一个 0 就 resolve
+                if (state === 0) {
+                const { resolve } = this.responseQueue.shift();
+                resolve(true);
+                }
+            } else {
+                console.warn("⚠️ 收到未匹配的响应:", state);
+            }
+        })
 
         this._successWaitQueue = [];
         this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
-            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
-                // socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
                 if (this.responseQueue.length === 0) return;
 
                 const queue = this.responseQueue;
@@ -190,33 +215,6 @@ class RobotExtend {
                 }
             }
         })
-        this.distance
-
-        this.channel = new BroadcastChannel('distance_channel');
-         this.responseQueue = []; // 等待中的 Promise 队列
-        this.stateBuffer = [];   // 最近 3 个 state
-        window.EditorPreload.sendStateData((state) => {
-            console.log("📩 收到状态:", state);
-            // if (this.responseQueue.length > 0) {
-            //     // 只要收到一个 0，就 resolve
-            //     if (state === 0) {
-            //     const { resolve, timer } = this.responseQueue.shift();
-            //     clearTimeout(timer);
-            //     resolve(true);
-            //     }
-            // } else {
-            //     console.warn("⚠️ 收到未匹配的响应:", state);
-            // }
-            if (this.responseQueue.length > 0) {
-                // 收到一个 0 就 resolve
-                if (state === 0) {
-                const { resolve } = this.responseQueue.shift();
-                resolve(true);
-                }
-            } else {
-                console.warn("⚠️ 收到未匹配的响应:", state);
-            }
-        })
         this.message=[0,0,0,0,0,0,0,0,0]
         this.channelSerialData=new BroadcastChannel('serial-data')
         this.channelSerialData.addEventListener('message',(event)=>{
@@ -255,7 +253,7 @@ class RobotExtend {
       id: 'robotextend',
       name: formatMessage({
                 id: 'robotextend.name',
-                default: 'External Module',
+                default: 'External Microbit',
                 description: 'robotextend.name'
             }),
       color1:'#cc33c9',
@@ -356,7 +354,7 @@ class RobotExtend {
             blockType: BlockType.COMMAND,
             text: formatMessage({
                 id: 'robotextend.servoSpeedAbsolute',
-                default: 'port [THREE] servo motor rotates at speed [ONE] to [TWO] degrees',
+                default: 'port [THREE] servo motor rotates at speed [ONE] to [TWO] degrees ',
                 description: 'robotextend.servoSpeedAbsolute'
             }),
             arguments:{
@@ -764,7 +762,7 @@ class RobotExtend {
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.potentiometer',
-                default: 'port (1) Potentiometer',
+                default: 'port (1) Analog Signal',
                 description: 'robotextend.potentiometer'
             }),
             arguments:{
@@ -861,7 +859,7 @@ class RobotExtend {
             blockType: BlockType.REPORTER,
             text: formatMessage({
                 id: 'robotextend.pir',
-                default: 'port (1) PIR sensor',
+                default: 'port (1) Digital Signal',
                 description: 'robotextend.pir'
             }),
             arguments:{
@@ -896,7 +894,7 @@ class RobotExtend {
             {
               text: formatMessage({
                     id: 'robotextend.sensor.poten',
-                    default: 'potentiometer(only port one)',
+                    default: 'Analog Signal(only port one)',
                     description: 'robotextend.sensor.poten'
                 }),
               value: '10'
@@ -912,7 +910,7 @@ class RobotExtend {
             {
                 text: formatMessage({
                     id: 'robotextend.sensor.pir',
-                    default: 'human infrared(only port one)',
+                    default: 'Digital Signal(only port one)',
                     description: 'robotextend.sensor.pir'
                 }),
                 value: '12'
@@ -1357,58 +1355,60 @@ _removeSendCmdWaiter(handler) {
 //             socket.getSocket().addEventListener('message', messageHandler);
 //         });
 //     }
-async waitForSuccess() {
-    return new Promise((resolve) => {
 
-        const socketInstance = socket.getSocket();
 
-        const messageHandler = (event) => {
-            try {
-                let data = event.data;
+    async waitForSuccess() {
+        return new Promise((resolve) => {
 
-                // ✅ 和你原来完全一样
-                if (data === "success") {
-                    console.log("收到 success 响应");
+            const socketInstance = socket.getSocket();
 
-                    socketInstance.removeEventListener('message', messageHandler);
+            const messageHandler = (event) => {
+                try {
+                    let data = event.data;
 
-                    // 仅仅多了一行：从等待池移除
-                    this._removeSuccessWaiter(messageHandler);
+                    // ✅ 和你原来完全一样
+                    if (data === "success") {
+                        console.log("收到 success 响应");
 
-                    resolve();   // ← 仍然是不带参数 resolve
+                        socketInstance.removeEventListener('message', messageHandler);
+
+                        // 仅仅多了一行：从等待池移除
+                        this._removeSuccessWaiter(messageHandler);
+
+                        resolve();   // ← 仍然是不带参数 resolve
+                    }
+                } catch (error) {
+                    console.error("解析 WebSocket 消息出错", error);
                 }
-            } catch (error) {
-                console.error("解析 WebSocket 消息出错", error);
+            };
+
+            // ✅ 仅新增：登记到等待池
+            if (!this._successWaitQueue) {
+                this._successWaitQueue = [];
             }
-        };
 
-        // ✅ 仅新增：登记到等待池
-        if (!this._successWaitQueue) {
-            this._successWaitQueue = [];
-        }
+            this._successWaitQueue.push({
+                resolve,
+                handler: messageHandler,
+                socket: socketInstance
+            });
 
-        this._successWaitQueue.push({
-            resolve,
-            handler: messageHandler,
-            socket: socketInstance
+            socketInstance.addEventListener('message', messageHandler);
         });
-
-        socketInstance.addEventListener('message', messageHandler);
-    });
-}
-
-_removeSuccessWaiter(handler) {
-
-    if (!this._successWaitQueue) return;
-
-    const index = this._successWaitQueue.findIndex(
-        item => item.handler === handler
-    );
-
-    if (index !== -1) {
-        this._successWaitQueue.splice(index, 1);
     }
-}
+
+    _removeSuccessWaiter(handler) {
+
+        if (!this._successWaitQueue) return;
+
+        const index = this._successWaitQueue.findIndex(
+            item => item.handler === handler
+        );
+
+        if (index !== -1) {
+            this._successWaitQueue.splice(index, 1);
+        }
+    }
 
 
      waitForArrayMatchInArray(expectedArray, timeout = 6000) {
@@ -2121,8 +2121,8 @@ _removeSuccessWaiter(handler) {
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
-                this.sensorSwitch.joy=1
                 await this.waitForSuccess()
+                this.sensorSwitch.joy=1
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)

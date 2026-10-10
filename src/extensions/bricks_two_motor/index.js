@@ -36,7 +36,7 @@ class BricksMotor {
           // text: '将运转电机设置为 [ONE]和[TWO]',
           text: formatMessage({
               id: 'brickstwomotor.setmovemotor',
-              default: 'set the dual motor running ports to [ONE] and [TWO]',
+              default: 'Set running motors to [ONE] and [TWO]',
               description: 'brickstwomotor.setmovemotor'
           }),
           blockIconURI: motorD,
@@ -58,7 +58,7 @@ class BricksMotor {
             // text: '[ONE]以速度[TWO]运行',
             text: formatMessage({
               id: 'brickstwomotor.speedmove',
-              default: 'set the dual motors to move [ONE] at a speed of [TWO]',
+              default: '[ONE] runs at speed [TWO]',
               description: 'brickstwomotor.speedmove'
             }),
             blockIconURI: motorD,

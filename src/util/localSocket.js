@@ -18,7 +18,7 @@ let bleChannel = null;
 
 // 判断是否为 Electron 环境
 function isElectron() {
-  // return !!(window && window.process && window.process.type);
+  // return typeof window !== 'undefined' && !!window.process && !!window.process.versions && !!window.process.versions.electron;
   return navigator.userAgent.toLowerCase().includes("electron");
 }
 
@@ -27,7 +27,7 @@ function setSocket() {
     console.log(isElectron())
   if (isElectron()) {
     // Electron 环境：使用真实 WebSocket
-    socket = new WebSocket('ws://localhost:52731');
+    socket = new WebSocket('ws://localhost:8084');
     socket.addEventListener('open', () => {
       console.log('🔌 [Electron] WebSocket connected (8084)');
     });

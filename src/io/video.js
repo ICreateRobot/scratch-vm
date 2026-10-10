@@ -4,14 +4,15 @@ const axios = require('axios')
 // const cv = require('opencv.js');  // 引入 OpenCV.js
 const path= require('path')
 // const opencvPath=path.join(__dirname, './model/opencv1.js')
-const cv = require('../util/model/opencv1')
+// const cv1 = require('../util/model/opencv1')
+let cv
 const tfjs = require('../util/model/tfjs.js')
 const tf=require('../util/model/tf-core.min.js')
 // const tf=require('../util/model/tfjs.js')
 require('../util/model/tf-converter.min.js')
 require('../util/model/tfjs-backend-webgl@latest.js')
 
-const tflite = require('../util/model/tfjs-tflite.js')
+// const tflite = require('../util/model/tfjs-tflite.js')
 // require('../util/model/teachablemachine-image.min.js')
 // require('../util/model/tf-backend-cpu.min.js')
 
@@ -20,15 +21,15 @@ tf.setBackend('webgl').then(()=>{
     console.log('webgl后台')
 })
 // require('../util/model/tf-converter.min.js')
-const cocoSsd = require('../util/model/coco-ssd')
+// const cocoSsd = require('../util/model/coco-ssd')
 
-const handTrack = require('../util/model/handtrack.min.js')
+// const handTrack = require('../util/model/handtrack.min.js')
 
 const aiInfo = require('../util/aiInfo.js')
 const imageLoad = require('../util/imageLoad')
 const socket=require('../util/socket-connect')
+const cocoSsd = require('../util/model/coco-ssd')
 // const { AprilTagFamily } = require('apriltag')
-const faceapi = require('../util/model/faceapi.min.js')
 
 // const tagConfig36h11  = require('apriltag/families/36h11.json')
 const { startQRDetection,
@@ -49,7 +50,11 @@ const { startQRDetection,
         stopTraffic,
         stopVideo,
         startWItem,
-        stopWItem
+        stopWItem,
+        startGestureDetection1,
+        stopGestureDetection1,
+        startPoseDetection,
+        stopPoseDetection
     } = require('./allmodel');
 
 // require('https://cdnjs.cloudflare.com/ajax/libs/mathjs/7.1.0/math.min.js')
@@ -113,6 +118,9 @@ class Video {
         // 画布和上下文
         this.canvas = document.createElement('canvas');
         this.canvasCtx = this.canvas.getContext('2d');
+
+        
+        
 
          // OpenCV相关的变量
         this.src = null;
@@ -295,6 +303,13 @@ class Video {
         this._context = this._canvas.getContext('2d');
 
         this.checkVideo=null
+        this._loadingCV=null
+        window._loadingCV=null
+
+        this.cvInstance=null
+
+        this.isGestureActive=false
+        this.isPoseActive=false
     }
 
     static get FORMAT_IMAGE_DATA () {
@@ -401,7 +416,12 @@ class Video {
                 if(this.isColorPlaceDetectionActive){
                     this.stopColorPlaceDetection()
                 }
-                
+                if(this.isGestureActive){
+                    this.stopGestureDetection
+                }
+                if(this.isPoseActive){
+                    this.stopPoseDetection
+                }
     
                 this.disableVideo();
                 this.stopVideo()
@@ -458,6 +478,12 @@ class Video {
                         }
                         if(this.isColorPlaceDetectionActive){
                             this.stopColorPlaceDetection()
+                        }
+                        if(this.isGestureActive){
+                            this.stopGestureDetection
+                        }
+                        if(this.isPoseActive){
+                            this.stopPoseDetection
                         }
 
 
@@ -571,6 +597,12 @@ class Video {
                         if(this.isColorPlaceDetectionActive){
                             this.stopColorPlaceDetection()
                         }
+                        if(this.isGestureActive){
+                            this.stopGestureDetection
+                        }
+                        if(this.isPoseActive){
+                            this.stopPoseDetection
+                        }
         
         
                         let jsonData = {
@@ -613,16 +645,119 @@ class Video {
         stopQRDetection(this);
     }
 
-    startFaceDetection(){
-        startFaceDetection(this,Video,cv,aiInfo,StageLayering)
-        // startFaceDetection(this,Video,faceapi,aiInfo,StageLayering)
-        
+    async loadModel() {
+
+         // 已经可用
+        if (window.cv && window.cv.Mat) {
+            return window.cv;
+        }
+
+        // 防止重复加载
+        if (window._loadingCV) {
+            return window._loadingCV;
+        }
+        console.log('舞台加载cv')
+
+        window._loadingCV = new Promise((resolve, reject) => {
+
+            const currentURL = window.location.href;
+            // 获取前一级路径
+            const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+            const modelPath =oneLevelUp+'/static/model';  // 你的模型路径
+            console.log(`${modelPath}/opencv1.js`)
+            console.log(window.cv);
+            console.log(window.cv?.Mat);
+            const script = document.createElement('script');
+            script.src = `${modelPath}/opencv1.js`;
+            script.async = true;
+            // script.defer = true;
+
+            script.onerror = () => {
+                reject(new Error('opencv1.js 加载失败'));
+            };
+
+            script.onload = () => {
+                console.log('opencv1.js script loaded');
+
+                const start = performance.now();
+                const timeout = 15000;
+
+                resolve(true);
+
+                // const waitForCV = () => {
+                //     console.log('执行一次',performance.now())
+                //     if (window.cv && window.cv.Mat) {
+                //         console.log('OpenCV ready');
+                //         resolve(window.cv);
+                //         return;
+                //     }
+
+                //     if (performance.now() - start > timeout) {
+                //         reject(new Error('OpenCV 初始化超时'));
+                //         return;
+                //     }
+
+                //     requestAnimationFrame(waitForCV);
+                // };
+
+                // waitForCV();
+            };
+
+            document.head.appendChild(script);
+        });
+
+        return window._loadingCV;
     }
-    stopFaceDetection(){
+
+
+    async startFaceDetection(){
+        console.log('开始加载opencv')
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        
+        console.log(cv)
+        
+        console.log('opencv加载结束')
+        // console.log(cv)
+        
+        startFaceDetection(this,Video,cv,aiInfo,StageLayering)
+    }
+    async stopFaceDetection(){
+        console.log('停止人脸识别')
+        // if(!cv) cv = require('../util/model/opencv1')
+       if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         stopFaceDetection(this,cv)
     }
 
-    learnNewFace(name){
+    async learnNewFace(name){
+        // if(!cv) cv = require('../util/model/opencv1')
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         learnNewFace(name,this,cv)
     }
 
@@ -638,7 +773,19 @@ class Video {
         stopAprilTag(this)
     }
 
-    startColorDetection(){
+    async startColorDetection(){
+        // if(!cv) cv = require('../util/model/opencv1')
+        // console.log('11111:',cv)
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         startColorDetection(this,Video,StageLayering,cv,aiInfo)
     }
 
@@ -646,7 +793,18 @@ class Video {
         stopColorDetection(this)
     }
 
-    startColorPlaceDetection(){
+    async startColorPlaceDetection(){
+        // if(!cv) cv = require('../util/model/opencv1')
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         startColorPlaceDetection(this,Video,cv,StageLayering,aiInfo)
     }
 
@@ -654,11 +812,23 @@ class Video {
         stopColorPlaceDetection(this)
     }
 
-    startWColorBlockDetection(){
+    async startWColorBlockDetection(){
+        // if(!cv) cv = require('../util/model/opencv1')
+        if(!cv && !window.cv){
+            try{
+                await this.loadModel()
+                cv =window.cv
+            }catch(e){
+                console.log(e)
+            }
+        }
+        cv =window.cv
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
         startWColorBlockDetection(this,Video,cv,StageLayering,aiInfo)
     }
 
     stopWColorBlockDetection(){
+        console.log('qwert')
         stopWColorBlockDetection(this)
     }
 
@@ -669,14 +839,46 @@ class Video {
     stopTraffic(){
         stopTraffic(this)
     }
-    stopVideo(){
-        stopVideo(this,Video,StageLayering)
+
+    async startGestureDetection(gestureLandmark){
+        console.log('进入手势识别')
+        // const currentURL = window.location.href;
+        // // 获取前一级路径
+        // const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
+        // const modelPath =oneLevelUp+'/static/model/gestureModel';
+        // // const { HandLandmarker, FilesetResolver } = await import(
+        // //     /* webpackIgnore: true */
+        // //     modelPath+"/tasks-vision@latest.js"
+        // //   );
+        //   const { HandLandmarker, FilesetResolver } = await import(
+        //     /* webpackIgnore: true */
+        //     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest"
+        //   );
+        //   console.log(HandLandmarker)
+        //   console.log(FilesetResolver)
+        startGestureDetection1(this,Video,StageLayering,gestureLandmark,aiInfo)
+    }
+
+    async startPoseDetection(poseLandmark){
+        console.log('进入姿态识别')
+       
+        startPoseDetection(this,Video,StageLayering,poseLandmark,aiInfo)
+    }
+    stopPoseDetection(){
+        stopPoseDetection(this)
     }
     startWItem(){
         startWItem(this,Video,StageLayering,aiInfo,cocoSsd)
     }
     stopWItem(){
         stopWItem(this)
+    }
+
+    stopGestureDetection(){
+        stopGestureDetection1(this)
+    }
+    stopVideo(){
+        stopVideo(this,Video,StageLayering)
     }
     /**
      * Set the preview ghost effect

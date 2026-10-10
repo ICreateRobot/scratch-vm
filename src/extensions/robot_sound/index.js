@@ -266,13 +266,12 @@ class RobotSound {
 
         this.channel = new BroadcastChannel('distance_channel');
 
+
         this._successWaitQueue = [];
         this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
-            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
-                // socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
                 if (this.responseQueue.length === 0) return;
 
                 const queue = this.responseQueue;
@@ -359,16 +358,16 @@ class RobotSound {
     blockIconURI:innerBlock,
       blocks: [
 
-        {
-            func:'selectSound',
-            blockType:BlockType.BUTTON,
-            // text:'选择上传音频文件'
-            text: formatMessage({
-                id: 'robotsound.selectSound',
-                default: 'Select audio file to upload',
-                description: 'robotsound.selectSound'
-            }),
-        },
+        // {
+        //     func:'selectSound',
+        //     blockType:BlockType.BUTTON,
+        //     // text:'选择上传音频文件'
+        //     text: formatMessage({
+        //         id: 'robotsound.selectSound',
+        //         default: 'Select audio file to upload',
+        //         description: 'robotsound.selectSound'
+        //     }),
+        // },
 
         // {
         //     func:'downLoadSound',
@@ -441,26 +440,26 @@ class RobotSound {
             },
         },
 
-        {
-            opcode: 'playLocalMusic',
-            blockType: BlockType.COMMAND,
-            // text: '[TWO]本地声音[ONE]',
-            text: formatMessage({
-                id: 'robotsound.playLocalMusic',
-                default: '[TWO] local sound [ONE]',
-                description: 'robotsound.playLocalMusic'
-            }),
-            arguments:{
-                ONE:{
-                    type:ArgumentType.STRING,
-                    menu:'MENU_SOUND'
-                },
-                TWO:{
-                    type:ArgumentType.STRING,
-                    menu:'MENU_LOCAL_STATE'
-                }
-            },
-        },
+        // {
+        //     opcode: 'playLocalMusic',
+        //     blockType: BlockType.COMMAND,
+        //     // text: '[TWO]本地声音[ONE]',
+        //     text: formatMessage({
+        //         id: 'robotsound.playLocalMusic',
+        //         default: '[TWO] local sound [ONE]',
+        //         description: 'robotsound.playLocalMusic'
+        //     }),
+        //     arguments:{
+        //         ONE:{
+        //             type:ArgumentType.STRING,
+        //             menu:'MENU_SOUND'
+        //         },
+        //         TWO:{
+        //             type:ArgumentType.STRING,
+        //             menu:'MENU_LOCAL_STATE'
+        //         }
+        //     },
+        // },
 
         // {
         //     opcode: 'soundTurbo',
@@ -1005,24 +1004,6 @@ class RobotSound {
         }
     }
 
-    // async waitForSuccess() {
-    //     return new Promise((resolve) => {
-    //         function messageHandler(event) {
-    //             try {
-    //                 let data = event.data;
-    //                 if (data === "success") {
-    //                     console.log("收到 success 响应");
-    //                     socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
-    //                     resolve(); // 继续执行
-    //                 }
-    //             } catch (error) {
-    //                 console.error("解析 WebSocket 消息出错", error);
-    //             }
-    //         }
-    
-    //         socket.getSocket().addEventListener('message', messageHandler);
-    //     });
-    // }
     async waitForSuccess() {
         return new Promise((resolve) => {
 
@@ -1239,8 +1220,8 @@ class RobotSound {
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
-                // await new Promise(resolve => setTimeout(resolve, 1000));  // 等待1秒
                 await this.waitForSuccess()
+                // await new Promise(resolve => setTimeout(resolve, 1000));  // 等待1秒
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1412,9 +1393,7 @@ class RobotSound {
             console.log(arrayBuffer)
 
             let name = await new Promise(resolve => {
-                
-                resolve(prompt('Please enter the audio name.')); 
-                // resolve(prompt('请输入音频名称'));  // 在异步函数中包装 prompt
+                resolve(prompt('请输入音频名称'));  // 在异步函数中包装 prompt
             });
 
             this.upLoadSound.push({

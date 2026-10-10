@@ -672,7 +672,7 @@ class MicrobiteIcreateP {
                 blockType: BlockType.REPORTER,
                 text: formatMessage({
                 id: 'MicrobiteIcreateP.ICM.ICM_GrayLevel',
-                default: 'GrayScale Sensor [CHOICE]',
+                default: 'Grayscale Sensor [CHOICE]',
                 description: 'MicrobiteIcreateP.ICM.ICM_GrayLevel'
                 }),
                 disableMonitor: true,
@@ -2255,9 +2255,10 @@ let DICT_OLEDColor = {
 }
 
 
+
 //执行命令
 async function ICMBP_send(str){
-    //console.log('[发送]', str);
+    // console.log('[发送]', str);
     // 发送命令到主进程
     try {
         const result = await window.EditorPreload.sendCommandToDevice(str);
@@ -2625,8 +2626,8 @@ document.head.appendChild(style);
 //进度条显示
 let progressBar = null;
 let progressBarContainer = null;
-let progressText=null
 
+let progressOverlay = null;
 function showProgress(msg) {
     // 确保msg在0-100范围内
     const progress = Math.min(100, Math.max(0, msg));
@@ -2639,104 +2640,208 @@ function showProgress(msg) {
     // 更新进度显示
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute('data-progress', progress);
-    progressText.textContent = `${progress}%`;
+    
     // 自动隐藏逻辑（当进度完成时）
+    // if (progress >= 100) {
+    //     setTimeout(() => {
+    //         if (progressBarContainer) {
+    //             progressBarContainer.style.opacity = '0';
+    //             setTimeout(() => {
+    //                 progressBarContainer.remove();
+    //                 progressBar = null;
+    //                 progressBarContainer = null;
+    //             }, 500);
+    //         }
+    //     }, 1000);
+    // }
     if (progress >= 100) {
         setTimeout(() => {
-            if (progressBarContainer) {
-                progressBarContainer.style.opacity = '0';
+            if (progressOverlay) {
+                progressOverlay.style.opacity = '0';
+    
                 setTimeout(() => {
-                    progressBarContainer.remove();
+                    progressOverlay.remove();
+    
                     progressBar = null;
                     progressBarContainer = null;
-                    progressText=null
+                    progressOverlay = null;
                 }, 500);
             }
-        }, 1000);
+        }, 800);
     }
 }
 
+// function createProgressBar() {
+//     // 创建容器
+//     progressBarContainer = document.createElement('div');
+//     Object.assign(progressBarContainer.style, {
+//         position: 'fixed',
+//         top: '30%',
+//         left: '50%',
+//         transform: 'translateX(-50%)',
+//         width: '300px',
+//         backgroundColor: 'rgba(0,0,0,0.7)',
+//         borderRadius: '4px',
+//         padding: '10px',
+//         zIndex: '1001',
+//         boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+//         transition: 'opacity 0.5s ease',
+//         display: 'flex',
+//         flexDirection: 'column',
+//         alignItems: 'center'
+//     });
+
+//     // 创建文本标签
+//     const progressText = document.createElement('div');
+//     progressText.textContent = '下载中...';
+//     progressText.style.color = 'white';
+//     progressText.style.marginBottom = '8px';
+//     progressText.style.fontSize = '14px';
+//     progressText.id = 'progress-text';
+
+//     // 创建进度条背景
+//     const progressTrack = document.createElement('div');
+//     Object.assign(progressTrack.style, {
+//         width: '100%',
+//         height: '6px',
+//         backgroundColor: 'rgba(255,255,255,0.2)',
+//         borderRadius: '3px',
+//         overflow: 'hidden'
+//     });
+
+//     // 创建进度条前景
+//     progressBar = document.createElement('div');
+//     Object.assign(progressBar.style, {
+//         height: '100%',
+//         width: '0%',
+//         backgroundColor: '#4CAF50',
+//         borderRadius: '3px',
+//         transition: 'width 0.3s ease',
+//         position: 'relative'
+//     });
+
+//     // 添加百分比标签
+//     const percentLabel = document.createElement('span');
+//     percentLabel.style.position = 'absolute';
+//     percentLabel.style.right = '4px';
+//     percentLabel.style.top = '50%';
+//     percentLabel.style.transform = 'translateY(-50%)';
+//     percentLabel.style.color = 'white';
+//     percentLabel.style.fontSize = '10px';
+//     //percentLabel.textContent = '0%';
+//     progressBar.appendChild(percentLabel);
+
+//     // 组装元素
+//     progressTrack.appendChild(progressBar);
+//     progressBarContainer.appendChild(progressText);
+//     progressBarContainer.appendChild(progressTrack);
+//     document.body.appendChild(progressBarContainer);
+
+//     // 添加鼠标悬停效果
+//     progressBarContainer.addEventListener('mouseenter', () => {
+//         progressBarContainer.style.backgroundColor = 'rgba(0,0,0,0.9)';
+//     });
+    
+//     progressBarContainer.addEventListener('mouseleave', () => {
+//         progressBarContainer.style.backgroundColor = 'rgba(0,0,0,0.7)';
+//     });
+
+//     // 动态更新百分比标签
+//     const observer = new MutationObserver(() => {
+//         const progress = progressBar.getAttribute('data-progress') || '0';
+//         //percentLabel.textContent = `${progress}%`;
+        
+//         // 根据进度改变颜色
+//         if (progress < 30) {
+//             progressBar.style.backgroundColor = '#FF5722';
+//         } else if (progress < 70) {
+//             progressBar.style.backgroundColor = '#FFC107';
+//         } else {
+//             progressBar.style.backgroundColor = '#4CAF50';
+//         }
+//     });
+    
+//     observer.observe(progressBar, { 
+//         attributes: true, 
+//         attributeFilter: ['data-progress'] 
+//     });
+// }
 function createProgressBar() {
-    // 创建容器
+    // ====== 全屏遮罩层 ======
+    progressOverlay = document.createElement('div');
+    Object.assign(progressOverlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0,0,0,0.5)', // 半透明黑色
+        zIndex: '1000',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+    });
+
+    // ====== 容器（进度条卡片） ======
     progressBarContainer = document.createElement('div');
     Object.assign(progressBarContainer.style, {
-        position: 'fixed',
-        top: '30%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '300px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        borderRadius: '4px',
-        padding: '10px',
-        zIndex: '1001',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+        width: '320px',
+        backgroundColor: 'rgba(20,20,20,0.85)',
+        borderRadius: '8px',
+        padding: '16px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
         transition: 'opacity 0.5s ease',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center'
     });
 
-    // 创建文本标签
-    progressText = document.createElement('div');
-    // progressText.textContent = '下载中...';
+    // ====== 文本 ======
+    const progressText = document.createElement('div');
+    progressText.textContent = '下载中...';
     progressText.style.color = 'white';
-    progressText.style.marginBottom = '8px';
+    progressText.style.marginBottom = '10px';
     progressText.style.fontSize = '14px';
-    progressText.id = 'progress-text';
 
-    // 创建进度条背景
+    // ====== 轨道 ======
     const progressTrack = document.createElement('div');
     Object.assign(progressTrack.style, {
         width: '100%',
-        height: '6px',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: '3px',
+        height: '8px',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: '4px',
         overflow: 'hidden'
     });
 
-    // 创建进度条前景
+    // ====== 进度条 ======
     progressBar = document.createElement('div');
     Object.assign(progressBar.style, {
         height: '100%',
         width: '0%',
         backgroundColor: '#4CAF50',
-        borderRadius: '3px',
-        transition: 'width 0.3s ease',
-        position: 'relative'
+        borderRadius: '4px',
+        transition: 'width 0.3s ease'
     });
 
-    // 添加百分比标签
-    const percentLabel = document.createElement('span');
-    percentLabel.style.position = 'absolute';
-    percentLabel.style.right = '4px';
-    percentLabel.style.top = '50%';
-    percentLabel.style.transform = 'translateY(-50%)';
-    percentLabel.style.color = 'white';
-    percentLabel.style.fontSize = '10px';
-    //percentLabel.textContent = '0%';
-    progressBar.appendChild(percentLabel);
-
-    // 组装元素
     progressTrack.appendChild(progressBar);
     progressBarContainer.appendChild(progressText);
     progressBarContainer.appendChild(progressTrack);
-    document.body.appendChild(progressBarContainer);
+    progressOverlay.appendChild(progressBarContainer);
+    document.body.appendChild(progressOverlay);
 
-    // 添加鼠标悬停效果
+    // 鼠标效果（可选）
     progressBarContainer.addEventListener('mouseenter', () => {
-        progressBarContainer.style.backgroundColor = 'rgba(0,0,0,0.9)';
-    });
-    
-    progressBarContainer.addEventListener('mouseleave', () => {
-        progressBarContainer.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        progressBarContainer.style.transform = 'scale(1.02)';
     });
 
-    // 动态更新百分比标签
+    progressBarContainer.addEventListener('mouseleave', () => {
+        progressBarContainer.style.transform = 'scale(1)';
+    });
+
+    // 颜色变化
     const observer = new MutationObserver(() => {
-        const progress = progressBar.getAttribute('data-progress') || '0';
-        //percentLabel.textContent = `${progress}%`;
-        
-        // 根据进度改变颜色
+        const progress = Number(progressBar.getAttribute('data-progress') || 0);
+
         if (progress < 30) {
             progressBar.style.backgroundColor = '#FF5722';
         } else if (progress < 70) {
@@ -2745,10 +2850,10 @@ function createProgressBar() {
             progressBar.style.backgroundColor = '#4CAF50';
         }
     });
-    
-    observer.observe(progressBar, { 
-        attributes: true, 
-        attributeFilter: ['data-progress'] 
+
+    observer.observe(progressBar, {
+        attributes: true,
+        attributeFilter: ['data-progress']
     });
 }
 
@@ -2789,7 +2894,6 @@ async function enterReplMode() {
 }
 
 window.EditorPreload.onUSBDeviceEvent((status, device, msg) => {
-    console.log(status,msg)
     if (status === 'connected') {
         console.log('设备连接:', device);
     } else if (status === 'disconnected') {
@@ -2799,6 +2903,7 @@ window.EditorPreload.onUSBDeviceEvent((status, device, msg) => {
     } else if (status === 'error') {
         console.error('设备通信错误:', msg);
     }else if(status === 'progress'){//烧录进度
+        console.log(msg)
         showProgress(msg)
     }
   });

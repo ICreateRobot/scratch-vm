@@ -23,33 +23,33 @@ class RobotSensors {
         this.runtime=runtime
 
 
-        // this.flag='0'
-        // this.channel = new BroadcastChannel('flag_channel');
-        // this.channel.addEventListener('message', (event) => {
-        //     console.log('Received flag data:', event.data);
-        //     this.flag=event.data
-        //     // if(event.data=='1'){
-        //     //     eventSource = new EventSource('http://192.168.4.1:8083/stream');
-        //     //     eventSource.onerror = function(error) {
-        //     //         console.error('Error:', error);
-        //     //         eventSource.close();
-        //     //     };
-        //     //     eventSource.onmessage = function(event) {
-        //     //         // output.innerHTML = "Received from server: " + event.data;
-        //     //         // console.log(event.data)
-        //     //         // console.log(Date.now())
+        this.flag='0'
+        this.channel = new BroadcastChannel('flag_channel');
+        this.channel.addEventListener('message', (event) => {
+            console.log('Received flag data:', event.data);
+            this.flag=event.data
+            // if(event.data=='1'){
+            //     eventSource = new EventSource('http://192.168.4.1:8083/stream');
+            //     eventSource.onerror = function(error) {
+            //         console.error('Error:', error);
+            //         eventSource.close();
+            //     };
+            //     eventSource.onmessage = function(event) {
+            //         // output.innerHTML = "Received from server: " + event.data;
+            //         // console.log(event.data)
+            //         // console.log(Date.now())
 
-        //     //         scratchGet=JSON.parse(event.data)
+            //         scratchGet=JSON.parse(event.data)
                     
-        //     //     };
-        //     // }else if(event.data=='0'){
-        //     //     try{
-        //     //         eventSource.close();
-        //     //     }catch(e){
+            //     };
+            // }else if(event.data=='0'){
+            //     try{
+            //         eventSource.close();
+            //     }catch(e){
 
-        //     //     }
-        //     // }
-        // });
+            //     }
+            // }
+        });
         this.mode=true
         this.channelMode=new BroadcastChannel('mode')
         this.channelMode.addEventListener('message',(event)=>{
@@ -302,9 +302,7 @@ class RobotSensors {
         this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
-            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
-                // socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
                 if (this.responseQueue.length === 0) return;
 
                 const queue = this.responseQueue;
@@ -349,7 +347,6 @@ class RobotSensors {
             }
         })
 
-
         this.responseQueue = []; // 等待中的 Promise 队列
         this.stateBuffer = [];   // 最近 3 个 state
         window.EditorPreload.sendStateData((state) => {
@@ -374,6 +371,7 @@ class RobotSensors {
                 console.warn("⚠️ 收到未匹配的响应:", state);
             }
         })
+
         window.EditorPreload.sendSenorData((senor) => {
             // console.log("📩 收到返回值:", senor);
             this.checkMotorStatus(JSON.parse(senor))
@@ -585,10 +583,6 @@ class RobotSensors {
                 }
             }
         }
-        // setTimeout(()=>{
-        //     const data = [0, 1, 2, 3];
-        //     this.checkMotorStatus(data)
-        // },5000)
 
         // this.robotData=window.EditorWindow.getRobotDate()
 
@@ -1600,58 +1594,58 @@ class RobotSensors {
 //     });
 // }
 
-async waitForSuccess() {
-    return new Promise((resolve) => {
+    async waitForSuccess() {
+        return new Promise((resolve) => {
 
-        const socketInstance = socket.getSocket();
+            const socketInstance = socket.getSocket();
 
-        const messageHandler = (event) => {
-            try {
-                let data = event.data;
+            const messageHandler = (event) => {
+                try {
+                    let data = event.data;
 
-                // ✅ 和你原来完全一样
-                if (data === "success") {
-                    console.log("收到 success 响应");
+                    // ✅ 和你原来完全一样
+                    if (data === "success") {
+                        console.log("收到 success 响应");
 
-                    socketInstance.removeEventListener('message', messageHandler);
+                        socketInstance.removeEventListener('message', messageHandler);
 
-                    // 仅仅多了一行：从等待池移除
-                    this._removeSuccessWaiter(messageHandler);
+                        // 仅仅多了一行：从等待池移除
+                        this._removeSuccessWaiter(messageHandler);
 
-                    resolve();   // ← 仍然是不带参数 resolve
+                        resolve();   // ← 仍然是不带参数 resolve
+                    }
+                } catch (error) {
+                    console.error("解析 WebSocket 消息出错", error);
                 }
-            } catch (error) {
-                console.error("解析 WebSocket 消息出错", error);
+            };
+
+            // ✅ 仅新增：登记到等待池
+            if (!this._successWaitQueue) {
+                this._successWaitQueue = [];
             }
-        };
 
-        // ✅ 仅新增：登记到等待池
-        if (!this._successWaitQueue) {
-            this._successWaitQueue = [];
-        }
+            this._successWaitQueue.push({
+                resolve,
+                handler: messageHandler,
+                socket: socketInstance
+            });
 
-        this._successWaitQueue.push({
-            resolve,
-            handler: messageHandler,
-            socket: socketInstance
+            socketInstance.addEventListener('message', messageHandler);
         });
-
-        socketInstance.addEventListener('message', messageHandler);
-    });
-}
-
-_removeSuccessWaiter(handler) {
-
-    if (!this._successWaitQueue) return;
-
-    const index = this._successWaitQueue.findIndex(
-        item => item.handler === handler
-    );
-
-    if (index !== -1) {
-        this._successWaitQueue.splice(index, 1);
     }
-}
+
+    _removeSuccessWaiter(handler) {
+
+        if (!this._successWaitQueue) return;
+
+        const index = this._successWaitQueue.findIndex(
+            item => item.handler === handler
+        );
+
+        if (index !== -1) {
+            this._successWaitQueue.splice(index, 1);
+        }
+    }
 
 showToast(message, duration = 3000) {
     // 如果 toast 容器不存在，则创建一个
@@ -2014,7 +2008,6 @@ _removeSendCmdWaiter(handler) {
                 this.runtime.stopAll();
             }
     
-            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)

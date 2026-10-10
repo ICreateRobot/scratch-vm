@@ -1869,46 +1869,6 @@ class MicrobitIcreate {
 // }
 
 
-// let DICT_displayImage = {
-//     '心形': "HEART",
-//     'Heart': "HEART",
-//     '心形_小': "HEART_SMALL",
-//     'Small Heart': "HEART_SMALL",
-//     '快乐': "HAPPY",
-//     'Happy': "HAPPY",
-//     '微笑': "SMILE",
-//     'Smile': "SMILE",
-//     '悲伤': "SAD",
-//     'Sad': "SAD",
-//     '困惑': "CONFUSED",
-//     'Confused': "CONFUSED",
-//     '生气': "ANGRY",
-//     'Angry': "ANGRY",
-//     '睡着': "ASLEEP",
-//     'Asleep': "ASLEEP",
-//     '惊讶': "SURPRISED",
-//     'Surprised': "SURPRISED",
-//     '傻傻的': "SILLY",
-//     'Silly': "SILLY",
-//     '极好的': "FABULOUS",
-//     'Fabulous': "FABULOUS",
-//     '是': "YES",
-//     'Yes': "YES",
-//     '否': "NO",
-//     'No': "NO",
-//     '不感兴趣的': "MEH",
-//     'Indifferent': "MEH",
-//     '鸭子': "DUCK",
-//     'Duck': "DUCK",
-//     '长颈鹿': "GIRAFFE",
-//     'Giraffe': "GIRAFFE",
-//     '吃豆人': "PACMAN",
-//     'Pacman': "PACMAN",
-//     '幽灵': "GHOST",
-//     'Ghost': "GHOST",
-//     '骷髅': "SKULL",
-//     'Skull': "SKULL"
-// }
 let DICT_displayImage = {
   '心形': "HEART",
   'Heart': "HEART",
@@ -2265,8 +2225,6 @@ let DICT_speakerPlay = {
   'включить': "on",
   '開啟': "on"
 };
-
-
 
 //发送
 async function ICMB_send(str){

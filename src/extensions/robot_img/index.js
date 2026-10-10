@@ -140,6 +140,8 @@ class RobotImg {
                     await this.cstopMode({ONE:'7'})
                     await this.cstopMode({ONE:'8'})
                     await this.cstopMode({ONE:'9'})
+                    await this.cstopMode({ONE:'10'})
+                    await this.cstopMode({ONE:'11'})
                 }catch(e){
 
                 }
@@ -163,8 +165,12 @@ class RobotImg {
                 await this.cstopMode({ONE:'7'})
                 await this.cstopMode({ONE:'8'})
                 await this.cstopMode({ONE:'9'})
+                await this.cstopMode({ONE:'10'})
+                await this.cstopMode({ONE:'11'})
+                
             }catch(e){
 
+                console.log(e)
             }
 
             cam.stopAprilTag()
@@ -175,6 +181,8 @@ class RobotImg {
             cam.stopWItem()
             cam.stopFaceDetection()
             cam.stopTraffic()
+            cam.stopGesture()
+            cam.stopPose()
 
             imageLoad.setAprilTag(false)
             imageLoad.setQr(false)
@@ -184,6 +192,8 @@ class RobotImg {
             imageLoad.setItem(false)
             imageLoad.setFaceDet(false)
             imageLoad.setIsTraffic(false)
+            imageLoad.setIsGesture(false)
+            imageLoad.setIsPose(false)
             
         })
         this.loadingEnd='loading'
@@ -222,6 +232,8 @@ class RobotImg {
             cam.stopWItem()
             cam.stopFaceDetection()
             cam.stopTraffic()
+            cam.stopGesture()
+            cam.stopPose()
 
             imageLoad.setAprilTag(false)
             imageLoad.setQr(false)
@@ -231,6 +243,8 @@ class RobotImg {
             imageLoad.setItem(false)
             imageLoad.setFaceDet(false)
             imageLoad.setIsTraffic(false)
+            imageLoad.setIsGesture(false)
+            imageLoad.setIsPose(false)
         })
 
 
@@ -266,6 +280,8 @@ class RobotImg {
                     await this.cstopMode({ONE:'7'})
                     await this.cstopMode({ONE:'8'})
                     await this.cstopMode({ONE:'9'})
+                    await this.cstopMode({ONE:'10'})
+                    await this.cstopMode({ONE:'11'})
                 }catch(e){
 
                 }
@@ -297,6 +313,8 @@ class RobotImg {
                     await this.cstopMode({ONE:'7'})
                     await this.cstopMode({ONE:'8'})
                     await this.cstopMode({ONE:'9'})
+                    await this.cstopMode({ONE:'10'})
+                    await this.cstopMode({ONE:'11'})
                 }catch(e){
 
                 }
@@ -348,6 +366,11 @@ class RobotImg {
                 if(this.runtime.ioDevices.video.videoProvider.constructor.name!='VideoProvider'){
                     // this.cstopCamera()
                     // this.cstopComputerCamera()
+                    console.log('断网一次')
+                    this.cstartCamera({ONE:'2'})
+                    THIS.cstartNetCamera({ONE:'2'})
+                    this.cstopComputerCamera()
+                    cam.close()
                     try{
                         await this.cstopMode({ONE:'3'})
                         await this.cstopMode({ONE:'4'})
@@ -358,15 +381,11 @@ class RobotImg {
                         await this.cstopMode({ONE:'7'})
                         await this.cstopMode({ONE:'8'})
                         await this.cstopMode({ONE:'9'})
+                        await this.cstopMode({ONE:'10'})
+                        await this.cstopMode({ONE:'11'})
                     }catch(e){
 
                     }
-                    console.log('断网一次')
-                    this.cstartCamera({ONE:'2'})
-                    THIS.cstartNetCamera({ONE:'2'})
-                    this.cstopComputerCamera()
-                    cam.close()
-                    
                 }
                 
             }
@@ -386,27 +405,37 @@ class RobotImg {
         // })()
 
 
-        navigator.mediaDevices.ondevicechange = async function () {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(d => d.kind === 'videoinput');
-
-            THIS.deviceList=videoDevices
-            THIS.runtime.requestBlocksUpdate();
-            console.log('📷 摄像头设备变化:', videoDevices);
-            
-        };
+        try{
+            navigator.mediaDevices.ondevicechange = async function () {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+    
+                THIS.deviceList=videoDevices
+                THIS.runtime.requestBlocksUpdate();
+                console.log('📷 摄像头设备变化:', videoDevices);
+                
+            };
+        }catch(e){
+            console.log(e)
+        }
+        
 
         setInterval(async () => {
-            const newDevices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = newDevices.filter(d => d.kind === 'videoinput');
-            const hasChanged = JSON.stringify(videoDevices) !== JSON.stringify(this.deviceList);
+            try{
+                const newDevices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = newDevices.filter(d => d.kind === 'videoinput');
+                const hasChanged = JSON.stringify(videoDevices) !== JSON.stringify(this.deviceList);
 
-            // console.log(newDevices)
-            if (hasChanged) {
-                this.deviceList = videoDevices;
-                this.runtime.requestBlocksUpdate();
-                console.log('摄像头变更(轮询检测):', videoDevices);
+                // console.log(newDevices)
+                if (hasChanged) {
+                    this.deviceList = videoDevices;
+                    this.runtime.requestBlocksUpdate();
+                    console.log('摄像头变更(轮询检测):', videoDevices);
+                }
+            }catch(e){
+                console.log(e)
             }
+            
         }, 3000);
 
         // console.log(window.EditorPreload)
@@ -2088,6 +2117,8 @@ class RobotImg {
                 await this.cstopMode({ONE:'7'})
                 await this.cstopMode({ONE:'8'})
                 await this.cstopMode({ONE:'9'})
+                await this.cstopMode({ONE:'10'})
+                await this.cstopMode({ONE:'11'})
             }catch(e){
 
             }
@@ -2100,6 +2131,8 @@ class RobotImg {
             cam.stopWItem()
             cam.stopFaceDetection()
             cam.stopTraffic()
+            cam.stopGesture()
+            cam.stopPose()
 
             imageLoad.setAprilTag(false)
             imageLoad.setQr(false)
@@ -2109,6 +2142,8 @@ class RobotImg {
             imageLoad.setItem(false)
             imageLoad.setFaceDet(false)
             imageLoad.setIsTraffic(false)
+            imageLoad.setIsGesture(false)
+            imageLoad.setIsPose(false)
     }
 
 
@@ -2392,6 +2427,8 @@ class RobotImg {
                     await this.cstopMode({ONE:'7'})
                     await this.cstopMode({ONE:'8'})
                     await this.cstopMode({ONE:'9'})
+                    await this.cstopMode({ONE:'10'})
+                    await this.cstopMode({ONE:'11'})
                 }catch(e){
 
                 }
@@ -2458,6 +2495,8 @@ class RobotImg {
                 await this.cstopMode({ONE:'7'})
                 await this.cstopMode({ONE:'8'})
                 await this.cstopMode({ONE:'9'})
+                await this.cstopMode({ONE:'10'})
+                await this.cstopMode({ONE:'11'})
             }catch(e){
                 
             }
@@ -2607,6 +2646,8 @@ class RobotImg {
                         await this.cstopMode({ONE:'7'})
                         await this.cstopMode({ONE:'8'})
                         await this.cstopMode({ONE:'9'})
+                        await this.cstopMode({ONE:'10'})
+                        await this.cstopMode({ONE:'11'})
                     }catch(e){
                         
                     }
@@ -2681,6 +2722,8 @@ class RobotImg {
                         await this.cstopMode({ONE:'7'})
                         await this.cstopMode({ONE:'8'})
                         await this.cstopMode({ONE:'9'})
+                        await this.cstopMode({ONE:'10'})
+                        await this.cstopMode({ONE:'11'})
                     }catch(e){
                         
                     }
@@ -2718,6 +2761,8 @@ class RobotImg {
                 await this.cstopMode({ONE:'7'})
                 await this.cstopMode({ONE:'8'})
                 await this.cstopMode({ONE:'9'})
+                await this.cstopMode({ONE:'10'})
+                await this.cstopMode({ONE:'11'})
             }catch(e){
                 
             }
@@ -2892,6 +2937,8 @@ class RobotImg {
                 await this.cstopMode({ONE:'7'})
                 await this.cstopMode({ONE:'8'})
                 await this.cstopMode({ONE:'9'})
+                await this.cstopMode({ONE:'10'})
+                await this.cstopMode({ONE:'11'})
             }catch(e){
                 
             }
@@ -3082,6 +3129,8 @@ class RobotImg {
             await this.cstopMode({ONE:'7'})
             await this.cstopMode({ONE:'8'})
             await this.cstopMode({ONE:'9'})
+            await this.cstopMode({ONE:'10'})
+            await this.cstopMode({ONE:'11'})
         }else{
             cam.stopQRDetection()
         }
@@ -3257,6 +3306,32 @@ class RobotImg {
                 if(imageLoad.getIsTraffic()){
                     await this.runtime.ioDevices.video.stopTraffic()
                     imageLoad.setIsTraffic(false)
+                }
+            }else if(args.ONE == '10'){
+                if(imageLoad.getIsGesture()){
+  
+                    try{
+                        await this.runtime.ioDevices.video.stopGestureDetection()
+                    }catch(e){
+    
+                    }
+    
+                    // imageLoad.getCamObj().stopFaceDetection()
+                    
+                    imageLoad.setIsGesture(false)
+                }
+            }else if(args.ONE == '11'){
+                if(imageLoad.getIsPose()){
+  
+                    try{
+                        await this.runtime.ioDevices.video.stopPoseDetection()
+                    }catch(e){
+    
+                    }
+    
+                    // imageLoad.getCamObj().stopFaceDetection()
+                    
+                    imageLoad.setIsPose(false)
                 }
             }
         // }

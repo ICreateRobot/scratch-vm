@@ -63,9 +63,10 @@ defaultBuiltinExtensions['MicrobiteIcreateP'] = () => require('../extensions/ICr
 defaultBuiltinExtensions['robotextend'] = () => require('../extensions/robot_extend');
 defaultBuiltinExtensions['k210'] = () => require('../extensions/k210');
 defaultBuiltinExtensions['robotpin'] = () => require('../extensions/robot_pin');
-defaultBuiltinExtensions['arduinouno'] = () => require('../extensions/arduino_uno');
-defaultBuiltinExtensions['py32'] = () => require('../extensions/py32');
-defaultBuiltinExtensions['ic2007'] = () => require('../extensions/ic2007');
+defaultBuiltinExtensions['gesturedetect'] = () => require('../extensions/gesture_detect');
+defaultBuiltinExtensions['IoTSchool'] = () => require('../extensions/ICreate_BJ_IoT');
+defaultBuiltinExtensions['posedetect'] = () => require('../extensions/pose_detect');
+defaultBuiltinExtensions['zeroth'] = () => require('../extensions/zeroth');
 
 /**
  * @typedef {object} ArgumentInfo - Information about an extension block argument

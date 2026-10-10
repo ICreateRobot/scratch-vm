@@ -253,6 +253,7 @@ class VirtualMachine extends EventEmitter {
             console.log(event.data)
             this.loadSB3(event.data)
         })
+
         this.currentDevice;
         this.channelDevice = new BroadcastChannel('current-device')
         this.channelDevice.addEventListener('message',(event)=>{

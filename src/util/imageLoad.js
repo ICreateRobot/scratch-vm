@@ -32,6 +32,10 @@ let isComputerCamera=false
 
 let cameraPlace='0'
 
+let isGesture=false
+let isPose = false
+
+
 
 let whatCameraOpen={
     playground:'',
@@ -228,6 +232,22 @@ function getTmAiComputer(){
 function setTmAiComputer(a){
     tm_ai_computer=a
 }
+
+function setIsGesture(a){
+    isGesture=a
+}
+
+function getIsGesture(){
+    return isGesture
+}
+
+function setIsPose(a){
+    isPose=a
+}
+
+function getIsPose(){
+    return isPose
+}
 module.exports={
     setIsImage,
     getIsImage,
@@ -274,5 +294,9 @@ module.exports={
     getTmAiNet,
     setTmAiNet,
     getTmAiComputer,
-    setTmAiComputer
+    setTmAiComputer,
+    setIsGesture,
+    getIsGesture,
+    setIsPose,
+    getIsPose
 }

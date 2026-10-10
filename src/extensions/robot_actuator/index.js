@@ -220,13 +220,25 @@ class RobotActuator {
             this.updateSendFun()
         })
 
+        // 更新逻辑
+        this.updateSendFun = () => {
+            console.log(this.lastHighPriority)
+            if (this.lastHighPriority) {
+                this.whatSendFun = this.lastHighPriority
+                console.log(this.whatSendFun)
+            } else if (this.isPortConnected) {
+                this.whatSendFun = 'port'
+            } else {
+                this.whatSendFun = 'net' // 默认兜底仍然是 net
+            }
+            console.log('当前发送方式:', this.whatSendFun)
+        }
+
         this._successWaitQueue = [];
         this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
-            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
-                // socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
                 if (this.responseQueue.length === 0) return;
 
                 const queue = this.responseQueue;
@@ -270,20 +282,6 @@ class RobotActuator {
                 }
             }
         })
-
-        // 更新逻辑
-        this.updateSendFun = () => {
-            console.log(this.lastHighPriority)
-            if (this.lastHighPriority) {
-                this.whatSendFun = this.lastHighPriority
-                console.log(this.whatSendFun)
-            } else if (this.isPortConnected) {
-                this.whatSendFun = 'port'
-            } else {
-                this.whatSendFun = 'net' // 默认兜底仍然是 net
-            }
-            console.log('当前发送方式:', this.whatSendFun)
-        }
         this.distance
 
         this.channel = new BroadcastChannel('distance_channel');
@@ -691,7 +689,6 @@ _removeSendCmdWaiter(handler) {
 //         });
 //     }
 
-
     async waitForSuccess() {
         return new Promise((resolve) => {
 
@@ -744,6 +741,7 @@ _removeSendCmdWaiter(handler) {
             this._successWaitQueue.splice(index, 1);
         }
     }
+
 
      waitForArrayMatchInArray(expectedArray, timeout = 6000) {
         return new Promise((resolve, reject) => {

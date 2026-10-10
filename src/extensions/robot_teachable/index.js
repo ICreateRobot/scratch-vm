@@ -299,8 +299,8 @@ class robotteachable {
         // 获取前一级路径
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         // 获取前两级路径
-        const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath =twoLevelsUp+'/static/aiModel/image/modules';  // 你的模型路径
+        // const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+        const modelPath =oneLevelUp+'/static/aiModel/image/modules';  // 你的模型路径
         console.log(modelPath)
         let h = modelPath+"/model.json"
         this.poseNetmode = await mobilenet.load({
@@ -320,8 +320,8 @@ class robotteachable {
         // 获取前一级路径
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         // 获取前两级路径
-        const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath =twoLevelsUp+'/static/aiModel/pose/modules';  // 你的模型路径
+        // const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+        const modelPath =oneLevelUp+'/static/aiModel/pose/modules';  // 你的模型路径
         console.log(modelPath)
         let h = modelPath+"/model-stride16.json"
         const poseNet = await posenet.load({modelUrl:h}).then(model => {
@@ -353,8 +353,8 @@ class robotteachable {
         // 获取前一级路径
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         // 获取前两级路径
-        const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath =twoLevelsUp+'/static/aiModel/gesture/modules';  // 你的模型路径
+        // const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
+        const modelPath =oneLevelUp+'/static/aiModel/gesture/modules';  // 你的模型路径
         const detectorConfig = {
             runtime: 'tfjs', // 或 mediapipe
             modelType: 'full',

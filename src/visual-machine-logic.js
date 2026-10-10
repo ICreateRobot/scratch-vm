@@ -33,9 +33,8 @@ module.exports=function createVisualLogic(componentInstance) {
                             if (mode != self.mode) {
                                 // 如果 mode 为 false，拒绝加载并抛出提示
                                 return reject(new Error('项目加载被阻止：当前模式禁止加载此项目'));
-                                // return
                             } else {
-                               if(extensionFile){
+                                if(extensionFile){
                                     extensionFile.async('text').then(contentExten=>{
                                         const extension=JSON.parse(contentExten)
                                         self.channelProjectExtension.postMessage(JSON.stringify({
@@ -51,9 +50,6 @@ module.exports=function createVisualLogic(componentInstance) {
                                 resolve(res);
                             }
                         }).catch(e => {
-                            // mode.json 解析失败仍继续加载
-                            console.warn('mode.json 解析失败，继续加载项目', e);
-
                             if(extensionFile){
                                  extensionFile.async('text').then(contentExten=>{
                                     const extension=JSON.parse(contentExten)
@@ -65,22 +61,23 @@ module.exports=function createVisualLogic(componentInstance) {
                                     console.log(e)
                                 })
                             }
-                           
+                            // mode.json 解析失败仍继续加载
+                            console.warn('mode.json 解析失败，继续加载项目', e);
                             _restoreModelFromZip(res[1]);
                             resolve(res);
                         });
                     } else {
-                        if(extensionFile){
-                                extensionFile.async('text').then(contentExten=>{
-                                const extension=JSON.parse(contentExten)
-                                self.channelProjectExtension.postMessage(JSON.stringify({
-                                    type:"load",
-                                    extension:extension
-                                }))
-                            }).catch(e=>{
-                                console.log(e)
-                            })
-                        }
+                       if(extensionFile){
+                                 extensionFile.async('text').then(contentExten=>{
+                                    const extension=JSON.parse(contentExten)
+                                    self.channelProjectExtension.postMessage(JSON.stringify({
+                                        type:"load",
+                                        extension:extension
+                                    }))
+                                }).catch(e=>{
+                                    console.log(e)
+                                })
+                            }
                         // 没有 mode.json 则正常加载
                         _restoreModelFromZip(res[1]);
                         resolve(res);
@@ -126,14 +123,13 @@ module.exports=function createVisualLogic(componentInstance) {
                 if (Object.prototype.hasOwnProperty.call(error, 'validationError')) {
                     return Promise.reject(JSON.stringify(error));
                 }
-                console.log(error)
+
                 alert(formatMessage({
                     id: 'loadProject.desc',
-                    default: 'This project can only be opened in either Interactive Mode or Download Mode. Please switch to the appropriate mode and try again.',
+                    default: 'This project cannot be opened in the current mode. Please switch to the corresponding mode (Mode: Interactive/Download)',
                     description: 'loadProject.desc'
                 }))
-                return
-                // return Promise.reject(error);
+                return;
             });
     }
     function _restoreModelFromZip(zip) {
@@ -200,6 +196,7 @@ module.exports=function createVisualLogic(componentInstance) {
     }
 
     function _saveProjectZip() {
+        console.log('保存项目')
         const projectJson = self.toJSON();
         const zip = new JSZip();
 
@@ -213,7 +210,6 @@ module.exports=function createVisualLogic(componentInstance) {
         if(self.loadExtension){
             zip.file('extension.json', JSON.stringify(self.loadExtension));
         }
-
         const date = new Date(1591657163000);
         const TF_PREFIX = 'tensorflowjs_models/';
         const EXTRA_KEYS = ['labelClass', 'class'];
@@ -284,7 +280,7 @@ module.exports=function createVisualLogic(componentInstance) {
         const currentURL = window.location.href;
         const oneLevelUp = currentURL.substring(0, currentURL.lastIndexOf('/'));
         const twoLevelsUp = oneLevelUp.substring(0, oneLevelUp.lastIndexOf('/'));
-        const modelPath = twoLevelsUp + '/static/model/';
+        const modelPath = oneLevelUp + '/static/model/';
         try {
             const response = await fetch(modelPath+`${item.id}`+".sb3");
             const arrayBuffer = await response.arrayBuffer();

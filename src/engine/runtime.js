@@ -35,6 +35,8 @@ const Video = require('../io/video');
 
 const StringUtil = require('../util/string-util');
 const uid = require('../util/uid');
+const iot = require('../io/iot');
+const toast = require('../io/toast');
 
 const defaultBlockPackages = {
     scratch3_control: require('../blocks/scratch3_control'),
@@ -489,7 +491,9 @@ class Runtime extends EventEmitter {
             mouse: new Mouse(this),
             mouseWheel: new MouseWheel(this),
             userData: new UserData(),
-            video: new Video(this)
+            video: new Video(this),
+            iot: new iot(this),
+            toast: new toast(this)
         };
 
         /**

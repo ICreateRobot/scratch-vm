@@ -200,18 +200,11 @@ class RobotShow {
             console.log('当前发送方式:', this.whatSendFun)
         }
 
-        this.distance
-
-        this.channel = new BroadcastChannel('distance_channel');
-
-
         this._successWaitQueue = [];
         this._sendCmdWaitQueue
         this.stopAll = new BroadcastChannel('stopAll')
         this.stopAll.addEventListener('message',(event)=>{
-            console.log('11111111')
             if(event.data && this.whatSendFun == 'ble'){
-                // socketBle.getSocket().send(JSON.stringify([0XCC,0x03]))
                 if (this.responseQueue.length === 0) return;
 
                 const queue = this.responseQueue;
@@ -255,6 +248,9 @@ class RobotShow {
                 }
             }
         })
+        this.distance
+
+        this.channel = new BroadcastChannel('distance_channel');
         this.responseQueue = []; // 等待中的 Promise 队列
         this.stateBuffer = [];   // 最近 3 个 state
         window.EditorPreload.sendStateData((state) => {
@@ -1014,8 +1010,6 @@ class RobotShow {
 //     //   }, 5000);
 //     });
 //   }
-
-
 sendCommandAndWaitForSuccess(command) {
     return new Promise(async (resolve, reject) => {
 
@@ -1076,77 +1070,59 @@ _removeSendCmdWaiter(handler) {
     }
 }
 
-//   async waitForSuccess() {
-//     return new Promise((resolve) => {
-//         function messageHandler(event) {
-//             try {
-//                 let data = event.data;
-//                 if (data === "success") {
-//                     console.log("收到 success 响应");
-//                     socket.getSocket().removeEventListener('message', messageHandler); // 解除监听
-//                     resolve(); // 继续执行
-//                 }
-//             } catch (error) {
-//                 console.error("解析 WebSocket 消息出错", error);
-//             }
-//         }
+    async waitForSuccess() {
+        return new Promise((resolve) => {
 
-//         socket.getSocket().addEventListener('message', messageHandler);
-//     });
-// }
+            const socketInstance = socket.getSocket();
 
-async waitForSuccess() {
-    return new Promise((resolve) => {
+            const messageHandler = (event) => {
+                try {
+                    let data = event.data;
 
-        const socketInstance = socket.getSocket();
+                    // ✅ 和你原来完全一样
+                    if (data === "success") {
+                        console.log("收到 success 响应");
 
-        const messageHandler = (event) => {
-            try {
-                let data = event.data;
+                        socketInstance.removeEventListener('message', messageHandler);
 
-                // ✅ 和你原来完全一样
-                if (data === "success") {
-                    console.log("收到 success 响应");
+                        // 仅仅多了一行：从等待池移除
+                        this._removeSuccessWaiter(messageHandler);
 
-                    socketInstance.removeEventListener('message', messageHandler);
-
-                    // 仅仅多了一行：从等待池移除
-                    this._removeSuccessWaiter(messageHandler);
-
-                    resolve();   // ← 仍然是不带参数 resolve
+                        resolve();   // ← 仍然是不带参数 resolve
+                    }
+                } catch (error) {
+                    console.error("解析 WebSocket 消息出错", error);
                 }
-            } catch (error) {
-                console.error("解析 WebSocket 消息出错", error);
+            };
+
+            // ✅ 仅新增：登记到等待池
+            if (!this._successWaitQueue) {
+                this._successWaitQueue = [];
             }
-        };
 
-        // ✅ 仅新增：登记到等待池
-        if (!this._successWaitQueue) {
-            this._successWaitQueue = [];
-        }
+            this._successWaitQueue.push({
+                resolve,
+                handler: messageHandler,
+                socket: socketInstance
+            });
 
-        this._successWaitQueue.push({
-            resolve,
-            handler: messageHandler,
-            socket: socketInstance
+            socketInstance.addEventListener('message', messageHandler);
         });
-
-        socketInstance.addEventListener('message', messageHandler);
-    });
-}
-
-_removeSuccessWaiter(handler) {
-
-    if (!this._successWaitQueue) return;
-
-    const index = this._successWaitQueue.findIndex(
-        item => item.handler === handler
-    );
-
-    if (index !== -1) {
-        this._successWaitQueue.splice(index, 1);
     }
-}
+
+    _removeSuccessWaiter(handler) {
+
+        if (!this._successWaitQueue) return;
+
+        const index = this._successWaitQueue.findIndex(
+            item => item.handler === handler
+        );
+
+        if (index !== -1) {
+            this._successWaitQueue.splice(index, 1);
+        }
+    }
+
     async brightness(args){
         if(this.mode){
 
@@ -1248,8 +1224,8 @@ _removeSuccessWaiter(handler) {
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
-                await this.waitForSuccess()
     
+                await this.waitForSuccess()
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1314,6 +1290,7 @@ _removeSuccessWaiter(handler) {
                 await new Promise(resolve => setTimeout(resolve, Number(args.TWO)*1000));
     
                 this.clear()
+    
                 await new Promise(resolve => setTimeout(resolve, 200));
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
@@ -1803,8 +1780,8 @@ _removeSuccessWaiter(handler) {
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
-    
                 await this.waitForSuccess()
+    
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)
@@ -1863,8 +1840,8 @@ _removeSuccessWaiter(handler) {
                     this.showToast("socket正在连接中，请稍后");
                     this.runtime.stopAll();
                 }
-    
                 await this.waitForSuccess()
+    
                 socket.setLastPostTime(Date.now())
             }else if(this.whatSendFun=='port'){
                 // this.channelPort.postMessage(str)

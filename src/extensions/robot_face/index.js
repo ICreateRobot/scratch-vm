@@ -1045,6 +1045,7 @@ class RobotFace {
             // this.stopAll.postMessage(true)
             return
         }
+
         // if(this.cameraPlace=='0'){
         //     await this.cstopMode({ONE:'3'})
         //     await this.cstopMode({ONE:'4'})

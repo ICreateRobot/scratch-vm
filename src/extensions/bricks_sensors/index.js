@@ -909,21 +909,20 @@ class BricksSensors {
     incline(args){
         if(!this.mode) return
 
-        let xMin=20;
-        let yMin=20;
         for(let i=0;i<distance[1].length;i++){
             if(distance[1][i].length>0 && args.ONE==distance[1][i][0]){
-                // console.log(distance[1][i])
-                if(args.TWO=='1' && distance[1][i][2]>distance[1][i][3] && distance[1][i][2]>xMin && (distance[1][i][4]==128||distance[1][i][4]==192)){
+                if(args.TWO=='1' && distance[1][i][2]>0 && distance[1][i][3]==0 && distance[1][i][4]>0){
                     return true
-                }else if(args.TWO=='2' && distance[1][i][2]>distance[1][i][3] && distance[1][i][2]>xMin && (distance[1][i][4]==64||distance[1][i][4]==0)){
+                }else if(args.TWO=='2' && distance[1][i][2]>0 && distance[1][i][3]==0 && distance[1][i][4]==0){
                     return true
-                }else if(args.TWO=='3'  && distance[1][i][3]>distance[1][i][2] && distance[1][i][3]>yMin && (distance[1][i][4]==128||distance[1][i][4]==0)){
+                }else if(args.TWO=='3' && distance[1][i][2]==0 && distance[1][i][3]>0 && distance[1][i][4]==0){
                     return true
-                }else if(args.TWO=='4'  && distance[1][i][3]>distance[1][i][2] && distance[1][i][3]>yMin && (distance[1][i][4]==192||distance[1][i][4]==64)){
+                }else if(args.TWO=='4' && distance[1][i][2]==0 && distance[1][i][3]>0 && distance[1][i][4]>0){
                     return true
                 }else if(args.TWO=='0' && distance[1][i][2]==0 && distance[1][i][3]==0){
                     return true
+                }else{
+                    return false
                 }
             }
         }

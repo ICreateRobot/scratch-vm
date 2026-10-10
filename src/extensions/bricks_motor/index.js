@@ -36,10 +36,9 @@ class BricksMotor {
 
     this.channel = new BroadcastChannel('distance_channel');
     this.channel.addEventListener('message', (event) => {
-        // console.log(event.data);
+        console.log(event.data);
         this.distance=event.data
     });
-    this.timer
   }
   getInfo() {
     return {
@@ -344,43 +343,76 @@ class BricksMotor {
   }
   
 
-  waitForArrayMatchInArray(targetArrayGetter, expectedArray, interval = 100, timeout = 5000) {
-      return new Promise((resolve, reject) => {
-          const startTime = Date.now();
+  // waitForArrayMatchInArray(targetArrayGetter, expectedArray, interval = 100, timeout = 5000) {
+  //     return new Promise((resolve, reject) => {
+  //         const startTime = Date.now();
 
-          if(this.timer){
-            clearInterval(this.timer)
-          }
-          this.timer = setInterval(() => {
-              const currentArray = targetArrayGetter(); // 获取目标数组
+  //         const timer = setInterval(() => {
+  //             const currentArray = targetArrayGetter(); // 获取目标数组
 
-              // console.log('-------------------------')
-              // console.log(currentArray)
-              // console.log(expectedArray)
-              // console.log('########################')
+  //             console.log('-------------------------')
+  //             console.log(currentArray)
+  //             console.log(expectedArray)
+  //             console.log('########################')
               
-              // 遍历当前数组，检查每个子数组的第一个元素
-              for (let i = 0; i < currentArray.length; i++) {
-                  if (Array.isArray(currentArray[i]) && currentArray[i][0] === expectedArray[0]) {
-                      // 找到匹配的子数组，接着判断整个数组是否匹配
-                      if (
-                          currentArray[i].length === expectedArray.length &&
-                          currentArray[i].every((val, j) => val === expectedArray[j])
-                      ) {
-                          clearInterval(this.timer);
-                          resolve(currentArray[i]);
-                          return;
-                      }
-                  }
-              }
+  //             // 遍历当前数组，检查每个子数组的第一个元素
+  //             for (let i = 0; i < currentArray.length; i++) {
+  //                 if (Array.isArray(currentArray[i]) && currentArray[i][0] === expectedArray[0]) {
+  //                     // 找到匹配的子数组，接着判断整个数组是否匹配
+  //                     if (
+  //                         currentArray[i].length === expectedArray.length &&
+  //                         currentArray[i].every((val, j) => val === expectedArray[j])
+  //                     ) {
+  //                         clearInterval(timer);
+  //                         resolve(currentArray[i]);
+  //                         return;
+  //                     }
+  //                 }
+  //             }
 
-              // if (Date.now() - startTime > timeout) {
-              //     clearInterval(timer);
-              //     console.log('Timeout waiting for array to match.')
-              //     reject(new Error('Timeout waiting for array to match.'));
-              // }
-          }, interval);
-      });
+  //             // if (Date.now() - startTime > timeout) {
+  //             //     clearInterval(timer);
+  //             //     console.log('Timeout waiting for array to match.')
+  //             //     reject(new Error('Timeout waiting for array to match.'));
+  //             // }
+  //         }, interval);
+  //     });
+  // }
+
+  waitForArrayMatchInArray(targetArrayGetter, expectedArray) {
+    return new Promise((resolve) => {
+      const check = () => {
+        const currentArray = targetArrayGetter();
+        if (!currentArray) return;
+
+        for (let i = 0; i < currentArray.length; i++) {
+          if (
+            Array.isArray(currentArray[i]) &&
+            currentArray[i][0] === expectedArray[0] &&
+            currentArray[i].length === expectedArray.length &&
+            currentArray[i].every((val, j) => val === expectedArray[j])
+          ) {
+            cleanup();
+            resolve(currentArray[i]);
+            return;
+          }
+        }
+      };
+
+      const messageHandler = () => {
+        check();
+      };
+
+      const cleanup = () => {
+        this.channel.removeEventListener('message', messageHandler);
+      };
+
+      // 每当有新消息时检测
+      this.channel.addEventListener('message', messageHandler);
+
+      // 初始化时检查一次（防止一开始就已经匹配）
+      check();
+    });
   }
   async motorSpeedCir(args){
     if(!this.mode) return
