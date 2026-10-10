@@ -2014,6 +2014,7 @@ _removeSendCmdWaiter(handler) {
                 this.runtime.stopAll();
             }
     
+            await this.waitForSuccess()
             socket.setLastPostTime(Date.now())
         }else if(this.whatSendFun=='port'){
             // this.channelPort.postMessage(str)
