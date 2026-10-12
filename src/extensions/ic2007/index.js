@@ -1162,14 +1162,14 @@ class IC2007 {
                     }),
                     value: 'ambulance.wav'
                 },
-                {
-                    text: formatMessage({
-                        id: 'robotsound.menuMusic.background',
-                        default: 'Background Music',
-                        description: 'robotsound.menuMusic.background'
-                    }),
-                    value: 'background.wav'
-                },
+                // {
+                //     text: formatMessage({
+                //         id: 'robotsound.menuMusic.background',
+                //         default: 'Background Music',
+                //         description: 'robotsound.menuMusic.background'
+                //     }),
+                //     value: 'background.wav'
+                // },
 
 
                 {
